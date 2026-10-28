@@ -25,3 +25,22 @@
 .upload-status{display:block;font-size:13px;line-height:1.5;color:#567a71;margin:12px auto;overflow-wrap:anywhere}
 .upload-accept{display:block;color:#93a29c;font-size:11px}
 .drop:focus-within{outline:2px solid #67b69e;outline-offset:4px}
+
+
+/* Optional, locally processed demographic context. Never a risk-score widget. */
+.personal-context-panel{margin:24px 0 23px;border:1px solid #d8e6dd;border-radius:15px;background:#f7fbf8;overflow:hidden}
+.personal-context-panel>summary{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 16px;padding:17px 20px;cursor:pointer;list-style:inside;color:#254d3e}
+.personal-context-panel>summary:hover{background:#edf7ef}
+.personal-context-panel>summary:focus-visible{outline:2px solid #448e70;outline-offset:-3px}
+.personal-context-title{font:800 15px Manrope,sans-serif}
+.personal-context-optional{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;background:#e1eee4;color:#426955;padding:4px 8px;border-radius:20px;margin-left:7px;vertical-align:middle}
+.personal-context-caption{font-size:12px;color:#587366;line-height:1.55}
+.personal-context-body{padding:0 20px 17px}
+.personal-context-body>p{font-size:13px;line-height:1.65;color:#4d6659;margin:0 0 15px}
+.personal-context-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin:14px 0}
+.personal-context-fields label{font-size:12px;line-height:1.5;font-weight:800;color:#345f49;min-width:0}
+.personal-context-fields input,.personal-context-fields select{display:block;width:100%;margin-top:7px;padding:11px 12px;background:white;border:1px solid #cbded1;border-radius:9px;color:#214836;outline:none;font:500 13px 'DM Sans',sans-serif;min-height:44px}
+.personal-context-fields input:focus-visible,.personal-context-fields select:focus-visible{border-color:#3d9271;outline:2px solid #83c2a1;outline-offset:1px}
+.personal-context-summary{font-weight:800;color:#275f46!important;background:#e8f3eb;padding:9px 12px;border-radius:9px;margin:4px 0 9px!important}
+.personal-context-privacy{font-size:11px!important;color:#627b6b!important;line-height:1.6!important;margin:0!important}
+@media(max-width:780px){.personal-context-fields{grid-template-columns:1fr}.personal-context-panel>summary{padding:14px}.personal-context-body{padding:0 14px 15px}}
