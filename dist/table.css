@@ -63,3 +63,6 @@
 .clinvar-source p strong{color:#335546}
 .clinvar-source a{font-weight:800;color:#27755a;text-decoration:underline}
 @media(max-width:640px){.clinvar-allele-grid{grid-template-columns:1fr}.clinvar-allele{padding:12px}}
+
+.clinvar-allele>a{display:inline-block;margin-top:9px;font-size:11px;font-weight:800;color:#28755b;text-decoration:underline;text-underline-offset:3px}
+.clinvar-allele>a:focus-visible{outline:2px solid #4c9a75;outline-offset:3px}
