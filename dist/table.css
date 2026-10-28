@@ -220,3 +220,8 @@
 .clinvar-card--benign .clinvar-dose-status{margin:10px 0 7px}
 .clinvar-card-facts--benign{background:#fafcfb;border-radius:8px;padding:12px;margin:10px 0}
 @media(max-width:520px){.clinvar-benign-reassurance{padding:11px}.clinvar-card-facts--benign{padding:9px}}
+
+/* Context is a self-report explanation, never an individualized risk score. */
+.clinvar-gene-context{margin:0 0 14px;background:#eef6f3;border-left:3px solid #4d9d7b;padding:10px 13px;
+  color:#456254;font-size:12px;line-height:1.65;border-radius:0 8px 8px 0}
+.clinvar-gene-context strong{color:#24573f}
