@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {conditionLabels, classificationTone, classificationHeadline, genotypeAlleleContext, inheritanceContext, inheritanceBrief, inheritancePattern, clinicalDisplayGroup, reviewLabel} from '../dist/clinvar-display.js';
+import {conditionLabels, conditionBrief, classificationTone, classificationHeadline, genotypeAlleleContext, inheritanceContext, inheritanceBrief, inheritancePattern, clinicalDisplayGroup, reviewLabel} from '../dist/clinvar-display.js';
 
 test('long ClinVar condition aliases become readable distinct labels',()=>{
   const names=conditionLabels('Autosomal recessive nonsyndromic hearing loss 1A|not provided| Hearing impairment |Nonsyndromic genetic hearing loss|Autosomal recessive nonsyndromic hearing loss 1A');
@@ -104,4 +104,25 @@ test('one alternate copy may matter with dominant but no illness is inferred',()
  const mixed=inheritanceBrief('Autosomal dominant example|Autosomal recessive example',1);
  assert.match(mixed.heading,/more than one inheritance pattern/);
  assert.match(inheritanceBrief('Not specified',1).heading,/cannot tell whether you would be affected/);
+});
+
+test('breast-ovarian susceptibility has a bounded definition without personal cancer claims',()=>{
+ const result=conditionBrief('Breast-ovarian cancer, familial, susceptibility to, 2');
+ assert.equal(result.specific,true);
+ assert.match(result.text,/hereditary cancer susceptibility syndrome/);
+ assert.match(result.text,/many variants in these genes are benign/);
+ assert.doesNotMatch(result.text,/you have cancer|you have a disease/i);
+});
+test('unknown disease names use a safe source-linked description rather than invented symptoms',()=>{
+ const result=conditionBrief('A completely unfamiliar synthetic disorder');
+ assert.equal(result.specific,false);
+ assert.match(result.text,/recorded alongside the variant/);
+ assert.doesNotMatch(result.text,/causes|you have/i);
+});
+test('homozygous benign variants never become evidence of a condition',()=>{
+ const call=genotypeAlleleContext({genotype:'CC'},{ref:'G',alt:'C',chr:'13'});
+ assert.equal(call.zygosity,'Homozygous alternate');
+ const source=alleleDoseSummary('Breast-ovarian cancer, familial, susceptibility to, 2',2,'Benign','13');
+ assert.equal(source.type,'benign');
+ assert.match(source.detail,/do not turn a benign variant into disease evidence/);
 });
