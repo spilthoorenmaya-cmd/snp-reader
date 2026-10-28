@@ -1,0 +1,22 @@
+# Personal genetic data and derived individual-level results
+*raw*dna*.csv
+*raw*dna*.txt
+*genome*.txt
+*genome*.zip
+snp_data.csv
+rsid_list.txt
+clinvar_matches.csv
+snp_output/
+clinvar_output/
+clinvar_reference/
+*.partial
+
+# Development artifacts
+__pycache__/
+.pytest_cache/
+node_modules/
+*.tar.gz
+.DS_Store
+
+# Site-specific private deployment metadata
+.openai/
