@@ -369,12 +369,11 @@ test('real browser: evidence tabs isolate clinical, carrier, traits and benign e
     await page.keyboard.press('Home');
     assert.equal(await page.locator('#tab-clinical').getAttribute('aria-selected'),'true');
     await page.keyboard.press('End');
-    assert.equal(await page.locator('#tab-explore').getAttribute('aria-selected'),'true');
-    assert.deepEqual(await page.locator('#result-tabs [role="tab"]').count(),5);
-    assert.equal(await page.locator('#tab-explore').getAttribute('aria-selected'),'true');
-    assert.equal(await page.locator('#result-tabs .result-tab-family').count(),2);
-    assert.equal(await page.locator('#tab-panel-carrier .baby-eye-explorer').count(),0);
-    assert.equal(await page.locator('#tab-panel-explore .baby-eye-explorer').count(),1);
+    assert.equal(await page.locator('#tab-benign').getAttribute('aria-selected'),'true');
+    assert.equal(await page.locator('#result-tabs [role="tab"]').count(),4);
+    assert.equal(await page.locator('#result-tabs .result-tab-family').count(),1);
+    assert.equal(await page.locator('#tab-explore').count(),0);
+    assert.equal(await page.locator('.baby-eye-explorer').count(),0);
   }finally{await page.close()}
 });
 
@@ -491,62 +490,6 @@ test('real browser: benign CFTR call is benign, not a carrier alert',async()=>{
   }finally{await page.close()}
 });
 
-test('real browser: baby eye-color explorer is playful, polygenic and never claims a baby-eye probability',async()=>{
-  const page=await pageReady();
-  const requests=[];
-  page.on('request',req=>{if(req.method()!=='GET'||/partnerEye|dark-brown|baby-eye|rs12913832=|genotype=AG/i.test(req.url()))requests.push(req.url())});
-  try{
-    const raw='# genome build 37\nrsid\tchromosome\tposition\tgenotype\nrs12913832\t15\t28365618\tAG\n';
-    await page.locator('#file').setInputFiles({name:'eye-traits.txt',mimeType:'text/plain',buffer:Buffer.from(raw)});
-    await page.locator('#tab-explore').click();
-    assert.equal(await page.locator('#tab-panel-carrier .baby-eye-explorer').count(),0);
-    assert.equal(await page.locator('#tab-panel-carrier').isVisible(),false);
-    const card=page.locator('#tab-panel-explore .baby-eye-explorer');
-    await card.waitFor();
-    assert.match(await card.locator('h3').innerText(),/green-eyed baby/);
-    assert.match(await card.innerText(),/many genes/);
-    assert.match(await page.locator('#baby-eye-genotype').innerText(),/rs12913832 is AG/);
-    await page.locator('#baby-eye-self').selectOption('dark-brown');
-    await page.locator('#baby-eye-partner').selectOption('green');
-    assert.match(await page.locator('#baby-eye-headline').innerText(),/green-eyed child is possible/);
-    assert.match(await page.locator('#baby-eye-story').innerText(),/very dark brown eyes/);
-    assert.match(await page.locator('#baby-eye-story').innerText(),/green eyes/);
-    assert.equal(await page.locator('#baby-eye-offspring').isVisible(),false);
-    assert.match(await page.locator('#baby-eye-inheritance').innerText(),/does not tell us which HERC2 alleles/);
-
-    await page.locator('#baby-eye-partner-marker').selectOption('GG');
-    assert.match(await page.locator('#baby-eye-offspring').innerText(),/AG · GG/);
-    assert.match(await page.locator('#baby-eye-inheritance').innerText(),/NOT possible eye-colour predictions or percentages/);
-    assert.doesNotMatch(await page.locator('#baby-eye-result').innerText(),/\d+%/);
-
-    await page.locator('#tab-clinical').click();
-    await page.locator('#tab-explore').click();
-    assert.equal(await page.locator('#baby-eye-partner').inputValue(),'green');
-    await page.locator('#context-age').fill('35');
-    assert.equal(await page.locator('#baby-eye-partner-marker').inputValue(),'GG');
-    assert.deepEqual(requests,[]);
-
-    await page.locator('#clear').click();
-    await page.locator('#file').setInputFiles({name:'eye-traits.txt',mimeType:'text/plain',buffer:Buffer.from(raw)});
-    await page.locator('#tab-explore').click();
-    assert.equal(await page.locator('#baby-eye-self').inputValue(),'');
-    assert.equal(await page.locator('#baby-eye-partner').inputValue(),'');
-    assert.equal(await page.locator('#baby-eye-partner-marker').inputValue(),'');
-  }finally{await page.close()}
-});
-test('real browser: invalid or absent HERC2 position is never used as inherited-eye evidence',async()=>{
-  const page=await pageReady();
-  try{
-    const raw='# genome build 37\nrsid\tchromosome\tposition\tgenotype\nrs12913832\t15\t28365619\tAG\n';
-    await page.locator('#file').setInputFiles({name:'wrong-position.txt',mimeType:'text/plain',buffer:Buffer.from(raw)});
-    await page.locator('#tab-explore').click();
-    assert.match(await page.locator('#baby-eye-genotype').innerText(),/could not be verified/);
-    await page.locator('#baby-eye-partner-marker').selectOption('AG');
-    assert.equal(await page.locator('#baby-eye-offspring').isVisible(),false);
-    assert.match(await page.locator('#baby-eye-inheritance').innerText(),/verified genotype for you is also needed/);
-  }finally{await page.close()}
-});
-
 test('real browser: card chevron has a visible up/down state and hover does not hide clinical evidence',async()=>{
  const fixture={id:'rs762551',gene:'EXAMPLE',build:'GRCh37',chr:'15',pos:74749576,
    ref:'C',alt:'A',sig:'Pathogenic',review:'reviewed by expert panel',
@@ -571,13 +514,10 @@ test('real browser: card chevron has a visible up/down state and hover does not 
    assert.equal(await toggle.locator('.toggle-open-label').isVisible(),true);
    assert.equal(await toggle.locator('.toggle-closed-label').isVisible(),false);
    await page.locator('#tab-carrier').click();
-   assert.equal(await page.locator('#tab-panel-carrier .baby-eye-explorer').count(),0);
-   assert.equal(await page.locator('#tab-panel-explore .baby-eye-explorer').count(),1);
+   assert.equal(await page.locator('#tab-panel-explore').count(),0);
+   assert.equal(await page.locator('.baby-eye-explorer').count(),0);
    assert.match(await page.locator('#tab-panel-carrier .tab-panel-intro').innerText(),/carrier-screening results or diagnoses/);
-   await page.locator('#tab-explore').click();
-   assert.match(await page.locator('#tab-panel-explore .tab-panel-intro').innerText(),/deliberately separate from clinical and carrier findings/);
-   assert.equal(await page.locator('#variant-toolbar').isVisible(),false);
-   assert.equal(await page.locator('#catalog-explainer').isVisible(),false);
+   assert.equal(await page.locator('#variant-toolbar').isVisible(),true);
    await page.locator('#tab-clinical').click();
    assert.equal(await page.locator('#variant-toolbar').isVisible(),true);
  }finally{await page.close()}
