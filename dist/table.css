@@ -80,3 +80,11 @@
 .clinvar-secondary-note{font-size:12px;line-height:1.7;color:#526e5e;margin:0 20px 18px}
 .clinvar-secondary>.clinvar-grid{padding:0 16px 18px}
 @media(max-width:480px){.clinvar-secondary>summary{padding:15px}.clinvar-secondary-note{margin:0 15px 15px}.clinvar-secondary>.clinvar-grid{padding:0 12px 15px}}
+
+/* ClinVar records can show up in consumer DNA uploads without diagnosing a disease.
+   Always show the reader's interpretation status before the source terminology. */
+.clinvar-personal-status{border:1px solid #d9e5db;background:#f3f8f3;border-radius:10px;margin-bottom:16px;padding:11px 13px;color:#315a43}
+.clinvar-personal-status strong{display:block;font:800 12px/1.5 Manrope,sans-serif;color:#26563f}
+.clinvar-personal-status p{font-size:12px;line-height:1.65;color:#52715b;margin:6px 0 0}
+.clinvar-personal-status--carrier{background:#f4f7f0;border-color:#dce8d7}
+.clinvar-personal-status--carrier strong{color:#376044}
