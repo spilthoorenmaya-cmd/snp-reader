@@ -1,4 +1,5 @@
 import {extractDnaFromZip} from './zip-reader.js';
+import {selectBenignExample} from './benign-example.js';
 import {interpretSerpina1} from './serpina1.js';
 import {parseDNA, isCalledDiploidSnp, isNoCall} from './dna-parser.js';
 import {curatedMatches, matchClinvar} from './snp-matching.js';
@@ -246,7 +247,9 @@ function draw(){
     };
     const primaryHtml=renderGeneGroups(primaryHits);
     const recessiveHtml=renderGeneGroups(recessiveHits);
-    const benignHtml=renderGeneGroups(benignHits);
+    const benignSelection=selectBenignExample(benignHits.slice(0,limit));
+    const benignHtml=benignSelection.example?renderCard(benignSelection.example):'';
+    const otherBenignHtml=renderGeneGroups(benignSelection.remaining);
     clinicalHtml=`<section class="clinvar-section" aria-label="ClinVar allele-specific evidence">
       <div class="clinvar-heading"><div><h3>ClinVar evidence</h3><p>${safe(note)} · ${safe(clinvarMessage)}</p></div></div>
       <div class="clinvar-legend" aria-label="Inheritance pattern color guide">
@@ -261,8 +264,16 @@ function draw(){
       ${primaryHtml?`<div class="clinvar-gene-groups">${primaryHtml}</div>`:''}
       ${benignHtml?`<details class="clinvar-benign" aria-label="Benign variant records">
         <summary><strong>${benignHits.length.toLocaleString()} ${benignHits.length===1?'benign variant':'benign variants'} found</strong><span>Generally not linked to increased risk for their listed conditions · not a whole-gene test</span></summary>
-        <p class="clinvar-secondary-note">These are benign or likely benign variant classifications for the listed conditions. Having two copies of a benign variant does not make it disease-associated. These records cannot establish that the entire gene is free from other variants.</p>
-        <div class="clinvar-gene-groups">${benignHtml}</div>
+        <p class="clinvar-secondary-note">Benign and likely benign variants are generally not disease-causing for their listed conditions. One example is shown below, chosen for its source review status—not because it is more important or protective. These findings cannot rule out other variants in the gene.</p>
+        <div class="clinvar-benign-example">
+          <div class="clinvar-benign-example-caption"><strong>One example</strong><span>${safe(benignSelection.example?.e?.gene||'')} · ${safe(benignSelection.example?.e?.id||'')}</span></div>
+          ${benignHtml}
+        </div>
+        ${otherBenignHtml?`<details class="clinvar-benign-rest">
+          <summary>Show ${benignSelection.remaining.length.toLocaleString()} other benign ${benignSelection.remaining.length===1?'record':'records'}</summary>
+          <p>These remain available for research, but do not indicate that you have a condition. The list may be limited to ${limit} records; search by gene or rsID to find a specific result.</p>
+          <div class="clinvar-gene-groups">${otherBenignHtml}</div>
+        </details>`:''}
       </details>`:''}
       ${recessiveHtml?`<details class="clinvar-secondary" aria-label="One-copy findings with recessive condition names">
         <summary><strong>${recessiveHits.length.toLocaleString()} one-copy ${recessiveHits.length===1?'finding':'findings'} with recessive condition names</strong><span>Possible carrier-related evidence · not a diagnosis</span></summary>
