@@ -17,9 +17,10 @@ export function conditionLabels(raw) {
 }
 export function classificationTone(value) {
   const text = String(value || '').toLowerCase();
+  // Conflicting classifications are NOT a pathogenic classification.
+  if (text.includes('uncertain') || text.includes('conflicting')) return 'uncertain';
   if (text.includes('pathogenic')) return 'pathogenic';
   if (text.includes('benign')) return 'benign';
-  if (text.includes('uncertain') || text.includes('conflicting')) return 'uncertain';
   return 'neutral';
 }
 export function reviewLabel(value) {
