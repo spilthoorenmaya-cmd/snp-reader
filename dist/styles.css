@@ -9,7 +9,7 @@
   inset:0;
   z-index:1;
   pointer-events:none;
-  background-image:url("dna-hero.png");
+  background-image:url("dna-hero.svg");
   background-size:cover;
   background-position:50% 50%;
 }
@@ -17,3 +17,6 @@
 @media (max-width:800px) {
   .hero-art::before { background-position:50% 44%; }
 }
+
+/* The illustrative SVG provides the full DNA artwork, replacing the old schematic. */
+.hero-art .strand,.hero-art .art-orbit{display:none}
