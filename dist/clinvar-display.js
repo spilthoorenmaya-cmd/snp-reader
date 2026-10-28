@@ -248,6 +248,39 @@ export function inheritanceContext(raw,alternateCopies) {
 }
 
 /**
+ * A curated exception to name-based recessive detection: ClinVar often uses
+ * just "cystic fibrosis" or "mucoviscidosis" without spelling out
+ * "autosomal recessive". Do NOT generalize all CFTR records: the variant
+ * must still be a pathogenic classification for THAT condition.
+ */
+export function isCysticFibrosisCondition(e) {
+  if(String(e?.gene||'').trim().toUpperCase()!=='CFTR')return false;
+  return conditionLabels(e?.condition).some(name=>
+    /\b(?:cystic fibrosis|mucoviscidosis|mucoviscidose)\b/i.test(name));
+}
+
+/** Education about partner testing; not an individual reproductive risk score. */
+export function carrierPlanningNote(e,alternateCopies) {
+  if(clinicalDisplayGroup(e,alternateCopies)!=='one-copy-recessive')return null;
+  const cysticFibrosis=isCysticFibrosisCondition(e);
+  return cysticFibrosis
+    ? {
+      title:'Possible cystic fibrosis carrier-related finding · not confirmed',
+      message:'One alternate copy of a CFTR variant classified as pathogenic for cystic fibrosis was detected. This does not mean you have cystic fibrosis or confirm that you are a carrier. Some CFTR variants have condition-specific effects, so clinical confirmation matters.',
+      partner:'If you and a reproductive partner are both confirmed carriers of CFTR variants that can cause cystic fibrosis together, each pregnancy typically has a 1 in 4 (25%) chance of an affected child. The two variants do not need to be identical.',
+      action:'If planning children, discuss clinical CFTR carrier screening for you and your partner with a qualified professional. Raw DNA files do not test every variant.',
+      source:'https://www.cff.org/intro-cf/cf-genetics-basics'
+    }
+    : {
+      title:'Possible recessive carrier-related finding · not confirmed',
+      message:'One alternate copy was detected for a variant classified as pathogenic for a condition with a recessive inheritance label. This is not a diagnosis or a confirmed carrier-screening result.',
+      partner:'If you and a reproductive partner are both confirmed carriers of variants that cause the same autosomal recessive condition, each pregnancy typically has a 1 in 4 (25%) chance of an affected child. Your variants do not necessarily have to be identical.',
+      action:'Consider clinical carrier screening and genetic counseling when planning a pregnancy. Another gene variant may be missing from consumer raw DNA data.',
+      source:'https://medlineplus.gov/genetics/understanding/inheritance/riskassessment/'
+    };
+}
+
+/**
  * Conservative display grouping only. This does NOT determine true inheritance
  * or carrier status. Actual modes need condition-specific curated evidence.
  * For one-copy recessive-pattern findings with no dominant or X-linked
@@ -259,7 +292,7 @@ export function clinicalDisplayGroup(e, alternateCopies) {
   if (!/^(Pathogenic|Likely pathogenic|Pathogenic\/Likely pathogenic)$/i.test(String(e?.sig || ''))) return 'main';
   if (!/^(?:[1-9]|1\d|2[0-2])$/.test(String(e?.chr || '').replace(/^chr/i,''))) return 'main';
   const names=conditionLabels(e?.condition);
-  const hasRecessive=names.some(name=>/\b(?:autosomal\s+)?recessive\b/i.test(name));
+  const hasRecessive=names.some(name=>/\b(?:autosomal\s+)?recessive\b/i.test(name))||isCysticFibrosisCondition(e);
   const hasDominant=names.some(name=>/\b(?:autosomal\s+)?dominant\b/i.test(name));
   const hasOtherPatterns=names.some(name=>/\b(?:x.linked|y.linked|mitochondrial)\b/i.test(name));
   return hasRecessive&&!hasDominant&&!hasOtherPatterns ? 'one-copy-recessive' : 'main';
