@@ -58,7 +58,9 @@ test('reference vs alternate homozygous calls correctly count 0 or 2 alternate a
     assert.equal(genotypeAlleleContext({genotype:invalid},e),null);
 });
 test('inheritance copy-number guidance is contextual, not a claimed diagnosis',()=>{
-  assert.match(inheritanceContext('Autosomal recessive sample condition',1),/both gene copies/);
+  assert.match(inheritanceContext('Autosomal recessive sample condition',1),/both copies of the gene/);
+  assert.match(inheritanceContext('Autosomal recessive sample condition',1),/in trans/);
+  assert.match(inheritanceContext('Autosomal recessive sample condition',1),/in cis/);
   assert.match(inheritanceContext('Autosomal recessive sample condition',2),/not a clinical diagnosis/);
   assert.match(inheritanceContext('Autosomal dominant sample condition',1),/One disease-associated copy can matter/);
   assert.match(inheritanceContext('Autosomal dominant sample condition|Autosomal recessive sample condition',1),/both recessive and dominant/);
@@ -83,8 +85,10 @@ test('personalized recessive copy count explains two altered gene copies, not ne
  const one=inheritanceBrief('Autosomal recessive example condition',1);
  assert.match(one.heading,/one alternate copy/);
  assert.match(one.heading,/two affected gene copies/);
- assert.match(one.detail,/need not contain the same variant/);
- assert.match(one.detail,/does not establish whether a second relevant variant is present/);
+ assert.match(one.detail,/different positions/);
+ assert.match(one.detail,/opposite copies of the gene/);
+ assert.match(one.detail,/same copy do not make two affected copies/);
+ assert.match(one.detail,/cannot establish that, detect all variants, or confirm carrier status/);
  const two=inheritanceBrief('Autosomal recessive example condition',2);
  assert.match(two.heading,/two copies of this alternate allele/);
  assert.match(two.detail,/cannot establish that you have the condition/);
