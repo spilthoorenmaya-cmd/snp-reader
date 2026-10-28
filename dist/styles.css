@@ -89,7 +89,7 @@ a {
 }
 .hero-copy {
   width:min(650px,100%);
-  padding:83px 28px 65px max(38px,calc((100vw - 1200px)/2));
+  padding:49px 28px 38px max(38px,calc((100vw - 1200px)/2));
   z-index:1
 }
 .eyebrow,.kicker {
@@ -131,7 +131,7 @@ h1 em {
 .hero-actions {
   display:flex;
   gap:12px;
-  margin-top:30px;
+  margin-top:25px;
   flex-wrap:wrap
 }
 .btn {
@@ -171,10 +171,19 @@ h1 em {
 .trust {
   display:flex;
   flex-wrap:wrap;
-  gap:20px;
-  color:#afc7bb;
-  font-size:11px;
-  margin-top:53px
+  gap:8px;
+  color:#e1efe6;
+  font-size:12px;
+  line-height:1.45;
+  margin-top:27px
+}
+.trust span {
+  display:inline-flex;
+  align-items:center;
+  padding:7px 10px;
+  border:1px solid rgba(211,233,216,.18);
+  border-radius:8px;
+  background:rgba(212,235,218,.09)
 }
 .hero-art {
   position:relative;
@@ -488,7 +497,7 @@ footer p,footer a {
     grid-template-columns:1fr
   }
   .hero-copy {
-    padding:65px 28px
+    padding:49px 28px 38px
   }
   .hero-art {
     height:260px
@@ -522,7 +531,7 @@ footer p,footer a {
     flex-wrap:wrap
   }
   .trust {
-    margin-top:34px
+    margin-top:22px
   }
 }
 @media(max-width:500px) {
