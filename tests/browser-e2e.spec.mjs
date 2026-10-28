@@ -405,3 +405,81 @@ test('real browser: one benign marker shows a single green badge with neutral de
     assert.match(await card.locator('.clinvar-source').innerText(),/Original ClinVar classification: Benign/);
   }finally{await page.close()}
 });
+
+
+test('real browser: SERPINA1 S and Z together appear before other clinical cards and remain collapsible',async()=>{
+  const clinical={id:'rs762551',gene:'EXAMPLE',build:'GRCh37',chr:'15',pos:74749576,
+    ref:'C',alt:'A',sig:'Pathogenic',review:'reviewed by expert panel',
+    condition:'Autosomal dominant example condition',variation:45321};
+  const page=await pageReady([clinical]);
+  try{
+    const raw='# genome build 37\nrsid\tchromosome\tposition\tgenotype\nrs762551\t15\t74749576\tCA\nrs28929474\t14\t94844947\tCT\nrs17580\t14\t94847262\tAT\n';
+    await page.locator('#file').setInputFiles({name:'serpina1-example.txt',mimeType:'text/plain',buffer:Buffer.from(raw)});
+    assert.equal(await page.locator('#tab-clinical').getAttribute('aria-selected'),'true');
+    const first=await page.locator('#tab-panel-clinical').evaluate(el=>el.firstElementChild?.className);
+    assert.match(first,/serpina1-panel/);
+    const panel=page.locator('#tab-panel-clinical>.serpina1-panel');
+    await panel.waitFor();
+    assert.equal(await panel.evaluate(el=>el.open),true);
+    assert.match(await panel.locator('summary').first().innerText(),/Both an S allele and a Z allele detected/);
+    assert.match(await panel.innerText(),/cannot prove the variants lie on opposite gene copies/);
+    const another=page.locator('#tab-panel-clinical .clinvar-card');
+    assert.equal(await another.count(),1);
+    assert.equal(await another.evaluate(el=>el.open),false);
+    assert.match(await another.locator(':scope>summary').innerText(),/EXAMPLE/);
+    await panel.locator(':scope>summary').click();
+    assert.equal(await panel.evaluate(el=>el.open),false);
+    await another.locator(':scope>summary').click();
+    assert.equal(await another.evaluate(el=>el.open),true);
+    await page.locator('#context-age').fill('35');
+    assert.equal(await panel.evaluate(el=>el.open),false);
+    assert.equal(await another.evaluate(el=>el.open),true);
+  }finally{await page.close()}
+});
+test('real browser: one CFTR cystic fibrosis variant is possible carrier information with partner-testing guidance',async()=>{
+  const rs='rs987654321';
+  const evidence={id:rs,gene:'CFTR',build:'GRCh37',chr:'7',pos:117199644,
+    ref:'C',alt:'T',sig:'Pathogenic',review:'reviewed by expert panel',
+    condition:'Cystic fibrosis',variation:987654};
+  const page=await pageReady([evidence]);
+  try{
+    const raw='# genome build 37\nrsid\tchromosome\tposition\tgenotype\n'+rs+'\t7\t117199644\tCT\n';
+    await page.locator('#file').setInputFiles({name:'synthetic-cftr.txt',mimeType:'text/plain',buffer:Buffer.from(raw)});
+    assert.equal(await page.locator('#tab-carrier').getAttribute('aria-selected'),'true');
+    assert.match(await page.locator('#tab-panel-carrier .tab-panel-intro').innerText(),/both are confirmed carriers/);
+    const card=page.locator('#tab-panel-carrier .clinvar-secondary .clinvar-card');
+    await card.waitFor();
+    assert.equal(await card.count(),1);
+    assert.equal(await card.evaluate(el=>el.open),false);
+    assert.match(await card.locator(':scope>summary').innerText(),/Possible CF carrier-related finding/);
+    assert.equal(await page.locator('#tab-panel-clinical .clinvar-card').count(),0);
+    await card.locator(':scope>summary').click();
+    assert.equal(await card.evaluate(el=>el.open),true);
+    const note=card.locator('.carrier-family-planning');
+    assert.match(await note.innerText(),/Possible cystic fibrosis carrier-related finding/);
+    assert.match(await note.innerText(),/does not mean you have cystic fibrosis/);
+    assert.match(await note.innerText(),/both confirmed carriers/);
+    assert.match(await note.innerText(),/1 in 4 \(25%\)/);
+    assert.match(await note.innerText(),/do not need to be identical/);
+    assert.match(await note.innerText(),/clinical CFTR carrier screening/);
+    assert.equal(await note.locator('a').getAttribute('href'),'https://www.cff.org/intro-cf/cf-genetics-basics');
+    assert.match(await card.locator('.clinvar-inheritance-banner').innerText(),/Recessive pattern: cystic fibrosis/);
+    assert.match(await card.locator('.clinvar-dose-status').innerText(),/possible carrier-related information/);
+  }finally{await page.close()}
+});
+test('real browser: benign CFTR call is benign, not a carrier alert',async()=>{
+  const rs='rs987654321';
+  const evidence={id:rs,gene:'CFTR',build:'GRCh37',chr:'7',pos:117199644,
+    ref:'C',alt:'T',sig:'Benign',review:'reviewed by expert panel',
+    condition:'Cystic fibrosis',variation:987655};
+  const page=await pageReady([evidence]);
+  try{
+    const raw='# genome build 37\nrsid\tchromosome\tposition\tgenotype\n'+rs+'\t7\t117199644\tCT\n';
+    await page.locator('#file').setInputFiles({name:'synthetic-cftr.txt',mimeType:'text/plain',buffer:Buffer.from(raw)});
+    assert.equal(await page.locator('#tab-benign').getAttribute('aria-selected'),'true');
+    assert.equal(await page.locator('#tab-panel-carrier .clinvar-secondary').count(),0);
+    assert.equal(await page.locator('.carrier-family-planning').count(),0);
+    assert.equal(await page.locator('#tab-panel-benign .clinvar-classification--benign').count(),1);
+    assert.match(await page.locator('#tab-panel-benign .clinvar-card-overview').innerText(),/Not evidence of the listed condition/);
+  }finally{await page.close()}
+});
