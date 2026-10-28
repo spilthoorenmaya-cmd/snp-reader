@@ -340,7 +340,7 @@ test('real browser: evidence tabs isolate clinical, carrier, traits and benign e
     await page.locator('#tab-benign').click();
     assert.equal(await page.locator('#tab-panel-benign').isVisible(),true);
     assert.equal(await page.locator('#tab-panel-benign .clinvar-benign-example .clinvar-card').count(),1);
-    assert.match(await page.locator('#tab-panel-benign').innerText(),/Benign variants/);
+    assert.match(await page.locator('#tab-panel-benign').innerText(),/benign variant found/i);
     assert.match(await page.locator('#tab-description').innerText(),/Benign is not the same as protective/);
     assert.equal(await page.locator('#filter').isVisible(),false);
 
