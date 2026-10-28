@@ -269,3 +269,18 @@
 .serpina1-links{display:flex;gap:10px 23px;flex-wrap:wrap}
 .serpina1-links a{font-size:12px;font-weight:800;text-decoration:underline;color:#266d87;text-underline-offset:3px}
 @media(max-width:640px){.serpina1-markers{grid-template-columns:1fr}.serpina1-panel>summary{padding:14px}.serpina1-body{padding:0 14px 15px}}
+
+/* Benign findings: one illustrative card, all others opt-in.
+   Do not imply that selecting this example is a health risk ranking. */
+.clinvar-benign-example{margin:0 15px 17px;min-width:0}
+.clinvar-benign-example-caption{display:flex;flex-wrap:wrap;gap:7px 12px;align-items:baseline;padding:0 4px 10px;color:#2f6648}
+.clinvar-benign-example-caption strong{font:800 13px Manrope,sans-serif}
+.clinvar-benign-example-caption span{font-size:12px;color:#597866}
+.clinvar-benign-example>.clinvar-card{width:100%;max-width:100%}
+.clinvar-benign-rest{margin:10px 15px 17px;border:1px solid #cfdfd3;border-radius:10px;background:#f7fbf8;overflow:hidden}
+.clinvar-benign-rest>summary{cursor:pointer;padding:14px 16px;color:#276e49;font:800 13px/1.5 Manrope,sans-serif}
+.clinvar-benign-rest>summary:focus-visible{outline:2px solid #488f65;outline-offset:-2px}
+.clinvar-benign-rest>summary:hover{background:#eaf5ed}
+.clinvar-benign-rest>p{font-size:12px;line-height:1.65;color:#506c5c;padding:0 16px;margin:0 0 12px}
+.clinvar-benign-rest>.clinvar-gene-groups{padding:0 12px 16px;gap:14px}
+@media(max-width:520px){.clinvar-benign-example{margin:0 10px 12px}.clinvar-benign-rest{margin:8px 10px 12px}.clinvar-benign-rest>.clinvar-gene-groups{padding:0 7px 11px}}
