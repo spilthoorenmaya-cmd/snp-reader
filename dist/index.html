@@ -6,9 +6,9 @@
     <meta name="theme-color" content="#102a28">
     <title>SNP Reader — Understand your DNA, privately</title>
     <meta name="description" content="Explore your 23andMe or MyHeritage raw DNA with a private, evidence-linked SNP catalog.">
-    <link rel="stylesheet" href="styles.css?v=repo-cleanup-1">
+    <link rel="stylesheet" href="styles.css?v=explore-tabs-1">
     <link rel="stylesheet" href="inventory.css?v=repo-cleanup-1">
-    <link rel="stylesheet" href="table.css?v=repo-cleanup-1">
+    <link rel="stylesheet" href="table.css?v=explore-tabs-1">
   </head>
   <body>
     <header class="topbar"><a class="brand" href="#top"><span class="mark">✳</span><span>SNP<span class="light">Reader</span></span></a>
@@ -115,10 +115,21 @@
           </div>
         </details>
         <nav id="result-tabs" class="result-tabs" role="tablist" aria-label="Explore your DNA findings">
-          <button id="tab-clinical" class="result-tab" type="button" role="tab" aria-selected="true" aria-controls="tab-panel-clinical" tabindex="0" data-tab="clinical"><span>Clinical evidence</span><small id="tab-count-clinical"></small></button>
-          <button id="tab-carrier" class="result-tab" type="button" role="tab" aria-selected="false" aria-controls="tab-panel-carrier" tabindex="-1" data-tab="carrier"><span>Carrier information</span><small id="tab-count-carrier"></small></button>
-          <button id="tab-research" class="result-tab" type="button" role="tab" aria-selected="false" aria-controls="tab-panel-research" tabindex="-1" data-tab="research"><span>Traits &amp; research</span><small id="tab-count-research"></small></button>
-          <button id="tab-benign" class="result-tab" type="button" role="tab" aria-selected="false" aria-controls="tab-panel-benign" tabindex="-1" data-tab="benign"><span>Benign variants</span><small id="tab-count-benign"></small></button>
+          <div class="result-tab-family" role="presentation">
+            <div class="result-tab-family-heading"><span class="result-tab-family-kicker">01 / DNA REPORT</span><span>Evidence &amp; health context</span></div>
+            <div class="result-tab-group" role="presentation">
+              <button id="tab-clinical" class="result-tab result-tab--clinical" type="button" role="tab" aria-selected="true" aria-controls="tab-panel-clinical" tabindex="0" data-tab="clinical"><span class="result-tab-symbol" aria-hidden="true">◈</span><span class="result-tab-copy"><strong>Clinical evidence</strong><span>Variant findings</span></span><small id="tab-count-clinical"></small></button>
+              <button id="tab-carrier" class="result-tab result-tab--carrier" type="button" role="tab" aria-selected="false" aria-controls="tab-panel-carrier" tabindex="-1" data-tab="carrier"><span class="result-tab-symbol" aria-hidden="true">◇</span><span class="result-tab-copy"><strong>Carrier information</strong><span>Family planning</span></span><small id="tab-count-carrier"></small></button>
+              <button id="tab-research" class="result-tab result-tab--research" type="button" role="tab" aria-selected="false" aria-controls="tab-panel-research" tabindex="-1" data-tab="research"><span class="result-tab-symbol" aria-hidden="true">◎</span><span class="result-tab-copy"><strong>Traits &amp; research</strong><span>Scientific associations</span></span><small id="tab-count-research"></small></button>
+              <button id="tab-benign" class="result-tab result-tab--benign" type="button" role="tab" aria-selected="false" aria-controls="tab-panel-benign" tabindex="-1" data-tab="benign"><span class="result-tab-symbol" aria-hidden="true">✓</span><span class="result-tab-copy"><strong>Benign &amp; raw</strong><span>Reference details</span></span><small id="tab-count-benign"></small></button>
+            </div>
+          </div>
+          <div class="result-tab-family result-tab-family--explore" role="presentation">
+            <div class="result-tab-family-heading"><span class="result-tab-family-kicker">02 / JUST CURIOUS?</span><span>Fun with genetics</span></div>
+            <div class="result-tab-group" role="presentation">
+              <button id="tab-explore" class="result-tab result-tab--explore" type="button" role="tab" aria-selected="false" aria-controls="tab-panel-explore" tabindex="-1" data-tab="explore"><span class="result-tab-symbol" aria-hidden="true">✦</span><span class="result-tab-copy"><strong>Exploring</strong><span>Eye color &amp; family traits</span></span><small aria-hidden="true">↗</small></button>
+            </div>
+          </div>
         </nav>
         <p id="tab-description" class="result-tab-description" role="status" aria-live="polite">ClinVar allele-specific classifications for review. These records are not diagnoses or personal risk estimates.</p>
         <div class="toolbar">
@@ -184,6 +195,6 @@
       </div>
       <p>Curiosity deserves context. © 2026 SNP Reader · Educational beta</p><a href="#top">Back to top ↑</a>
     </footer>
-    <script type="module" src="app.js?v=repo-cleanup-1"></script>
+    <script type="module" src="app.js?v=explore-tabs-1"></script>
   </body>
 </html>
