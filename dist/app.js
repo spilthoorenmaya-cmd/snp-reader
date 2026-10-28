@@ -220,12 +220,22 @@ function draw(){
           ? 'BRCA2 is a normal DNA-repair gene. A benign BRCA2 variant does not indicate cancer or a harmful BRCA2 mutation. This upload does not test every possible variant in BRCA2.'
           : 'Each result concerns an individual variant—not the entire gene. A benign finding does not rule out other variants.';
         const contextNote=conditionContextNote(geneHits.map(h=>h.e.condition),personalContext);
+        const contextHtml=contextNote
+          ? `<p class="clinvar-gene-context"><strong>Personal context (self-reported):</strong> ${safe(contextNote)}</p>`
+          : '';
+        // A gene with one record needs one full-width card, not a nested group.
+        if(geneHits.length===1){
+          return `<div class="clinvar-single" aria-label="${safe(gene)} single variant result">
+            ${contextHtml}
+            <div class="clinvar-grid">${renderCard(geneHits[0])}</div>
+          </div>`;
+        }
         return `<section class="clinvar-gene-group" aria-label="${safe(gene)} variant records">
         <header class="clinvar-gene-header">
           <div><h4>${safe(gene)}</h4><span>${geneHits.length} ${geneHits.length===1?'variant record':'variant records'}</span></div>
           <p>${safe(geneNote)}</p>
         </header>
-        ${contextNote?`<p class="clinvar-gene-context"><strong>Personal context (self-reported):</strong> ${safe(contextNote)}</p>`:''}
+        ${contextHtml}
         <div class="clinvar-grid">${geneHits.map(renderCard).join('')}</div>
       </section>`;
       }).join('');
