@@ -132,6 +132,10 @@ test('real browser: cards show a compact, sourced condition summary and expandab
     assert.ok(singleBox.width>rootBox.width*0.75,'Single variant must span the outer results area, not a half-width parent column');
     assert.match(await card.locator('.clinvar-gene').innerText(),/EXAMPLE/);
     assert.equal(await card.locator('.clinvar-classification').innerText(),'Clinical evidence available');
+    assert.equal(await card.evaluate(el=>el.open),false,'ClinVar variant should start collapsed');
+    assert.match(await card.locator('.clinvar-card-overview').innerText(),/Genotype/);
+    await card.locator(':scope>summary').click();
+    assert.equal(await card.evaluate(el=>el.open),true);
     assert.equal(await card.locator('.clinvar-condition-name').innerText(),'Example condition alpha');
     assert.match(await card.locator('.clinvar-condition-brief').innerText(),/condition name recorded/);
     assert.match(await card.locator('.clinvar-personal-status').innerText(),/not a diagnosis/);
@@ -161,6 +165,8 @@ test('real browser: responsive inheritance colors retain readable text labels',a
     const card=page.locator('.clinvar-card').first();
     await card.waitFor();
     assert.equal(await card.getAttribute('data-inheritance'),'unspecified');
+    assert.equal(await card.evaluate(el=>el.open),false);
+    await card.locator(':scope>summary').click();
     assert.match(await card.locator('.clinvar-inheritance-badge').innerText(),/Inheritance not specified/);
     assert.equal(await page.locator('.clinvar-legend-item').count(),4);
     const grid=page.locator('.clinvar-grid').first();
@@ -189,6 +195,8 @@ test('real browser: single-copy recessive records are secondary; dominant/mixed 
     assert.equal(await page.locator('.clinvar-section>.clinvar-gene-groups .clinvar-card--review').count(),1);
     assert.match(await secondary.locator(':scope>summary').innerText(),/not a diagnosis/);
     const carrierCard=secondary.locator('.clinvar-card');
+    assert.equal(await carrierCard.evaluate(el=>el.open),false);
+    await carrierCard.locator(':scope>summary').click();
     assert.match(await carrierCard.locator('.clinvar-personal-status').innerText(),/Possible carrier-related information/);
     assert.match(await carrierCard.locator('.clinvar-dose-status').innerText(),/usually insufficient alone for a recessive condition/);
     await carrierCard.locator('.clinvar-explanation>summary').click();
@@ -206,6 +214,8 @@ test('real browser: homozygous alternate recessive call is visible but not calle
     await card.waitFor();
     assert.equal(await page.locator('.clinvar-secondary').count(),0);
     assert.equal(await page.locator('.clinvar-section>.clinvar-gene-groups .clinvar-card').count(),1);
+    assert.equal(await card.evaluate(el=>el.open),false);
+    await card.locator(':scope>summary').click();
     assert.match(await card.locator('.clinvar-zygosity').innerText(),/Homozygous alternate/);
     assert.match(await card.locator('.clinvar-dose-status').innerText(),/Two alternate copies/);
     assert.match(await card.locator('.clinvar-dose-status').innerText(),/do not establish a diagnosis/);
@@ -241,11 +251,15 @@ test('real browser: benign BRCA2 variants show only one example until more are r
     assert.equal(await more.evaluate(el=>el.open),false);
     assert.match(await more.locator(':scope>summary').innerText(),/Show 1 other benign record/);
     const card=example;
+    assert.equal(await card.evaluate(el=>el.open),false);
+    await card.locator(':scope>summary').click();
     assert.equal(await card.locator('.clinvar-condition-details').evaluate(el=>el.open),false);
     assert.match(await card.locator('.clinvar-benign-note').innerText(),/Not evidence of the listed condition/);
     await card.locator('.clinvar-condition-details>summary').click();
     assert.match(await card.locator('.clinvar-condition-brief').innerText(),/hereditary cancer susceptibility syndrome/);
     assert.equal(await card.locator('.clinvar-classification').innerText(),'Benign variant');
+    assert.equal(await card.evaluate(el=>el.open),false);
+    await card.locator(':scope>summary').click();
     assert.equal(await card.locator('.clinvar-personal-status').count(),0);
     assert.equal(await card.getAttribute('data-inheritance'),'benign');
     assert.match(await card.locator('.clinvar-benign-note').innerText(),/two copies at this position does not make this variant harmful/);
