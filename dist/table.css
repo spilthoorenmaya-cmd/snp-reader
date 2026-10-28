@@ -36,3 +36,30 @@
 .clinvar-card-footer a:hover{color:#14543c}
 @media(max-width:950px){.clinvar-grid{grid-template-columns:1fr}}
 @media(max-width:480px){.clinvar-card{padding:17px}.clinvar-card-facts{gap:10px}.clinvar-heading h3{font-size:21px}.clinvar-classification{font-size:10px}}
+
+/* Non-alarming, accurate ClinVar card presentation. */
+.clinvar-card .clinvar-classification{background:#eaf3ee;color:#345d4b;border-color:#d8e6dd}
+.clinvar-card .clinvar-classification--pathogenic{background:#eaf3ee;color:#345d4b;border-color:#d8e6dd}
+.clinvar-card .clinvar-classification--benign{background:#edf5ef;color:#426753;border-color:#dbe9df}
+.clinvar-card .clinvar-classification--uncertain{background:#f4f2e9;color:#675c47;border-color:#e8e3d3}
+.clinvar-alleles{margin:0 0 18px}
+.clinvar-alleles h4{font:800 13px Manrope,sans-serif;color:#284e3e;margin:0 0 11px}
+.clinvar-allele-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.clinvar-allele{min-width:0;background:#f7faf7;border:1px solid #e4eee5;border-radius:11px;padding:13px}
+.clinvar-allele-heading{display:flex;align-items:center;gap:7px;flex-wrap:wrap;color:#294e3f}
+.clinvar-allele-heading strong{font-size:12px;line-height:1.4}
+.clinvar-allele-letter{display:inline-grid;place-items:center;flex-shrink:0;width:28px;height:28px;font:800 15px Manrope,sans-serif;background:#dcecdf;color:#205440;border-radius:8px}
+.clinvar-allele-count{display:inline-block;font-size:11px;font-weight:700;color:#647a6b;background:#fff;border:1px solid #e4ebe4;padding:3px 6px;border-radius:6px}
+.clinvar-allele p{color:#597062;line-height:1.65;font-size:12px;margin:9px 0 0}
+.clinvar-copy-context{margin-bottom:18px;border-left:3px solid #82af96;padding:4px 0 4px 13px}
+.clinvar-copy-context p{font-size:13px;color:#344d41;line-height:1.65;margin:7px 0}
+.clinvar-copy-context .clinvar-inheritance{color:#647769;font-size:12px}
+.clinvar-copy-context a{font-size:11px;font-weight:800;color:#27765a;text-decoration:underline;text-underline-offset:3px}
+.clinvar-source{margin-top:16px;padding:11px 0 0;border-top:1px solid #e7eee7}
+.clinvar-source summary{font-size:12px;line-height:1.5;font-weight:800;color:#27755a;cursor:pointer}
+.clinvar-source summary:hover{text-decoration:underline;text-underline-offset:3px}
+.clinvar-source summary:focus-visible{outline:2px solid #4c9a75;outline-offset:4px}
+.clinvar-source p{font-size:12px;line-height:1.65;color:#536c5e;margin:10px 0}
+.clinvar-source p strong{color:#335546}
+.clinvar-source a{font-weight:800;color:#27755a;text-decoration:underline}
+@media(max-width:640px){.clinvar-allele-grid{grid-template-columns:1fr}.clinvar-allele{padding:12px}}
