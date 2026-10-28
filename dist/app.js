@@ -2,7 +2,7 @@ import {extractDnaFromZip} from './zip-reader.js';
 import {parseDNA, isCalledDiploidSnp, isNoCall} from './dna-parser.js';
 import {curatedMatches, matchClinvar} from './snp-matching.js';
 import {extraCatalog} from './extra-catalog.js';
-import {conditionLabels, classificationTone, classificationHeadline, genotypeAlleleContext, inheritanceContext, inheritanceBrief, inheritancePattern, inheritanceDisplay, clinicalDisplayGroup, reviewLabel} from './clinvar-display.js';
+import {conditionLabels, classificationTone, classificationHeadline, genotypeAlleleContext, inheritanceContext, inheritanceBrief, inheritancePattern, inheritanceDisplay, alleleDoseSummary, clinicalDisplayGroup, reviewLabel} from './clinvar-display.js';
 // SNP Reader MVP: deliberately static. Uploaded raw DNA never leaves this browser.
 const catalog = [
   {id:'rs4988235',gene:'MCM6 / LCT',title:'Adult lactose digestion',category:'Nutrition',alleles:['A','G'],evidence:'Established population association',source:'https://medlineplus.gov/genetics/condition/lactose-intolerance/',detail:'This regulatory variant near LCT helps control whether lactase production continues after childhood. The A allele on the GRCh37 forward strand is associated with lactase persistence in many European populations.',interpret(g){return g.includes('A')?'At least one A allele is associated with continued lactase production into adulthood in populations where this marker has been validated.':'GG is associated with lactase non-persistence in many European populations, but other genetic variants and non-genetic causes also affect lactose digestion.'},caution:'This single marker is less informative across some ancestries. Symptoms and clinical evaluation matter more than this genotype alone.'},
@@ -96,6 +96,7 @@ function draw(){
       const clinicalContext=inheritanceContext(e.condition,alleles.alternateCopies);
       const brief=inheritanceBrief(e.condition,alleles.alternateCopies);
       const inheritanceVisual=inheritanceDisplay(e.condition);
+      const dose=alleleDoseSummary(e.condition,alleles.alternateCopies,e.sig,e.chr);
       const isPossibleCarrier=clinicalDisplayGroup(e,alleles.alternateCopies)==='one-copy-recessive';
       const isDominantPattern=inheritancePattern(e.condition)==='dominant';
       const personalStatus=isPossibleCarrier
@@ -109,12 +110,15 @@ function draw(){
           <span class="clinvar-inheritance-caption">${safe(inheritanceVisual.description)}</span>
         </div>
         ${personalStatus}
+        <div class="clinvar-dose-status clinvar-dose-status--${dose.type}" data-copy-meaning="${dose.type}">
+          <strong>${safe(dose.heading)}</strong><p>${safe(dose.detail)}</p>
+        </div>
         <div class="clinvar-card-header">
           <div class="clinvar-card-identity"><span class="clinvar-gene">${safe(e.gene||'Gene not specified')}</span><strong class="clinvar-rsid">${safe(e.id)}</strong></div>
           <span class="clinvar-classification clinvar-classification--${tone}">${safe(headline)}</span>
         </div>
         <div class="clinvar-card-facts">
-          <div class="clinvar-fact"><span class="clinvar-fact-label">Your genotype</span><span class="genotype-chip">${safe(call.genotype)}</span></div>
+          <div class="clinvar-fact"><span class="clinvar-fact-label">Your genotype</span><span class="genotype-chip">${safe(call.genotype)}</span><span class="clinvar-fact-meta clinvar-zygosity">${safe(alleles.zygosity)} · ${alleles.alternateCopies} of 2 alternate allele copies</span></div>
           <div class="clinvar-fact"><span class="clinvar-fact-label">Reference → alternate</span><strong>${safe(alleles.ref)} → ${safe(alleles.alt)}</strong><span class="clinvar-fact-meta">${safe(e.build)} · reference-genome orientation</span></div>
         </div>
         <section class="clinvar-alleles" aria-label="Allele-by-allele explanation">
@@ -134,9 +138,9 @@ function draw(){
         </section>
         <div class="clinvar-copy-context">
           <span class="clinvar-fact-label">What your allele count tells us</span>
-          <p class="clinvar-copy-brief"><strong>${safe(brief.heading)}</strong> ${safe(brief.detail)}</p>
+          <p class="clinvar-copy-brief"><strong>${safe(dose.heading)}</strong> ${safe(dose.detail)}</p>
           <p>${safe(alleles.copyMessage)}</p>
-          <p class="clinvar-inheritance">${safe(clinicalContext)}</p>
+          ${dose.type==='benign'||(dose.type==='review'&&inheritanceVisual.tone!=='review')?'':`<p class="clinvar-inheritance">${safe(clinicalContext)}</p>`}
           <a href="https://medlineplus.gov/genetics/understanding/inheritance/inheritancepatterns/" target="_blank" rel="noopener noreferrer">How inheritance patterns work ↗</a>
         </div>
         <div class="clinvar-card-condition">
