@@ -97,12 +97,16 @@ function draw(){
       const tone=classificationTone(e.sig);
       const headline=classificationHeadline(e.sig);
       const clinicalContext=inheritanceContext(e.condition,alleles.alternateCopies);
-      const inheritanceVisual=inheritanceDisplay(e.condition);
+      const inheritanceVisual=alleleDoseSummary(e.condition,alleles.alternateCopies,e.sig,e.chr).type==='benign'
+        ? {tone:'benign',label:'Benign variant',description:'This alternate allele is not classified as causing the listed condition.'}
+        : inheritanceDisplay(e.condition);
       const dose=alleleDoseSummary(e.condition,alleles.alternateCopies,e.sig,e.chr);
       const isPossibleCarrier=clinicalDisplayGroup(e,alleles.alternateCopies)==='one-copy-recessive';
       const isDominantPattern=inheritancePattern(e.condition)==='dominant';
       const statusLabel=dose.type==='benign'
-        ? 'Benign evidence for this variant · not a whole-gene result'
+        ? (String(e.gene||'').toUpperCase()==='BRCA2'
+            ? 'Benign BRCA2 variant — not evidence of BRCA2-related cancer'
+            : 'Benign variant — not evidence of the listed condition')
         : isPossibleCarrier
         ? 'Possible carrier-related information · not a diagnosis'
         : isDominantPattern
@@ -114,6 +118,7 @@ function draw(){
           <div class="clinvar-card-identity"><span class="clinvar-gene">${safe(e.gene||'Gene not specified')}</span><strong class="clinvar-rsid">${safe(e.id)}</strong></div>
           <span class="clinvar-classification clinvar-classification--${tone}">${safe(headline)}</span>
         </div>
+        ${personalStatus}
         <div class="clinvar-inheritance-banner">
           <span class="clinvar-inheritance-badge"><span class="inheritance-swatch" aria-hidden="true"></span>${safe(inheritanceVisual.label)}</span>
           <span class="clinvar-inheritance-caption">${safe(inheritanceVisual.description)}</span>
@@ -125,7 +130,6 @@ function draw(){
           ${moreConditions}
           <a class="clinvar-condition-source" href="https://www.ncbi.nlm.nih.gov/medgen/?term=${encodeURIComponent(conditions[0])}" target="_blank" rel="noopener noreferrer">Learn about this condition ↗</a>
         </div>
-        ${personalStatus}
         <div class="clinvar-card-facts">
           <div class="clinvar-fact"><span class="clinvar-fact-label">Your genotype</span><span class="genotype-chip">${safe(call.genotype)}</span><span class="clinvar-fact-meta clinvar-zygosity">${safe(alleles.zygosity)} · ${alleles.alternateCopies} of 2 alternate allele copies</span></div>
           <div class="clinvar-fact"><span class="clinvar-fact-label">Reference → alternate</span><strong>${safe(alleles.ref)} → ${safe(alleles.alt)}</strong><span class="clinvar-fact-meta">${safe(e.build)} · reference-genome orientation</span></div>
