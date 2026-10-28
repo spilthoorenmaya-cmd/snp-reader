@@ -1,8 +1,10 @@
+import {extraCatalog} from './extra-catalog.js';
 // SNP Reader MVP: deliberately static. Uploaded raw DNA never leaves this browser.
 const catalog = [
   {id:'rs4988235',gene:'MCM6 / LCT',title:'Adult lactose digestion',category:'Nutrition',alleles:['A','G'],evidence:'Established population association',source:'https://medlineplus.gov/genetics/condition/lactose-intolerance/',detail:'This regulatory variant near LCT helps control whether lactase production continues after childhood. The A allele on the GRCh37 forward strand is associated with lactase persistence in many European populations.',interpret(g){return g.includes('A')?'At least one A allele is associated with continued lactase production into adulthood in populations where this marker has been validated.':'GG is associated with lactase non-persistence in many European populations, but other genetic variants and non-genetic causes also affect lactose digestion.'},caution:'This single marker is less informative across some ancestries. Symptoms and clinical evaluation matter more than this genotype alone.'},
   {id:'rs1800562',gene:'HFE',title:'Iron regulation (C282Y)',category:'Health',alleles:['A','G'],evidence:'Clinical gene association',source:'https://medlineplus.gov/genetics/condition/hereditary-hemochromatosis/',detail:'HFE helps regulate iron absorption. The A allele corresponds to the C282Y change on the forward strand.',interpret(g){const a=[...g].filter(x=>x==='A').length;return a===2?'AA indicates two copies of the HFE C282Y variant, associated with increased risk of hereditary hemochromatosis. Not everyone with this genotype develops iron overload.':a===1?'AG indicates one C282Y copy (carrier status). One copy alone usually does not cause classic HFE-related hemochromatosis.':'GG does not show the C282Y variant at this marker. Other HFE variants and other causes of iron overload are not ruled out.'},caution:'Do not diagnose or change iron intake based on a consumer raw-data call. Discuss concerns with a clinician; confirmation and iron studies may be appropriate.'}
-];
+]; 
+catalog.push(...extraCatalog);
 const $=id=>document.getElementById(id);
 let records=new Map(),mode='';
 let inventory=null;
