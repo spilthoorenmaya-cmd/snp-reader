@@ -6,7 +6,7 @@ test('upload picker click cannot bubble recursively to drop zone',()=>{
   const source=readFileSync(new URL('../dist/app.js',import.meta.url),'utf8');
   assert.match(source,/\$\('file'\)\.addEventListener\('click',e=>e\.stopPropagation\(\)\)/);
   assert.match(source,/\$\('drop'\)\.addEventListener\('click',e=>\{/);
-  assert.match(source,/e\.target\.closest\('#file'\)/);
+  assert.match(source,/e\.target\.closest\('label,input'\)/);
 });
 
 test('upload accepts local DNA files and demo is separately accessible',()=>{
