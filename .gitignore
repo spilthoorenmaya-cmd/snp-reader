@@ -1,22 +1,30 @@
-# Personal genetic data and derived individual-level results
+# Never commit personal genotype exports or individually derived results.
 *raw*dna*.csv
 *raw*dna*.txt
 *genome*.txt
 *genome*.zip
-snp_data.csv
-rsid_list.txt
-clinvar_matches.csv
+/snp_data.csv
+/rsid_list.txt
+/clinvar_matches.csv
 snp_output/
 clinvar_output/
 clinvar_reference/
-*.partial
 
-# Development artifacts
+# The public, rsID-only reference inventory at data/rsid_list.txt is
+# intentionally tracked; it contains no personal genotype calls.
+
+# Local development and generated test artefacts.
+node_modules/
+coverage/
+coverage-report.txt
+test-results/
+playwright-report/
 __pycache__/
 .pytest_cache/
-node_modules/
+.venv/
+*.partial
 *.tar.gz
 .DS_Store
-
-# Site-specific private deployment metadata
+.env
+.env.*
 .openai/
