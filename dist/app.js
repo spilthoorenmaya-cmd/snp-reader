@@ -107,10 +107,12 @@ function draw(){
             <div class="clinvar-allele">
               <div class="clinvar-allele-heading"><span class="clinvar-allele-letter">${safe(alleles.ref)}</span><strong>Reference allele</strong><span class="clinvar-allele-count">${alleles.referenceCopies} ${alleles.referenceCopies===1?'copy':'copies'}</span></div>
               <p>The base shown in the reference genome at this position. “Reference” does not automatically mean protective or harmless.</p>
+              <a href="https://www.ncbi.nlm.nih.gov/snp/${safe(e.id)}" target="_blank" rel="noopener noreferrer">Reference SNP details ↗</a>
             </div>
             <div class="clinvar-allele">
               <div class="clinvar-allele-heading"><span class="clinvar-allele-letter">${safe(alleles.alt)}</span><strong>Alternate allele</strong><span class="clinvar-allele-count">${alleles.alternateCopies} ${alleles.alternateCopies===1?'copy':'copies'}</span></div>
               <p>The base change evaluated by the linked ClinVar record for a listed condition. This is variant-level evidence, not a finding about your health.</p>
+              <a href="https://www.ncbi.nlm.nih.gov/clinvar/variation/${Number(e.variation)}/" target="_blank" rel="noopener noreferrer">Evidence for this allele ↗</a>
             </div>
           </div>
         </section>
