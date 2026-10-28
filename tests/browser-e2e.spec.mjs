@@ -562,6 +562,10 @@ test('real browser: card chevron has a visible up/down state and hover does not 
    assert.equal(await toggle.locator('.toggle-open-label').isVisible(),false);
    const before=await toggle.locator('.toggle-chevron').evaluate(el=>getComputedStyle(el).transform);
    await card.locator(':scope>summary').click();
+   await page.waitForFunction(previous=>{
+     const chevron=document.querySelector('#tab-panel-clinical .clinvar-card .toggle-chevron');
+     return chevron&&getComputedStyle(chevron).transform!==previous;
+   },before);
    const after=await toggle.locator('.toggle-chevron').evaluate(el=>getComputedStyle(el).transform);
    assert.notEqual(before,after);
    assert.equal(await toggle.locator('.toggle-open-label').isVisible(),true);
