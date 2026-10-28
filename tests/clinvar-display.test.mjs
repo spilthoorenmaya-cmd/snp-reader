@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {conditionLabels, conditionBrief, classificationTone, classificationHeadline, genotypeAlleleContext, inheritanceContext, inheritanceBrief, inheritancePattern, clinicalDisplayGroup, reviewLabel} from '../dist/clinvar-display.js';
+import {conditionLabels, conditionBrief, classificationTone, classificationHeadline, genotypeAlleleContext, inheritanceContext, inheritanceBrief, inheritancePattern, inheritanceDisplay, alleleDoseSummary, clinicalDisplayGroup, reviewLabel} from '../dist/clinvar-display.js';
 
 test('long ClinVar condition aliases become readable distinct labels',()=>{
   const names=conditionLabels('Autosomal recessive nonsyndromic hearing loss 1A|not provided| Hearing impairment |Nonsyndromic genetic hearing loss|Autosomal recessive nonsyndromic hearing loss 1A');
@@ -125,4 +125,14 @@ test('homozygous benign variants never become evidence of a condition',()=>{
  const source=alleleDoseSummary('Breast-ovarian cancer, familial, susceptibility to, 2',2,'Benign','13');
  assert.equal(source.type,'benign');
  assert.match(source.detail,/do not turn a benign variant into disease evidence/);
+});
+
+test('benign homozygous BRCA2 records get a non-alarming headline regardless of cancer name',()=>{
+  const result=alleleDoseSummary('Breast-ovarian cancer, familial, susceptibility to, 2',2,'Benign','13');
+  assert.equal(result.type,'benign');
+  assert.match(result.heading,/Benign variant/);
+  assert.match(result.heading,/not evidence of the listed disease/);
+  assert.match(result.detail,/two copies of this alternate allele/);
+  assert.match(result.detail,/Two copies do not turn a benign variant into disease evidence/);
+  assert.match(result.detail,/does not assess the whole gene/);
 });
