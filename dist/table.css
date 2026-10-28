@@ -225,3 +225,15 @@
 .clinvar-gene-context{margin:0 0 14px;background:#eef6f3;border-left:3px solid #4d9d7b;padding:10px 13px;
   color:#456254;font-size:12px;line-height:1.65;border-radius:0 8px 8px 0}
 .clinvar-gene-context strong{color:#24573f}
+
+/* Full-width vertical result layout: one SNP = one standalone card;
+   multiple SNPs of a gene = one labelled group with stacked full-width cards. */
+.clinvar-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:15px;align-items:stretch}
+.clinvar-gene-groups{display:grid;grid-template-columns:minmax(0,1fr);gap:20px;min-width:0}
+.clinvar-single{min-width:0}
+.clinvar-single .clinvar-grid{grid-template-columns:minmax(0,1fr)}
+.clinvar-gene-group>.clinvar-grid{grid-template-columns:minmax(0,1fr)}
+.clinvar-gene-group{width:100%;min-width:0;padding:18px 21px}
+.clinvar-card{width:100%;min-width:0}
+.clinvar-card-condition,.clinvar-dose-status,.clinvar-benign-reassurance{max-width:none}
+@media(max-width:520px){.clinvar-gene-group{padding:12px}.clinvar-grid{gap:12px}}
