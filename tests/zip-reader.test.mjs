@@ -44,3 +44,64 @@ test('ZIP: rejected format and encrypted archive raise actionable errors',async(
  await assert.rejects(()=>extractDnaFromZip(fakeFile(makeZip('photo.jpg','test'))),/No DNA TXT/);
 });
 export {makeZip};
+
+
+// Deliberately corrupt a tiny synthetic ZIP to verify safe failure paths.
+function patchedZip(original,mutate){
+ const bytes=Buffer.from(original);
+ const central=bytes.lastIndexOf(Buffer.from([0x50,0x4b,0x01,0x02]));
+ const eocd=bytes.lastIndexOf(Buffer.from([0x50,0x4b,0x05,0x06]));
+ assert.ok(central>=0&&eocd>=0);
+ mutate(bytes,central,eocd);
+ return fakeFile(bytes);
+}
+test('ZIP: reject a valid-length archive without a ZIP central directory',async()=>{
+ await assert.rejects(()=>extractDnaFromZip(fakeFile(Buffer.alloc(64))),/Unsupported ZIP archive/);
+});
+test('ZIP: limit central directory file count before extracting any DNA',async()=>{
+ const file=patchedZip(makeZip('dna.csv',raw),(bytes,central,end)=>bytes.writeUInt16LE(5001,end+10));
+ await assert.rejects(()=>extractDnaFromZip(file),/too many files/);
+});
+test('ZIP: reject ZIP64 and declared uncompressed size above 120 MB',async()=>{
+ const zip=makeZip('dna.csv',raw);
+ for(const offset of [20,24]){
+   const file=patchedZip(zip,(bytes,central)=>bytes.writeUInt32LE(0xffffffff,central+offset));
+   await assert.rejects(()=>extractDnaFromZip(file),/ZIP64/);
+ }
+ const oversized=patchedZip(zip,(bytes,central)=>bytes.writeUInt32LE(120*1024*1024+1,central+24));
+ await assert.rejects(()=>extractDnaFromZip(oversized),/too large/);
+});
+test('ZIP: refuse damaged and out-of-bounds local file headers',async()=>{
+ const zip=makeZip('dna.csv',raw);
+ const brokenSignature=patchedZip(zip,bytes=>bytes.writeUInt32LE(0,0));
+ await assert.rejects(()=>extractDnaFromZip(brokenSignature),/Damaged ZIP/);
+ const offsetOutside=patchedZip(zip,(bytes,central)=>bytes.writeUInt32LE(bytes.length+100,central+42));
+ await assert.rejects(()=>extractDnaFromZip(offsetOutside),/Damaged ZIP/);
+});
+test('ZIP: reject truncated payload and unsupported compression type',async()=>{
+ const zip=makeZip('dna.csv',raw);
+ const tooLong=patchedZip(zip,(bytes,central)=>bytes.writeUInt32LE(bytes.length+30,central+20));
+ await assert.rejects(()=>extractDnaFromZip(tooLong),/Truncated ZIP/);
+ const unsupported=patchedZip(zip,(bytes,central)=>bytes.writeUInt16LE(99,central+10));
+ await assert.rejects(()=>extractDnaFromZip(unsupported),/compression type not supported/);
+});
+test('ZIP: ignore irrelevant metadata files but do not treat them as DNA',async()=>{
+ for(const name of ['__MACOSX/._dna.txt','.dna.csv','portrait.jpg']){
+   const result=extractDnaFromZip(fakeFile(makeZip(name,raw)));
+   await assert.rejects(()=>result,/No DNA TXT/);
+ }
+});
+test('ZIP: invalid central directory entry fails closed without parsing bytes',async()=>{
+ const file=patchedZip(makeZip('dna.csv',raw),(bytes,central)=>bytes.writeUInt32LE(0,central));
+ await assert.rejects(()=>extractDnaFromZip(file),/No DNA TXT/);
+});
+test('ZIP: deflate without browser DecompressionStream has actionable error',async()=>{
+ const native=globalThis.DecompressionStream;
+ try{
+   globalThis.DecompressionStream=undefined;
+   await assert.rejects(
+     ()=>extractDnaFromZip(fakeFile(makeZip('dna.csv',raw,{method:8}))),
+     /browser cannot unpack ZIP/
+   );
+ }finally{globalThis.DecompressionStream=native}
+});
