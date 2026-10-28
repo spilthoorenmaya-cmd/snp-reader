@@ -35,7 +35,7 @@ export function normalizePersonalContext(input={}){
 }
 export function hasPersonalContext(context){
   const c=normalizePersonalContext(context);
-  return c.age!==null || (c.sex&&c.sex!=='undisclosed') || (c.ancestry&&c.ancestry!=='undisclosed');
+  return c.age!==null || Boolean(c.sex&&c.sex!=='undisclosed') || Boolean(c.ancestry&&c.ancestry!=='undisclosed');
 }
 export function personalContextSummary(context){
   const c=normalizePersonalContext(context),parts=[];
