@@ -12,13 +12,12 @@ SNP Reader is a static, educational reader for 23andMe and MyHeritage raw DNA ex
 - **Carrier-related information:** Review selected one-copy recessive-pattern findings and context about family planning. These are **not** confirmed clinical carrier-screening results.
 - **Traits and research:** Read selected, sourced genotype-specific associations (e.g., pigmentation or nutrition), clearly separated from clinical assertions.
 - **Benign and unreviewed variants:** Keep non-disease-associated findings and raw markers separate from potentially relevant clinical evidence.
-- **Family traits explorer:** Explore how an eye-color marker might be inherited, without turning one SNP into a predicted baby eye color or invented percentages.
 
 The reference inventory lists **609,424 chip rsIDs**, not 609,424 clinical interpretations. The separate generated ClinVar catalog is a snapshot and only covers qualifying records.
 
 ## Privacy
 
-Your uploaded DNA file is parsed **locally in your browser**. SNP Reader does not send your genotype file to its servers or to NIH/NCBI. The page downloads publicly available reference assets independently of your DNA data. Optional age, sex and ancestry context, along with the family-traits explorer selections, remain in the browser tab and are not stored or included in exported data.
+Your uploaded DNA file is parsed **locally in your browser**. SNP Reader does not send your genotype file to its servers or to NIH/NCBI. The page downloads publicly available reference assets independently of your DNA data. Optional age, sex and ancestry context stays in the browser tab and is not stored or included in exported data.
 
 Like other public websites, GitHub Pages and externally hosted font/reference providers may receive ordinary page or asset requests. **No account, backend DNA upload, analytics service, or personal DNA database is required.**
 
@@ -53,12 +52,16 @@ The workflows in `.github/workflows/` also run the offline Python tests in the r
 | `dist/index.html`, `dist/styles.css`, `dist/table.css`, `dist/inventory.css` | Static UI and styles |
 | `dist/app.js` | Browser-only upload flow and result presentation |
 | `dist/dna-parser.js`, `dist/snp-matching.js`, `dist/zip-reader.js` | Genotype import and exact-match validation |
-| `dist/clinvar-display.js`, `dist/serpina1.js`, `dist/baby-eye-explorer.js` | Evidence explanation and limited educational features |
+| `dist/clinvar-display.js`, `dist/serpina1.js` | Evidence explanation and focused inheritance examples |
 | `dist/extra-catalog.js` | Small manually reviewed research catalog |
 | `dist/clinvar-evidence.json` | Generated public allele-specific ClinVar snapshot |
 | `data/rsid_list.txt` | Public reference chip-marker inventory; **no genotypes** |
 | `scripts/` | Reference-data build scripts |
 | `tests/`, `test_*.py` | Automated regression tests |
+
+## Roadmap
+
+See [docs/ROADMAP.md](docs/ROADMAP.md) for future work, including a possible expansion into well-sourced **non-medical traits and everyday genetics research**. These ideas are deferred; the former “Just for fun” tab is not part of the current product.
 
 ## Evidence and limitations
 
