@@ -179,6 +179,7 @@ test('real browser: one-copy recessive-pattern evidence is collapsed, dominant a
     assert.equal(await page.locator('.clinvar-secondary').evaluate(el=>el.open),false);
     assert.match(await page.locator('.clinvar-secondary>summary').innerText(),/not a diagnosis/);
     assert.match(await page.locator('.clinvar-section>.clinvar-grid .clinvar-personal-status').first().innerText(),/not a diagnosis/);
+    assert.match(await page.locator('.clinvar-section>.clinvar-grid .clinvar-copy-brief').first().innerText(),/one can matter in some dominant conditions/);
     assert.match(await page.locator('.clinvar-secondary>summary').innerText(),/1 one-copy finding/);
     await page.locator('.clinvar-secondary>summary').click();
     assert.equal(await page.locator('.clinvar-secondary').evaluate(el=>el.open),true);
@@ -186,8 +187,11 @@ test('real browser: one-copy recessive-pattern evidence is collapsed, dominant a
     const carrierCard=page.locator('.clinvar-secondary .clinvar-card');
     const carrierStatus=await carrierCard.locator('.clinvar-personal-status').innerText();
     assert.match(carrierStatus,/Possible carrier-related finding — not a diagnosis/);
-    assert.match(carrierStatus,/does not mean you have that condition/);
-    assert.match(carrierStatus,/does not.*confirm carrier status/);
+    assert.match(carrierStatus,/both copies of the gene/);
+    assert.match(carrierStatus,/changes can be different/);
+    assert.match(carrierStatus,/in trans/);
+    assert.match(await carrierCard.locator('.clinvar-copy-brief').innerText(),/opposite copies of the gene/);
+    assert.match(carrierStatus,/cannot confirm carrier status/);
   }finally{await page.close()}
 });
 test('real browser: two alternate copies remain visible even for recessive pattern',async()=>{
@@ -201,6 +205,7 @@ test('real browser: two alternate copies remain visible even for recessive patte
     assert.equal(await page.locator('.clinvar-secondary').count(),0);
     assert.equal(await page.locator('.clinvar-section>.clinvar-grid .clinvar-card').count(),1);
     assert.match(await page.locator('.clinvar-copy-context').innerText(),/Two copies/);
+    assert.match(await page.locator('.clinvar-copy-brief').innerText(),/two copies of this alternate allele/);
     assert.match(await page.locator('.clinvar-personal-status').innerText(),/DNA variant match — not a diagnosis/);
     assert.equal(await page.locator('.clinvar-personal-status--carrier').count(),0);
   }finally{await page.close()}
