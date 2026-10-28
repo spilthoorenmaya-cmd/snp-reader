@@ -232,7 +232,9 @@ test('real browser: BRCA2 benign variants are gene-grouped and collapsed, not di
     const card=benign.locator('.clinvar-card').first();
     assert.match(await card.locator('.clinvar-condition-brief').innerText(),/hereditary cancer susceptibility syndrome/);
     assert.match(await card.locator('.clinvar-dose-status').innerText(),/benign variant/);
-    assert.match(await card.locator('.clinvar-personal-status').innerText(),/not a whole-gene result/);
+    assert.match(await card.locator('.clinvar-personal-status').innerText(),/Benign BRCA2 variant — not evidence of BRCA2-related cancer/);
+    assert.equal(await card.getAttribute('data-inheritance'),'benign');
+    assert.match(await card.locator('.clinvar-dose-status').innerText(),/Two copies do not turn a benign variant into disease evidence/);
     assert.equal(await card.locator('.clinvar-explanation').evaluate(el=>el.open),false);
   }finally{await page.close()}
 });
