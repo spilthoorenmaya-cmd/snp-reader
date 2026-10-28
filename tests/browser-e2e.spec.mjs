@@ -242,13 +242,17 @@ test('real browser: benign BRCA2 variants show only one example until more are r
     assert.match(await more.locator(':scope>summary').innerText(),/Show 1 other benign record/);
     const card=example;
     assert.equal(await card.locator('.clinvar-condition-details').evaluate(el=>el.open),false);
-    assert.match(await card.locator('.clinvar-benign-reassurance').innerText(),/not a sign that you have the condition/);
+    assert.match(await card.locator('.clinvar-benign-note').innerText(),/Not evidence of the listed condition/);
     await card.locator('.clinvar-condition-details>summary').click();
     assert.match(await card.locator('.clinvar-condition-brief').innerText(),/hereditary cancer susceptibility syndrome/);
-    assert.match(await card.locator('.clinvar-dose-status').innerText(),/benign variant/);
-    assert.match(await card.locator('.clinvar-personal-status').innerText(),/Benign BRCA2 variant — not evidence of BRCA2-related cancer/);
+    assert.equal(await card.locator('.clinvar-classification').innerText(),'Benign variant');
+    assert.equal(await card.locator('.clinvar-personal-status').count(),0);
     assert.equal(await card.getAttribute('data-inheritance'),'benign');
-    assert.match(await card.locator('.clinvar-dose-status').innerText(),/Two copies do not turn a benign variant into disease evidence/);
+    assert.match(await card.locator('.clinvar-benign-note').innerText(),/two copies at this position does not make this variant harmful/);
+    assert.equal(await card.locator('.clinvar-dose-status').count(),0);
+    assert.equal(await card.locator('.clinvar-benign-reassurance').count(),0);
+    assert.equal(await card.locator('.clinvar-classification--benign').count(),1);
+    assert.equal(await card.locator('.clinvar-condition-details').count(),1);
     await more.locator(':scope>summary').click();
     assert.equal(await more.evaluate(el=>el.open),true);
     assert.equal(await more.locator('.clinvar-card').count(),1);
@@ -291,7 +295,8 @@ test('real browser: age, sex and ancestry are optional, private and never change
     assert.match(await page.locator('.clinvar-gene-context').innerText(),/Age matters for population cancer rates/);
     assert.match(await page.locator('.clinvar-gene-context').innerText(),/Sex-related anatomy/);
     assert.match(await page.locator('.clinvar-gene-context').innerText(),/Genetic studies may have unequal representation/);
-    assert.match(await page.locator('.clinvar-dose-status--benign').innerText(),/Benign variant/);
+    assert.equal(await page.locator('.clinvar-classification--benign').count(),1);
+    assert.equal(await page.locator('.clinvar-dose-status--benign').count(),0);
     assert.doesNotMatch(await page.locator('.clinvar-gene-context').innerText(),/\d+%|increased risk|average risk/i);
     assert.deepEqual(outgoing,[]);
 
@@ -353,5 +358,36 @@ test('real browser: evidence tabs isolate clinical, carrier, traits and benign e
     await page.keyboard.press('End');
     assert.equal(await page.locator('#tab-benign').getAttribute('aria-selected'),'true');
     assert.deepEqual(await page.locator('#result-tabs [role="tab"]').count(),4);
+  }finally{await page.close()}
+});
+
+test('real browser: one benign marker shows a single green badge with neutral details',async()=>{
+  const evidence=[{id:'rs762551',gene:'LIAS',build:'GRCh37',chr:'15',pos:74749576,
+    ref:'C',alt:'A',sig:'Benign',review:'reviewed by expert panel',
+    condition:'Example inherited condition',variation:30303}];
+  const page=await pageReady(evidence);
+  try{
+    await page.locator('#file').setInputFiles({name:'synthetic.txt',mimeType:'text/plain',buffer:Buffer.from(source)});
+    await page.locator('#tab-benign').click();
+    const card=page.locator('.clinvar-benign-example>.clinvar-card');
+    await card.waitFor();
+    assert.equal(await card.locator('.clinvar-classification--benign').count(),1);
+    assert.equal(await card.locator('.clinvar-classification').innerText(),'Benign variant');
+    assert.equal(await card.locator('.clinvar-personal-status').count(),0);
+    assert.equal(await card.locator('.clinvar-dose-status').count(),0);
+    assert.equal(await card.locator('.clinvar-benign-reassurance').count(),0);
+    assert.match(await card.locator('.clinvar-benign-note').innerText(),/Not evidence of the listed condition/);
+    assert.equal(await card.locator('.clinvar-condition-details').evaluate(el=>el.open),false);
+    const styles=await card.evaluate(el=>{
+      const badge=el.querySelector('.clinvar-classification');
+      const note=el.querySelector('.clinvar-benign-note');
+      const box=el.querySelector('.clinvar-card-facts');
+      return {badge:getComputedStyle(badge).backgroundColor,note:getComputedStyle(note).backgroundColor,
+        facts:getComputedStyle(box).backgroundColor};
+    });
+    assert.notEqual(styles.badge,styles.note,'Only the badge should use a colored status background');
+    assert.notEqual(styles.badge,styles.facts,'Genotype details should not repeat the green badge');
+    await card.locator('.clinvar-source>summary').click();
+    assert.match(await card.locator('.clinvar-source').innerText(),/Original ClinVar classification: Benign/);
   }finally{await page.close()}
 });
