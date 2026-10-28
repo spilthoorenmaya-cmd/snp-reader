@@ -2,6 +2,7 @@ import {extractDnaFromZip} from './zip-reader.js';
 import {parseDNA, isCalledDiploidSnp, isNoCall} from './dna-parser.js';
 import {curatedMatches, matchClinvar} from './snp-matching.js';
 import {extraCatalog} from './extra-catalog.js';
+import {conditionLabels, classificationTone, reviewLabel} from './clinvar-display.js';
 // SNP Reader MVP: deliberately static. Uploaded raw DNA never leaves this browser.
 const catalog = [
   {id:'rs4988235',gene:'MCM6 / LCT',title:'Adult lactose digestion',category:'Nutrition',alleles:['A','G'],evidence:'Established population association',source:'https://medlineplus.gov/genetics/condition/lactose-intolerance/',detail:'This regulatory variant near LCT helps control whether lactase production continues after childhood. The A allele on the GRCh37 forward strand is associated with lactase persistence in many European populations.',interpret(g){return g.includes('A')?'At least one A allele is associated with continued lactase production into adulthood in populations where this marker has been validated.':'GG is associated with lactase non-persistence in many European populations, but other genetic variants and non-genetic causes also affect lactose digestion.'},caution:'This single marker is less informative across some ancestries. Symptoms and clinical evaluation matter more than this genotype alone.'},
@@ -80,9 +81,44 @@ function draw(){
   let clinicalHtml='';
   if(category==='all'||category==='Health'){
     const limit=200;
-    const html=hits.slice(0,limit).map(({e,call})=>`<tr><td><strong>${safe(e.id)}</strong><span class="td-sub">${safe(e.gene||'Unspecified')}</span></td><td><strong>${safe(e.sig)}</strong><span class="td-sub">${safe(e.condition||'Condition not specified')}</span></td><td><span class="genotype-chip">${safe(call.genotype)}</span><span class="td-sub">${safe(e.ref)} → ${safe(e.alt)}, ${safe(e.build)}</span></td><td class="interpretation-cell">A ClinVar record classifies this specific allele for the listed condition. This is not a diagnosis or a risk estimate.<span class="td-sub">${safe(e.review)}</span><div class="table-links"><a href="https://www.ncbi.nlm.nih.gov/clinvar/variation/${Number(e.variation)}/" target="_blank" rel="noopener">ClinVar record ↗</a></div></td></tr>`).join('');
-    const note=window.__snpBuild==='37'||window.__snpBuild==='38'? `${hits.length} matching variant-condition records`:'Exact ClinVar matching requires a stated genome build (GRCh37 or GRCh38); unknown-build files are not assigned clinical findings.';
-    clinicalHtml=`<h3 class="uncurated-heading">ClinVar allele-specific evidence</h3><p class="uncurated-note">${safe(clinvarMessage)}. ${safe(note)}. Matches require rsID, chromosome, position, reference/alternate allele and genome build. Confirm any health-relevant finding in a clinical lab.</p>${html?`<div class="result-table-scroll"><table class="result-table"><thead><tr><th>Variant</th><th>ClinVar classification</th><th>Uploaded call</th><th>Evidence</th></tr></thead><tbody>${html}</tbody></table></div>`:''}`;
+    const html=hits.slice(0,limit).map(({e,call})=>{
+      const conditions=conditionLabels(e.condition);
+      const alternateCopies=[...call.genotype].filter(a=>a===e.alt).length;
+      const moreConditions=conditions.length>1
+        ? `<details class="clinvar-more"><summary>View all ${conditions.length} recorded condition names</summary><ul>${conditions.map(label=>`<li>${safe(label)}</li>`).join('')}</ul></details>`
+        : '';
+      const status=classificationTone(e.sig);
+      const copyLabel=`${alternateCopies} of 2 copies`;
+      return `<article class="clinvar-card" aria-label="ClinVar evidence for ${safe(e.id)}">
+        <div class="clinvar-card-header">
+          <div class="clinvar-card-identity"><span class="clinvar-gene">${safe(e.gene||'Gene not specified')}</span><strong class="clinvar-rsid">${safe(e.id)}</strong></div>
+          <span class="clinvar-classification clinvar-classification--${status}">${safe(e.sig)}</span>
+        </div>
+        <div class="clinvar-card-facts">
+          <div class="clinvar-fact"><span class="clinvar-fact-label">Your genotype</span><span class="genotype-chip">${safe(call.genotype)}</span></div>
+          <div class="clinvar-fact"><span class="clinvar-fact-label">Alternate allele</span><strong>${safe(e.ref)} → ${safe(e.alt)}</strong><span class="clinvar-fact-meta">${copyLabel} · ${safe(e.build)}</span></div>
+        </div>
+        <div class="clinvar-card-condition">
+          <span class="clinvar-fact-label">Condition listed by ClinVar</span>
+          <p class="clinvar-condition-name">${safe(conditions[0])}</p>
+          ${moreConditions}
+        </div>
+        <div class="clinvar-card-footer">
+          <span class="clinvar-review">${safe(reviewLabel(e.review))}</span>
+          <a href="https://www.ncbi.nlm.nih.gov/clinvar/variation/${Number(e.variation)}/" target="_blank" rel="noopener noreferrer" aria-label="Open ClinVar source for ${safe(e.id)}">View ClinVar record ↗</a>
+        </div>
+      </article>`;
+    }).join('');
+    const note=window.__snpBuild==='37'||window.__snpBuild==='38'?
+      `${hits.length.toLocaleString()} matching variant–condition records`:
+      'Exact matching requires a stated genome build (GRCh37 or GRCh38).';
+    const limitNote=hits.length>limit?`Showing the first ${limit} records. Search by gene, rsID or condition to narrow results.`:'';
+    clinicalHtml=`<section class="clinvar-section" aria-label="ClinVar allele-specific evidence">
+      <div class="clinvar-heading"><div><h3>ClinVar evidence</h3><p>${safe(note)} · ${safe(clinvarMessage)}</p></div></div>
+      <p class="clinvar-disclaimer">These are classifications of individual variants for specific conditions—not diagnoses or personal risk estimates. Consumer DNA findings should be clinically confirmed.</p>
+      ${limitNote?`<p class="clinvar-limit">${safe(limitNote)}</p>`:''}
+      ${html?`<div class="clinvar-grid">${html}</div>`:''}
+    </section>`;
   }
   $('cards').innerHTML=curatedTable+clinicalHtml+otherTable;
 }
