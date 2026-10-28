@@ -462,14 +462,22 @@ h1 em {
   color:var(--muted);
   line-height:1.8
 }
+/* Research uses calm neutrals so the brand green does not dominate every section. */
 .evidence-section {
-  background:#e4eee4;
+  background:#f6f7fa;
   display:grid;
   grid-template-columns:1.3fr .7fr;
   gap:80px
 }
 .evidence-section h2 {
-  max-width:600px
+  max-width:600px;
+  color:#273a50
+}
+.evidence-section .kicker {
+  color:#526d95
+}
+.evidence-section p {
+  color:#5d6b7e
 }
 .source-links {
   display:flex;
@@ -477,15 +485,20 @@ h1 em {
   gap:18px;
   font-weight:800;
   font-size:12px;
-  color:#2a7058;
+  color:#42658f;
   margin-top:24px
 }
 .evidence-section aside {
-  background:#fff9e9;
-  border-left:4px solid #d3ab67;
+  background:#fff;
+  border:1px solid #e0e5ed;
+  border-left:4px solid #bca1d5;
   border-radius:10px;
   padding:28px;
+  box-shadow:0 7px 28px rgba(42,58,78,.04);
   align-self:center
+}
+.evidence-section aside b {
+  color:#465777
 }
 .evidence-section aside p {
   margin:12px 0 0;
@@ -770,8 +783,8 @@ footer p,footer a {
 /* Privacy reassurance at the bottom: enough whitespace to read without
    feeling like a tiny disclaimer pressed against the footer. */
 .privacy-bottom {
-  background:#eaf2e9;
-  border-top:1px solid #dae8dc
+  background:#f8f9fb;
+  border-top:1px solid #e5e8ee
 }
 .privacy-bottom-inner {
   max-width:1160px;
@@ -788,8 +801,8 @@ footer p,footer a {
   width:50px;
   height:50px;
   border-radius:15px;
-  background:#d4e6d8;
-  color:#286c4e;
+  background:#e7edf7;
+  color:#426590;
   font-size:26px
 }
 .privacy-bottom-copy {
@@ -798,21 +811,21 @@ footer p,footer a {
 .privacy-bottom h2 {
   font:800 clamp(20px,2.5vw,27px)/1.25 Manrope,sans-serif;
   letter-spacing:-.65px;
-  color:#20503e;
+  color:#26394c;
   margin:0 0 12px
 }
 .privacy-bottom p {
   font-size:14px;
   line-height:1.8;
-  color:#416755;
+  color:#58697b;
   margin:0 0 10px
 }
 .privacy-bottom p strong {
-  color:#20503e
+  color:#304a66
 }
 .privacy-bottom .privacy-bottom-fine {
   font-size:12px;
-  color:#698273;
+  color:#7a8697;
   margin:6px 0 0
 }
 footer {
