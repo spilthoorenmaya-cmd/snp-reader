@@ -1,0 +1,31 @@
+name: SNP inventory checks
+on:
+  push:
+    paths:
+      - "scripts/compare_chip_inventory.py"
+      - "tests/test_compare_chip_inventory.py"
+      - "data/rsid_list.txt"
+      - ".github/workflows/inventory-checks.yml"
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run offline parser tests
+        run: python -m unittest discover -s tests -p "test_compare_chip_inventory.py" -v
+      - name: Validate inventory if uploaded
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import sys
+          sys.path.insert(0, "scripts")
+          from compare_chip_inventory import load_inventory
+          p = Path("data/rsid_list.txt")
+          print(f"Verified {len(load_inventory(p)):,} rsIDs" if p.exists() else "Inventory not uploaded yet")
+          PY
