@@ -58,6 +58,8 @@ function selectResultTab(name,focus=false){
   }
   $('tab-description').textContent=resultTabExplanations[name];
   $('filter').hidden=name!=='research';
+  $('variant-toolbar').hidden=name==='explore';
+  $('catalog-explainer').hidden=name==='explore';
   if(focus)$('tab-'+name).focus();
 }
 function preferredResultTab(){
