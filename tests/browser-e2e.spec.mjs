@@ -227,11 +227,14 @@ test('real browser: BRCA2 benign variants are gene-grouped and collapsed, not di
     await benign.locator(':scope>summary').click();
     assert.equal(await benign.locator('.clinvar-gene-group').count(),1);
     assert.equal(await benign.locator('.clinvar-gene-group .clinvar-card').count(),2);
-    assert.equal(await benign.locator('.clinvar-gene-group h4').innerText(),'BRCA2');
+    assert.equal(await benign.locator('.clinvar-gene-header h4').innerText(),'BRCA2');
     assert.match(await benign.locator('.clinvar-gene-header').innerText(),/BRCA2 is a normal DNA-repair gene/);
     assert.match(await benign.locator('.clinvar-gene-header').innerText(),/does not indicate cancer/);
     assert.match(await benign.locator('.clinvar-gene-header').innerText(),/does not test every possible variant/);
     const card=benign.locator('.clinvar-card').first();
+    assert.equal(await card.locator('.clinvar-condition-details').evaluate(el=>el.open),false);
+    assert.match(await card.locator('.clinvar-benign-reassurance').innerText(),/not a sign that you have the condition/);
+    await card.locator('.clinvar-condition-details>summary').click();
     assert.match(await card.locator('.clinvar-condition-brief').innerText(),/hereditary cancer susceptibility syndrome/);
     assert.match(await card.locator('.clinvar-dose-status').innerText(),/benign variant/);
     assert.match(await card.locator('.clinvar-personal-status').innerText(),/Benign BRCA2 variant — not evidence of BRCA2-related cancer/);
