@@ -334,7 +334,7 @@ test('real browser: evidence tabs isolate clinical, carrier, traits and benign e
     assert.match(await page.locator('#tab-panel-research').innerText(),/research associations/);
     assert.equal(await page.locator('#filter').isVisible(),true);
     await page.locator('#filter').selectOption('Nutrition');
-    assert.match(await page.locator('#tab-panel-research').innerText(),/No curated interpretation matches this search|No curated interpretation matches this search|Adult lactose digestion/);
+    assert.match(await page.locator('#tab-panel-research').innerText(),/Caffeine metabolism/);
     await page.locator('#filter').selectOption('all');
 
     await page.locator('#tab-benign').click();
