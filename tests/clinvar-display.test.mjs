@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {conditionLabels, classificationTone, classificationHeadline, genotypeAlleleContext, inheritanceContext, clinicalDisplayGroup, reviewLabel} from '../dist/clinvar-display.js';
+import {conditionLabels, classificationTone, classificationHeadline, genotypeAlleleContext, inheritanceContext, inheritanceBrief, inheritancePattern, clinicalDisplayGroup, reviewLabel} from '../dist/clinvar-display.js';
 
 test('long ClinVar condition aliases become readable distinct labels',()=>{
   const names=conditionLabels('Autosomal recessive nonsyndromic hearing loss 1A|not provided| Hearing impairment |Nonsyndromic genetic hearing loss|Autosomal recessive nonsyndromic hearing loss 1A');
@@ -58,9 +58,9 @@ test('reference vs alternate homozygous calls correctly count 0 or 2 alternate a
     assert.equal(genotypeAlleleContext({genotype:invalid},e),null);
 });
 test('inheritance copy-number guidance is contextual, not a claimed diagnosis',()=>{
-  assert.match(inheritanceContext('Autosomal recessive sample condition',1),/usually does not cause a recessive disorder/);
+  assert.match(inheritanceContext('Autosomal recessive sample condition',1),/both gene copies/);
   assert.match(inheritanceContext('Autosomal recessive sample condition',2),/not a clinical diagnosis/);
-  assert.match(inheritanceContext('Autosomal dominant sample condition',1),/One copy can matter/);
+  assert.match(inheritanceContext('Autosomal dominant sample condition',1),/One disease-associated copy can matter/);
   assert.match(inheritanceContext('Autosomal dominant sample condition|Autosomal recessive sample condition',1),/both recessive and dominant/);
   assert.match(inheritanceContext('Unknown condition',1),/cannot be determined/);
 });
@@ -77,4 +77,27 @@ test('only one-copy, explicitly recessive-pattern pathogenic autosomal records a
   assert.equal(clinicalDisplayGroup({...e,condition:'Recessive condition|X-linked condition'},1),'main');
   assert.equal(clinicalDisplayGroup({...e,condition:'Condition with no mode listed'},1),'main');
   assert.equal(clinicalDisplayGroup({...e,sig:'Conflicting classifications of pathogenicity'},1),'main');
+});
+
+test('personalized recessive copy count explains two altered gene copies, not necessarily two identical variants',()=>{
+ const one=inheritanceBrief('Autosomal recessive example condition',1);
+ assert.match(one.heading,/one alternate copy/);
+ assert.match(one.heading,/two affected gene copies/);
+ assert.match(one.detail,/need not contain the same variant/);
+ assert.match(one.detail,/does not establish whether a second relevant variant is present/);
+ const two=inheritanceBrief('Autosomal recessive example condition',2);
+ assert.match(two.heading,/two copies of this alternate allele/);
+ assert.match(two.detail,/cannot establish that you have the condition/);
+});
+test('one alternate copy may matter with dominant but no illness is inferred',()=>{
+ const x=inheritanceBrief('Autosomal dominant example condition',1);
+ assert.match(x.heading,/one can matter/);
+ assert.match(x.detail,/not proof of illness/);
+ assert.equal(inheritancePattern('Autosomal recessive example'),'recessive');
+ assert.equal(inheritancePattern('Autosomal dominant example'),'dominant');
+ assert.equal(inheritancePattern('Autosomal dominant example|Autosomal recessive example'),'mixed');
+ assert.equal(inheritancePattern('X-linked recessive example'),'complex');
+ const mixed=inheritanceBrief('Autosomal dominant example|Autosomal recessive example',1);
+ assert.match(mixed.heading,/more than one inheritance pattern/);
+ assert.match(inheritanceBrief('Not specified',1).heading,/cannot tell whether you would be affected/);
 });
