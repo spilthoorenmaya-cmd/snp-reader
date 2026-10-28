@@ -68,7 +68,7 @@ test('local stylesheet, script and imported module assets resolve in dist',()=>{
    assert.ok(existsSync(resolve(dist,relative)),'Missing local site asset: '+relative);
  }
  assert.match(html,/<script type="module" src="app\.js/);
- for(const module of ['app.js','baby-eye-explorer.js','clinvar-display.js','snp-matching.js']){
+ for(const module of ['app.js','clinvar-display.js','snp-matching.js']){
    const source=read(module);
    for(const match of source.matchAll(/from\s+['"](\.\/[^'"]+)['"]/g)){
      assert.ok(existsSync(resolve(dist,dirname(module),match[1])),
@@ -83,7 +83,9 @@ test('reviewed results keep distinct clinical, carrier and research entry points
    assert.match(html,new RegExp('id="tab-'+name+'"'));
  }
  const js=read('app.js');
- assert.match(js,/readEyeMarker/);
+ assert.doesNotMatch(js,/baby-eye|readEyeMarker|exploreBabyEyeColor/);
+ assert.doesNotMatch(html,/id="tab-explore"|JUST CURIOUS\?|Fun with genetics/);
+ assert.doesNotMatch(read('table.css'),/\.baby-eye|\.result-tab--explore/);
  assert.match(js,/carrierPlanningNote/);
  assert.match(js,/matchClinvar/);
 });
