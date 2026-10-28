@@ -2,6 +2,7 @@ import {extractDnaFromZip} from './zip-reader.js';
 import {parseDNA, isCalledDiploidSnp, isNoCall} from './dna-parser.js';
 import {curatedMatches, matchClinvar} from './snp-matching.js';
 import {extraCatalog} from './extra-catalog.js';
+import {normalizePersonalContext,personalContextSummary,conditionContextNote} from './personal-context.js';
 import {conditionLabels, conditionBrief, classificationTone, classificationHeadline, genotypeAlleleContext, inheritanceContext, inheritanceBrief, inheritancePattern, inheritanceDisplay, alleleDoseSummary, clinicalDisplayGroup, reviewLabel} from './clinvar-display.js';
 // SNP Reader MVP: deliberately static. Uploaded raw DNA never leaves this browser.
 const catalog = [
@@ -48,6 +49,17 @@ function lookupInventory(){
   $('inventory-status').textContent=known?`${id} is in the MyHeritage GSA inventory.${curated?' A curated explanation is available.':' No curated interpretation yet.'}`:`${id} was not in this supplied GSA inventory. Another chip version may include it.`;
 }
 function safe(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function readPersonalContext(){
+  return normalizePersonalContext({age:$('context-age').value,sex:$('context-sex').value,ancestry:$('context-ancestry').value});
+}
+function updatePersonalContext(){
+  const ageValue=$('context-age').value.trim();
+  const ageInvalid=ageValue!==''&&(!/^\d{1,3}$/.test(ageValue)||Number(ageValue)>120);
+  $('context-summary').textContent=ageInvalid
+    ? 'Age must be a whole number from 0 to 120; an invalid age will not be used.'
+    : personalContextSummary(readPersonalContext());
+  if(records.size)draw();
+}
 function matches(){return curatedMatches(records,catalog)}
 function draw(){
   const term=$('search').value.toLowerCase().trim(),category=$('filter').value;
@@ -192,6 +204,7 @@ function draw(){
       'Exact matching requires a stated genome build (GRCh37 or GRCh38).';
     const limitNote=primaryHits.length>limit||recessiveHits.length>limit||benignHits.length>limit?
       `Showing up to ${limit} records per section. Search by gene, rsID or condition to narrow results.`:'';
+    const personalContext=readPersonalContext();
     const renderGeneGroups=(records)=>{
       const byGene=new Map();
       for(const hit of records.slice(0,limit)){
@@ -203,11 +216,13 @@ function draw(){
         const geneNote=gene.toUpperCase()==='BRCA2'
           ? 'BRCA2 is a normal DNA-repair gene. A benign BRCA2 variant does not indicate cancer or a harmful BRCA2 mutation. This upload does not test every possible variant in BRCA2.'
           : 'Each result concerns an individual variant—not the entire gene. A benign finding does not rule out other variants.';
+        const contextNote=conditionContextNote(geneHits.map(h=>h.e.condition),personalContext);
         return `<section class="clinvar-gene-group" aria-label="${safe(gene)} variant records">
         <header class="clinvar-gene-header">
           <div><h4>${safe(gene)}</h4><span>${geneHits.length} ${geneHits.length===1?'variant record':'variant records'}</span></div>
           <p>${safe(geneNote)}</p>
         </header>
+        ${contextNote?`<p class="clinvar-gene-context"><strong>Personal context (self-reported):</strong> ${safe(contextNote)}</p>`:''}
         <div class="clinvar-grid">${geneHits.map(renderCard).join('')}</div>
       </section>`;
       }).join('');
@@ -267,6 +282,10 @@ $('inventory-button').addEventListener('click',lookupInventory);
 $('inventory-search').addEventListener('keydown',e=>{if(e.key==='Enter')lookupInventory()});
 loadInventory();
 loadClinvar();
+$('context-age').addEventListener('input',updatePersonalContext);
+$('context-sex').addEventListener('change',updatePersonalContext);
+$('context-ancestry').addEventListener('change',updatePersonalContext);
+updatePersonalContext();
 const picker=$('file');
 picker.addEventListener('change',()=>{const selected=picker.files?.[0];if(selected){$('upload-status').textContent=`Selected: ${selected.name}`;handle(selected)}});
-['dragenter','dragover'].forEach(t=>$('drop').addEventListener(t,e=>{e.preventDefault();$('drop').classList.add('drag')}));['dragleave','drop'].forEach(t=>$('drop').addEventListener(t,e=>{e.preventDefault();$('drop').classList.remove('drag')}));$('drop').addEventListener('drop',e=>handle(e.dataTransfer.files[0]));$('demo').addEventListener('click',()=>show(parseDNA(demo),'Fictional sample genome'));$('search').addEventListener('input',draw);$('filter').addEventListener('change',draw);$('clear').addEventListener('click',()=>{records.clear();mode='';$('file').value='';$('results').hidden=true;$('upload').scrollIntoView({behavior:'smooth'})});$('export').addEventListener('click',()=>{const rows=[['rsID','gene','topic','genotype','interpretation','evidence_source']];for(const c of matches()){const g=c.call?.genotype||'';rows.push([c.id,c.gene,c.title,g,c.meaning,c.source])}const csv=rows.map(r=>r.map(s=>'"'+String(s).replace(/"/g,'""')+'"').join(',')).join('\r\n');const a=document.createElement('a');const url=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.href=url;a.download='snp-reader-curated-results.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)});
+['dragenter','dragover'].forEach(t=>$('drop').addEventListener(t,e=>{e.preventDefault();$('drop').classList.add('drag')}));['dragleave','drop'].forEach(t=>$('drop').addEventListener(t,e=>{e.preventDefault();$('drop').classList.remove('drag')}));$('drop').addEventListener('drop',e=>handle(e.dataTransfer.files[0]));$('demo').addEventListener('click',()=>show(parseDNA(demo),'Fictional sample genome'));$('search').addEventListener('input',draw);$('filter').addEventListener('change',draw);$('clear').addEventListener('click',()=>{records.clear();mode='';window.__snpBuild='';$('file').value='';$('context-age').value='';$('context-sex').value='';$('context-ancestry').value='';updatePersonalContext();$('results').hidden=true;$('upload').scrollIntoView({behavior:'smooth'})});$('export').addEventListener('click',()=>{const rows=[['rsID','gene','topic','genotype','interpretation','evidence_source']];for(const c of matches()){const g=c.call?.genotype||'';rows.push([c.id,c.gene,c.title,g,c.meaning,c.source])}const csv=rows.map(r=>r.map(s=>'"'+String(s).replace(/"/g,'""')+'"').join(',')).join('\r\n');const a=document.createElement('a');const url=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.href=url;a.download='snp-reader-curated-results.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)});
