@@ -77,6 +77,38 @@ export function inheritancePattern(raw) {
   return 'unknown';
 }
 
+
+/**
+ * Visual categories are derived ONLY from wording in ClinVar condition names.
+ * They are NOT independently validated, variant-specific inheritance modes.
+ * Keep the UI explicit so colors cannot be confused with disease risk.
+ */
+export function inheritanceDisplay(raw) {
+  const pattern=inheritancePattern(raw);
+  switch(pattern){
+    case 'recessive': return {
+      tone:'recessive',label:'Recessive pattern mentioned',
+      description:'Conditions of this type generally need changes affecting both gene copies.'
+    };
+    case 'dominant': return {
+      tone:'dominant',label:'Dominant pattern mentioned',
+      description:'For some conditions of this type, one disease-associated copy can matter.'
+    };
+    case 'mixed': return {
+      tone:'review',label:'Mixed inheritance patterns',
+      description:'Different conditions in this record mention different inheritance rules.'
+    };
+    case 'complex': return {
+      tone:'review',label:'Special inheritance mentioned',
+      description:'X-linked, Y-linked or mitochondrial patterns need a different interpretation.'
+    };
+    default: return {
+      tone:'unspecified',label:'Inheritance not specified',
+      description:'This condition name does not establish how many copies matter.'
+    };
+  }
+}
+
 /** Plain language about COPY NUMBER, not an assertion of having a disease. */
 export function inheritanceBrief(raw,alternateCopies) {
   const pattern=inheritancePattern(raw);
