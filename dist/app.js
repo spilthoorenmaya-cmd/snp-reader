@@ -122,7 +122,7 @@ function draw(){
   const curatedIds=new Set(catalog.map(c=>c.id));
   // Show additional markers without inventing genotype-to-trait interpretations.
   // Render at most 100 rows to keep large consumer raw files responsive.
-  if(category==='all'){
+  {
     for(const [id,call] of records){
       if(curatedIds.has(id))continue;
       if(term&&!id.includes(term))continue;
@@ -134,15 +134,18 @@ function draw(){
       otherRows+=`<tr><td><strong>${safe(id)}</strong><span class="td-sub">${known?'In marker inventory':'Not in reference / not checked'}</span></td><td>Unreviewed marker</td><td><span class="genotype-chip">${safe(call.genotype)}</span></td><td class="interpretation-cell">No validated interpretation in SNP Reader yet. <span class="td-sub">${status} · Consumer raw data</span><div class="table-links"><a href="https://www.ncbi.nlm.nih.gov/snp/${id}" target="_blank" rel="noopener">dbSNP ↗</a><a href="https://www.ncbi.nlm.nih.gov/clinvar/?term=${id}" target="_blank" rel="noopener">Search ClinVar ↗</a></div></td></tr>`;
     }
   }
-  const otherTable=category==='all'&&totalOther?`<h3 class="uncurated-heading">Other markers in your file</h3><p class="uncurated-note">Showing ${shown.toLocaleString()} of ${totalOther.toLocaleString()} unreviewed matches${term?' for this search':''}. Search by rsID to find a specific marker. An rsID or a ClinVar search result is not, by itself, a medical finding.</p><div class="result-table-scroll"><table class="result-table"><thead><tr><th>rsID</th><th>Catalog status</th><th>Genotype</th><th>Research links</th></tr></thead><tbody>${otherRows}</tbody></table></div>`:'';
+  const otherTable=totalOther?`<h3 class="uncurated-heading">Other markers in your file</h3><p class="uncurated-note">Showing ${shown.toLocaleString()} of ${totalOther.toLocaleString()} unreviewed matches${term?' for this search':''}. Search by rsID to find a specific marker. An rsID or a ClinVar search result is not, by itself, a medical finding.</p><div class="result-table-scroll"><table class="result-table"><thead><tr><th>rsID</th><th>Catalog status</th><th>Genotype</th><th>Research links</th></tr></thead><tbody>${otherRows}</tbody></table></div>`:'';
   const hits=clinvarMatches().filter(({e})=>!term||[e.id,e.gene,e.condition,e.sig].join(' ').toLowerCase().includes(term));
-  let clinicalHtml='';
-  if(category==='all'||category==='Health'){
+  let clinicalHtml='', clinicalPrimaryCount=0, clinicalCarrierCount=0, clinicalBenignCount=0;
+  {
     const limit=200;
     const isBenign=(e)=>/^(?:benign|likely benign|benign\/likely benign)$/i.test(String(e.sig||'').trim());
     const benignHits=hits.filter(({e})=>isBenign(e));
     const primaryHits=hits.filter(({e,call})=>!isBenign(e)&&clinicalDisplayGroup(e,[...call.genotype].filter(a=>a===e.alt).length)==='main');
     const recessiveHits=hits.filter(({e,call})=>clinicalDisplayGroup(e,[...call.genotype].filter(a=>a===e.alt).length)==='one-copy-recessive');
+    clinicalPrimaryCount=primaryHits.length;
+    clinicalCarrierCount=recessiveHits.length;
+    clinicalBenignCount=benignHits.length;
     const renderCard=({e,call})=>{
       const conditions=conditionLabels(e.condition);
       const definition=conditionBrief(e.condition);
@@ -325,7 +328,7 @@ function draw(){
   }
   let serpinaHtml='';
   const serpinaQuery='serpina1 alpha-1 alpha 1 antitrypsin aat deficiency rs28929474 rs17580 z s';
-  if((category==='all'||category==='Health')&&(!term||serpinaQuery.includes(term))){
+  if(!term||serpinaQuery.includes(term)){
     const report=interpretSerpina1(records,window.__snpBuild);
     const detected=report.markers.filter(m=>m.alternateCopies>0).length;
     const details=report.markers.map(marker=>{
@@ -351,13 +354,38 @@ function draw(){
       </div>
     </details>`;
   }
-  $('cards').innerHTML=curatedTable+serpinaHtml+clinicalHtml+otherTable;
+  const clinicalPanelHtml=`<div id="tab-panel-clinical" class="result-tab-panel" role="tabpanel" aria-labelledby="tab-clinical">${clinicalHtml}</div>`;
+  const carrierPanelHtml=`<div id="tab-panel-carrier" class="result-tab-panel" role="tabpanel" aria-labelledby="tab-carrier"><div class="tab-panel-intro"><h3>Carrier-related information</h3><p>One-copy findings that mention recessive inheritance, and special inheritance checks such as SERPINA1. These are not verified carrier-screening results or diagnoses.</p></div></div>`;
+  const researchPanelHtml=`<div id="tab-panel-research" class="result-tab-panel" role="tabpanel" aria-labelledby="tab-research"><div class="tab-panel-intro"><h3>Traits, nutrition &amp; research associations</h3><p>Genotype-specific educational findings from carefully selected sources, with their evidence and limitations. Some describe potentially useful traits, but a research association does not prove a personal benefit or health outcome. <a href="https://www.ebi.ac.uk/gwas/" target="_blank" rel="noopener noreferrer">Explore the NHGRI–EBI GWAS Catalog ↗</a></p></div>${curatedTable}</div>`;
+  const benignPanelHtml=`<div id="tab-panel-benign" class="result-tab-panel" role="tabpanel" aria-labelledby="tab-benign"><div class="tab-panel-intro"><h3>Benign &amp; unreviewed variants</h3><p>A benign variant is not evidence of a disease, and does not automatically confer protection. Raw SNPs without an interpretation are shown for browsing, not as findings.</p></div>${otherTable?`<details class="raw-marker-section"><summary>Browse ${totalOther.toLocaleString()} unreviewed raw SNPs</summary>${otherTable}</details>`:''}</div>`;
+  $('cards').innerHTML=clinicalPanelHtml+carrierPanelHtml+researchPanelHtml+benignPanelHtml;
+  const clinicalSection=$('tab-panel-clinical').querySelector('.clinvar-section');
+  const carrierSection=clinicalSection?.querySelector('.clinvar-secondary');
+  const benignSection=clinicalSection?.querySelector('.clinvar-benign');
+  if(carrierSection){$('tab-panel-carrier').append(carrierSection);carrierSection.open=true;}
+  if(benignSection){$('tab-panel-benign').prepend(benignSection);benignSection.open=true;}
+  const report=interpretSerpina1(records,window.__snpBuild);
+  const [zCopy,sCopy]=report.markers.map(marker=>marker.alternateCopies||0);
+  const specialClinicallyRelevant=zCopy===2||(zCopy>0&&sCopy>0);
+  if(serpinaHtml){
+    const section=document.createElement('div');
+    section.innerHTML=serpinaHtml;
+    const card=section.firstElementChild;
+    if(card)(specialClinicallyRelevant?$('tab-panel-clinical'):$('tab-panel-carrier')).append(card);
+  }
+  if(!clinicalPrimaryCount&&!specialClinicallyRelevant)$('tab-panel-clinical').insertAdjacentHTML('beforeend','<p class="tab-empty">No variant-level ClinVar records in this review group match the current search. This does not rule out other variants or medical conditions.</p>');
+  if(!clinicalCarrierCount&&!serpinaHtml)$('tab-panel-carrier').insertAdjacentHTML('beforeend','<p class="tab-empty">No provisional one-copy recessive findings match this search. This is not a negative carrier-screening result.</p>');
+  $('tab-count-clinical').textContent=String(clinicalPrimaryCount+(specialClinicallyRelevant&&serpinaHtml?1:0));
+  $('tab-count-carrier').textContent=String(clinicalCarrierCount+(serpinaHtml&&!specialClinicallyRelevant?1:0));
+  $('tab-count-research').textContent=String(filtered.length);
+  $('tab-count-benign').textContent=String(clinicalBenignCount);
+  selectResultTab(activeResultTab);
   if(openBenign){const el=$('cards').querySelector('.clinvar-benign');if(el)el.open=true;}
   if(openOtherBenign){const el=$('cards').querySelector('.clinvar-benign-rest');if(el)el.open=true;}
   if(openRecessive){const el=$('cards').querySelector('.clinvar-secondary');if(el)el.open=true;}
   if(serpinaWasOpen!==null){const el=$('cards').querySelector('.serpina1-panel');if(el)el.open=serpinaWasOpen;}
 }
-function show(result,label){window.__snpBuild=result.build;records=result.records;mode=label;$('results').hidden=false;$('error').hidden=true;$('total').textContent=records.size.toLocaleString();refreshAnnotatedCount();$('nocalls').textContent=[...records.values()].filter(x=>isNoCall(x.genotype)).length.toLocaleString();updateInventoryCount();$('result-summary').textContent=`${label} · ${result.format}${result.build?' · Genome build '+result.build:''}. Showing curated interpretations; the marker inventory is separate.`;$('search').value='';$('filter').value='all';draw();$('results').scrollIntoView({behavior:'smooth',block:'start'})}
+function show(result,label){window.__snpBuild=result.build;records=result.records;mode=label;$('results').hidden=false;$('error').hidden=true;$('total').textContent=records.size.toLocaleString();refreshAnnotatedCount();$('nocalls').textContent=[...records.values()].filter(x=>isNoCall(x.genotype)).length.toLocaleString();updateInventoryCount();$('result-summary').textContent=`${label} · ${result.format}${result.build?' · Genome build '+result.build:''}. Showing curated interpretations; the marker inventory is separate.`;$('search').value='';$('filter').value='all';activeResultTab=preferredResultTab();draw();$('results').scrollIntoView({behavior:'smooth',block:'start'})}
 async function handle(file){
   if(!file)return;
   const status=$('upload-status');
@@ -379,6 +407,18 @@ async function handle(file){
   }
 }
 const demo=`# Synthetic sample, forward strand build 37\nrsid\tchromosome\tposition\tgenotype\nrs4988235\t2\t136608646\tAG\nrs762551\t15\t74749576\tAA\nrs1800562\t6\t26093141\tAG\nrs999999\t1\t123456\tAA`;
+for(const name of resultTabNames){
+  const button=$('tab-'+name);
+  button.addEventListener('click',()=>selectResultTab(name));
+  button.addEventListener('keydown',event=>{
+    if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;
+    event.preventDefault();
+    const current=resultTabNames.indexOf(name);
+    const next=event.key==='Home'?0:event.key==='End'?resultTabNames.length-1:
+      (current+(event.key==='ArrowRight'?1:-1)+resultTabNames.length)%resultTabNames.length;
+    selectResultTab(resultTabNames[next],true);
+  });
+}
 $('inventory-button').addEventListener('click',lookupInventory);
 $('inventory-search').addEventListener('keydown',e=>{if(e.key==='Enter')lookupInventory()});
 loadInventory();
