@@ -1,5 +1,5 @@
 {
-  "name": "snp-reader-mvp",
+  "name": "snp-reader",
   "private": true,
   "type": "module",
   "scripts": {
@@ -9,5 +9,10 @@
   },
   "devDependencies": {
     "playwright": "1.56.1"
+  },
+  "description": "Privacy-first browser-only SNP interpretation explorer for consumer DNA exports",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=22"
   }
 }
