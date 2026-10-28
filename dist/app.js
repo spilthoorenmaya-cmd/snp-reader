@@ -212,7 +212,7 @@ function draw(){
           <span class="clinvar-card-overview-meta">
             <span>Genotype: <strong>${safe(call.genotype)}</strong></span>
             <span>${safe(dose.type==='benign'?'Not evidence of the listed condition':isCfCarrier?'Possible CF carrier-related finding · consider partner testing':isPossibleCarrier?'Possible carrier information · partner screening may matter':dose.type==='dominant'?'Dominant-pattern variant · not a diagnosis':'Variant evidence · not a diagnosis')}</span>
-            <span class="clinvar-card-toggle" aria-hidden="true">View details</span>
+            <span class="clinvar-card-toggle" aria-hidden="true"><span class="toggle-closed-label">View details</span><span class="toggle-open-label">Close details</span><span class="toggle-chevron"></span></span>
           </span>
         </summary>
         <div class="clinvar-card-body">
