@@ -35,5 +35,6 @@ jobs:
             echo "No new evidence"
           else
             git commit -m "Refresh ClinVar reference evidence catalog"
-            git push
+            git pull --rebase origin main
+            git push origin HEAD:main
           fi
