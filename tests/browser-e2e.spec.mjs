@@ -478,6 +478,7 @@ test('real browser: benign CFTR call is benign, not a carrier alert',async()=>{
   try{
     const raw='# genome build 37\nrsid\tchromosome\tposition\tgenotype\n'+rs+'\t7\t117199644\tCT\n';
     await page.locator('#file').setInputFiles({name:'synthetic-cftr.txt',mimeType:'text/plain',buffer:Buffer.from(raw)});
+    await page.waitForFunction(()=>document.querySelector('#tab-benign')?.getAttribute('aria-selected')==='true');
     assert.equal(await page.locator('#tab-benign').getAttribute('aria-selected'),'true');
     assert.equal(await page.locator('#tab-panel-carrier .clinvar-secondary').count(),0);
     assert.equal(await page.locator('.carrier-family-planning').count(),0);
