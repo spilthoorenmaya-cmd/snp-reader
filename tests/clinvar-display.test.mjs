@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {conditionLabels, conditionBrief, classificationTone, classificationHeadline, genotypeAlleleContext, inheritanceContext, inheritanceBrief, inheritancePattern, inheritanceDisplay, alleleDoseSummary, clinicalDisplayGroup, reviewLabel} from '../dist/clinvar-display.js';
+import {conditionLabels, conditionBrief, classificationTone, classificationHeadline, genotypeAlleleContext, inheritanceContext, inheritanceBrief, inheritancePattern, inheritanceDisplay, alleleDoseSummary, clinicalDisplayGroup, carrierPlanningNote, isCysticFibrosisCondition, reviewLabel} from '../dist/clinvar-display.js';
 
 test('long ClinVar condition aliases become readable distinct labels',()=>{
   const names=conditionLabels('Autosomal recessive nonsyndromic hearing loss 1A|not provided| Hearing impairment |Nonsyndromic genetic hearing loss|Autosomal recessive nonsyndromic hearing loss 1A');
@@ -257,4 +257,46 @@ test('recessive carrier tab never silently groups mixed or sex-linked interpreta
   {...base,sig:'Benign'}
  ])assert.equal(clinicalDisplayGroup(record,1),'main',JSON.stringify(record));
  assert.equal(clinicalDisplayGroup({...base,chr:'chr13'},1),'one-copy-recessive');
+});
+
+
+test('clinically classified one-copy CFTR cystic fibrosis variant enters carrier tab even without recessive word',()=>{
+ const e={gene:'CFTR',chr:'7',condition:'Cystic fibrosis',sig:'Pathogenic'};
+ assert.equal(isCysticFibrosisCondition(e),true);
+ assert.equal(clinicalDisplayGroup(e,1),'one-copy-recessive');
+ assert.equal(clinicalDisplayGroup(e,2),'main');
+ assert.equal(clinicalDisplayGroup({...e,condition:'Mucoviscidosis'},1),'one-copy-recessive');
+ assert.equal(clinicalDisplayGroup({...e,condition:'Mucoviscidose'},1),'one-copy-recessive');
+ assert.equal(clinicalDisplayGroup({...e,sig:'Likely pathogenic'},1),'one-copy-recessive');
+ assert.equal(clinicalDisplayGroup({...e,sig:'Pathogenic/Likely pathogenic'},1),'one-copy-recessive');
+});
+test('CFTR non-pathogenic, sex-chromosome and non-CF condition matches are not carrier diagnoses',()=>{
+ const e={gene:'CFTR',chr:'7',condition:'Cystic fibrosis',sig:'Pathogenic'};
+ for(const sig of ['Benign','Likely benign','Uncertain significance','Conflicting classifications of pathogenicity']){
+   assert.equal(clinicalDisplayGroup({...e,sig},1),'main',sig);
+   assert.equal(carrierPlanningNote({...e,sig},1),null,sig);
+ }
+ for(const change of [{gene:'OTHER'},{chr:'X'},{condition:'CFTR-related disorder without stated mode'},
+  {condition:'Cystic fibrosis|Autosomal dominant condition'},{condition:'Cystic fibrosis|X-linked condition'}]){
+   assert.equal(clinicalDisplayGroup({...e,...change},1),'main',JSON.stringify(change));
+ }
+ assert.equal(isCysticFibrosisCondition({...e,gene:'BRCA2'}),false);
+});
+test('family-planning guidance is conditional on both partners having confirmed disease-causing variants',()=>{
+ const cftr={gene:'CFTR',chr:'7',condition:'Cystic fibrosis',sig:'Pathogenic'};
+ const note=carrierPlanningNote(cftr,1);
+ assert.match(note.title,/not confirmed/);
+ assert.match(note.message,/does not mean you have cystic fibrosis/);
+ assert.match(note.partner,/both confirmed carriers/);
+ assert.match(note.partner,/1 in 4 \(25%\)/);
+ assert.match(note.partner,/do not need to be identical/);
+ assert.match(note.action,/clinical CFTR carrier screening/);
+ assert.match(note.source,/cff.org/);
+ const other=carrierPlanningNote({
+   gene:'PAH',chr:'12',condition:'Autosomal recessive phenylketonuria',sig:'Pathogenic'},1);
+ assert.match(other.title,/Possible recessive carrier-related finding/);
+ assert.match(other.partner,/same autosomal recessive condition/);
+ assert.match(other.partner,/25%/);
+ assert.match(other.action,/clinical carrier screening/);
+ assert.equal(carrierPlanningNote(cftr,2),null);
 });
