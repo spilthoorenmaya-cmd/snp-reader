@@ -25,6 +25,8 @@ export function conditionBrief(raw) {
   const name=conditionLabels(raw)[0];
   const n=name.toLowerCase();
   const definitions=[
+    [/\bbreast.ovarian cancer\b|\bhereditary breast and ovarian cancer\b/i,
+      'A hereditary cancer susceptibility syndrome. Some specific BRCA1 or BRCA2 variants can increase cancer risk, but many variants in these genes are benign.'],
     [/\b(?:nonsyndromic )?(?:sensorineural )?hearing loss\b|\bdeafness\b/i,
       'A condition involving reduced hearing. Some inherited forms occur without other characteristic symptoms.'],
     [/\bcystic fibrosis\b/i,
