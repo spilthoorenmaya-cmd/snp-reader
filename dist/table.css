@@ -91,3 +91,45 @@
 
 .clinvar-copy-brief{background:#eff6f0;border-radius:9px;padding:11px 12px;margin:8px 0!important;line-height:1.65!important}
 .clinvar-copy-brief strong{display:block;font-size:13px;margin-bottom:4px;color:#20553e}
+
+
+/* Inheritance color language: informational, NEVER a disease-severity scale.
+   Labels and explanations accompany every color for accessibility. */
+.clinvar-card--recessive,.clinvar-legend-item--recessive{--pattern:#145d81;--pattern-bg:#eaf5fc;--pattern-line:#c5e1f1}
+.clinvar-card--dominant,.clinvar-legend-item--dominant{--pattern:#654391;--pattern-bg:#f3effb;--pattern-line:#ddd2f0}
+.clinvar-card--review,.clinvar-legend-item--review{--pattern:#805a24;--pattern-bg:#faf4e8;--pattern-line:#ecddbf}
+.clinvar-card--unspecified,.clinvar-legend-item--unspecified{--pattern:#526573;--pattern-bg:#eff3f5;--pattern-line:#d9e2e7}
+
+.clinvar-card[class*="clinvar-card--"]{border-left:5px solid var(--pattern);padding-left:20px}
+.clinvar-inheritance-banner{display:flex;flex-direction:column;align-items:flex-start;gap:7px;
+  border:1px solid var(--pattern-line);background:var(--pattern-bg);padding:12px 14px;
+  border-radius:10px;margin-bottom:16px}
+.clinvar-inheritance-badge{display:inline-flex;align-items:center;gap:9px;font-size:13px;
+  font-weight:800;line-height:1.4;color:var(--pattern)}
+.inheritance-swatch{display:inline-block;flex:none;width:11px;height:11px;border-radius:3px;
+  background:var(--pattern);border:1px solid rgba(0,0,0,.08)}
+.clinvar-inheritance-caption{font-size:12px;line-height:1.55;color:#435665}
+.clinvar-card .clinvar-copy-brief{background:var(--pattern-bg);border:1px solid var(--pattern-line)}
+.clinvar-card .clinvar-copy-brief strong{color:var(--pattern)}
+.clinvar-card .clinvar-copy-context{border-left-color:var(--pattern)}
+.clinvar-card--recessive .clinvar-personal-status--carrier{background:#eaf5fc;border-color:#c5e1f1}
+.clinvar-card--recessive .clinvar-personal-status--carrier strong{color:#145d81}
+.clinvar-card--dominant .clinvar-personal-status{background:#f3effb;border-color:#ddd2f0}
+.clinvar-card--dominant .clinvar-personal-status strong{color:#654391}
+
+.clinvar-legend{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:18px 0 10px}
+.clinvar-legend-item{min-width:0;display:flex;align-items:flex-start;gap:9px;padding:12px;
+  border:1px solid var(--pattern-line);border-radius:10px;background:var(--pattern-bg)}
+.clinvar-legend-item .inheritance-swatch{margin-top:4px}
+.clinvar-legend-item strong{display:block;font-size:12px;font-weight:800;line-height:1.5;color:var(--pattern)}
+.clinvar-legend-item small{display:block;font-size:11px;line-height:1.5;color:#445762;margin-top:4px}
+.clinvar-legend-note{font-size:12px;line-height:1.65;color:#546d61;margin-bottom:18px}
+.clinvar-secondary{border-color:#c5e1f1;background:#f4f9fd}
+.clinvar-secondary>summary{color:#145d81}
+.clinvar-secondary>summary span{color:#38627b}
+.clinvar-secondary>summary::after{color:#145d81}
+@media(max-width:1000px){.clinvar-legend{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.clinvar-legend{grid-template-columns:1fr}
+  .clinvar-card[class*="clinvar-card--"]{padding-left:14px}
+  .clinvar-inheritance-banner{padding:11px}
+}
