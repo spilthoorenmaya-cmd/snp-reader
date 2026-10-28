@@ -25,10 +25,10 @@ before(async()=>{
 });
 after(async()=>{await browser?.close();await new Promise(resolve=>server?.close(resolve))});
 
-async function pageReady(){
+async function pageReady(entries=[]){
   const page=await browser.newPage({acceptDownloads:true});
   await page.route('**/clinvar-evidence.json',route=>route.fulfill({
-    status:200,contentType:'application/json',body:JSON.stringify({generated:'2026-10-28',count:0,entries:[]})
+    status:200,contentType:'application/json',body:JSON.stringify({generated:'2026-10-28',count:entries.length,entries})
   }));
   await page.route('https://raw.githubusercontent.com/**',route=>route.fulfill({
     status:200,contentType:'text/plain',body:'rs762551\nrs1800562\nrs4988235\n'
@@ -107,5 +107,47 @@ test('real browser: fictional sample loads and CSV export requires no server upl
     await page.locator('#export').click();
     assert.equal((await download).suggestedFilename(),'snp-reader-curated-results.csv');
     assert.deepEqual(sent,[]);
+  }finally{await page.close()}
+});
+
+test('real browser: ClinVar cards show concise condition and expandable aliases',async()=>{
+  const example={
+    id:'rs762551',gene:'EXAMPLE',build:'GRCh37',chr:'15',pos:74749576,
+    ref:'C',alt:'A',sig:'Pathogenic',review:'reviewed by expert panel',
+    condition:'Example condition alpha|not provided|Another recorded condition name|Example condition alpha',
+    variation:123456
+  };
+  const page=await pageReady([example]);
+  try {
+    await page.locator('#file').setInputFiles({name:'synthetic.txt',mimeType:'text/plain',buffer:Buffer.from(source)});
+    await page.locator('.clinvar-card').waitFor();
+    const card=page.locator('.clinvar-card').first();
+    assert.match(await card.locator('.clinvar-gene').innerText(),/EXAMPLE/);
+    assert.match(await card.locator('.clinvar-classification').innerText(),/Pathogenic/);
+    assert.equal(await card.locator('.clinvar-condition-name').innerText(),'Example condition alpha');
+    assert.equal(await card.locator('.clinvar-more summary').innerText(),'View all 2 recorded condition names');
+    assert.equal(await card.locator('.clinvar-more li').count(),2);
+    await card.locator('.clinvar-more summary').click();
+    assert.match(await card.locator('.clinvar-more').innerText(),/Another recorded condition name/);
+    assert.equal(await page.locator('.clinvar-grid .result-table').count(),0);
+    assert.equal(await card.locator('.clinvar-card-footer a').getAttribute('href'),'https://www.ncbi.nlm.nih.gov/clinvar/variation/123456/');
+  }finally{await page.close()}
+});
+test('real browser: ClinVar cards become one column on mobile',async()=>{
+  const example={
+    id:'rs762551',gene:'EXAMPLE',build:'GRCh37',chr:'15',pos:74749576,
+    ref:'C',alt:'A',sig:'Conflicting classifications of pathogenicity',
+    review:'criteria provided, single submitter',
+    condition:'Example condition alpha|Longer second label',variation:345
+  };
+  const page=await pageReady([example]);
+  try {
+    await page.setViewportSize({width:390,height:844});
+    await page.locator('#file').setInputFiles({name:'synthetic.txt',mimeType:'text/plain',buffer:Buffer.from(source)});
+    await page.locator('.clinvar-card').waitFor();
+    const grid=page.locator('.clinvar-grid');
+    assert.equal(await grid.evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length),1);
+    assert.equal(await page.locator('.clinvar-classification--uncertain').count(),1);
+    assert.ok((await page.locator('.clinvar-card').boundingBox()).width<390);
   }finally{await page.close()}
 });
