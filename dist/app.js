@@ -268,6 +268,9 @@ function draw(){
         <p class="clinvar-secondary-note">Benign and likely benign variants are generally not disease-causing for their listed conditions. One example is shown below, chosen for its source review status—not because it is more important or protective. These findings cannot rule out other variants in the gene.</p>
         <div class="clinvar-benign-example">
           <div class="clinvar-benign-example-caption"><strong>One example</strong><span>${safe(benignSelection.example?.e?.gene||'')} · ${safe(benignSelection.example?.e?.id||'')}</span></div>
+          ${benignSelection.example&&conditionContextNote([benignSelection.example.e.condition],personalContext)
+            ?`<p class="clinvar-gene-context"><strong>Personal context (self-reported):</strong> ${safe(conditionContextNote([benignSelection.example.e.condition],personalContext))}</p>`
+            :''}
           ${benignHtml}
         </div>
         ${otherBenignHtml?`<details class="clinvar-benign-rest">
