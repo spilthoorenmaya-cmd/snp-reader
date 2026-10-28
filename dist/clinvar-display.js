@@ -55,7 +55,7 @@ export function genotypeAlleleContext(call,evidence) {
   const alternateCopies=[...genotype].filter(x=>x===alt).length;
   const referenceCopies=2-alternateCopies;
   const zygosity=alternateCopies===2?'Homozygous alternate':alternateCopies===1?'Heterozygous':'Homozygous reference';
-  const isAutosomal=/^(?:[1-9]|1\\d|2[0-2])$/.test(String(evidence?.chr||'').replace(/^chr/i,''));
+  const isAutosomal=/^(?:[1-9]|1\d|2[0-2])$/.test(String(evidence?.chr||'').replace(/^chr/i,''));
   const copyMessage=alternateCopies===0
     ? 'No copies of the alternate allele were identified at this marker in the uploaded file. This does not exclude other genetic findings.'
     : alternateCopies===1
@@ -146,7 +146,7 @@ export function alleleDoseSummary(raw, alternateCopies, significance, chromosome
   const isBenign=sig.includes('benign');
   const isUncertain=sig.includes('uncertain')||sig.includes('conflicting');
   const isDiseaseAssociated=sig.includes('pathogenic')&&!isUncertain&&!isBenign;
-  const isAutosomal=/^(?:[1-9]|1\\d|2[0-2])$/.test(String(chromosome||'').replace(/^chr/i,''));
+  const isAutosomal=/^(?:[1-9]|1\d|2[0-2])$/.test(String(chromosome||'').replace(/^chr/i,''));
   if(!isAutosomal)return {
     type:'review',
     heading:'Copy count needs chromosome-specific interpretation',
