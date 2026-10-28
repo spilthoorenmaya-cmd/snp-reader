@@ -572,5 +572,28 @@ test('real browser: card chevron has a visible up/down state and hover does not 
    assert.match(await page.locator('#tab-panel-carrier .tab-panel-intro').innerText(),/carrier-screening results or diagnoses/);
    await page.locator('#tab-explore').click();
    assert.match(await page.locator('#tab-panel-explore .tab-panel-intro').innerText(),/deliberately separate from clinical and carrier findings/);
+   assert.equal(await page.locator('#variant-toolbar').isVisible(),false);
+   assert.equal(await page.locator('#catalog-explainer').isVisible(),false);
+   await page.locator('#tab-clinical').click();
+   assert.equal(await page.locator('#variant-toolbar').isVisible(),true);
  }finally{await page.close()}
+});
+
+test('real browser: hero trust assurances sit clearly beneath primary buttons on desktop and mobile',async()=>{
+  const page=await pageReady();
+  try{
+    for(const width of [1280,390]){
+      await page.setViewportSize({width,height:900});
+      const hero=page.locator('.hero'),actions=page.locator('.hero-actions'),trust=page.locator('.hero .trust');
+      const [heroBox,actionsBox,trustBox]=await Promise.all([hero.boundingBox(),actions.boundingBox(),trust.boundingBox()]);
+      assert.ok(heroBox&&actionsBox&&trustBox);
+      assert.ok(trustBox.y>=actionsBox.y+actionsBox.height,'Privacy assurances should follow the buttons');
+      assert.ok(trustBox.y+trustBox.height<=heroBox.y+heroBox.height+2,'Privacy assurances should fit inside hero');
+      assert.equal(await trust.isVisible(),true);
+      const style=await trust.evaluate(el=>({size:parseFloat(getComputedStyle(el).fontSize),
+        margin:parseFloat(getComputedStyle(el).marginTop)}));
+      assert.ok(style.size>=12,'Trust details need readable type');
+      assert.ok(style.margin<=30,'Excessive gap under buttons must not return');
+    }
+  }finally{await page.close()}
 });
