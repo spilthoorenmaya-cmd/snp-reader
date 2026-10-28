@@ -177,7 +177,7 @@ test('real browser: one-copy recessive-pattern evidence is collapsed, dominant a
     assert.equal(await page.locator('.clinvar-secondary .clinvar-card').count(),1);
     assert.equal(await page.locator('.clinvar-section>.clinvar-grid .clinvar-card').count(),2);
     assert.equal(await page.locator('.clinvar-secondary').evaluate(el=>el.open),false);
-    assert.match(await page.locator('.clinvar-secondary summary').innerText(),/1 one-copy findings/);
+    assert.match(await page.locator('.clinvar-secondary>summary').innerText(),/1 one-copy finding/);
     await page.locator('.clinvar-secondary>summary').click();
     assert.equal(await page.locator('.clinvar-secondary').evaluate(el=>el.open),true);
     assert.match(await page.locator('.clinvar-secondary .clinvar-card').innerText(),/recessive example condition/);
