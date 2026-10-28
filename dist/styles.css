@@ -44,3 +44,27 @@
 .personal-context-summary{font-weight:800;color:#275f46!important;background:#e8f3eb;padding:9px 12px;border-radius:9px;margin:4px 0 9px!important}
 .personal-context-privacy{font-size:11px!important;color:#627b6b!important;line-height:1.6!important;margin:0!important}
 @media(max-width:780px){.personal-context-fields{grid-template-columns:1fr}.personal-context-panel>summary{padding:14px}.personal-context-body{padding:0 14px 15px}}
+
+/* Privacy reassurance at the bottom: enough whitespace to read without
+   feeling like a tiny disclaimer pressed against the footer. */
+.privacy-bottom{background:#eaf2e9;border-top:1px solid #dae8dc}
+.privacy-bottom-inner{max-width:1160px;margin:0 auto;padding:56px 26px 66px;display:flex;align-items:flex-start;gap:22px}
+.privacy-bottom-symbol{display:grid;place-items:center;flex:none;width:50px;height:50px;border-radius:15px;background:#d4e6d8;color:#286c4e;font-size:26px}
+.privacy-bottom-copy{max-width:740px}
+.privacy-bottom h2{font:800 clamp(20px,2.5vw,27px)/1.25 Manrope,sans-serif;letter-spacing:-.65px;color:#20503e;margin:0 0 12px}
+.privacy-bottom p{font-size:14px;line-height:1.8;color:#416755;margin:0 0 10px}
+.privacy-bottom p strong{color:#20503e}
+.privacy-bottom .privacy-bottom-fine{font-size:12px;color:#698273;margin:6px 0 0}
+footer{padding-top:36px;padding-bottom:48px}
+.upload-target{padding-bottom:55px}
+.drop .local-note{margin-top:35px;line-height:1.5}
+@media(max-width:700px){
+  .privacy-bottom-inner{padding:44px 22px 58px;gap:14px}
+  .privacy-bottom-symbol{width:43px;height:43px;font-size:22px}
+  .privacy-bottom p{font-size:13px;line-height:1.75}
+  footer{padding-top:34px;padding-bottom:55px}
+  .upload-target{padding-bottom:53px}
+}
+@media(max-width:430px){
+  .privacy-bottom-inner{flex-direction:column;gap:14px}
+}
