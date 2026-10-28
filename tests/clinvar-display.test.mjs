@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {conditionLabels, classificationTone, classificationHeadline, genotypeAlleleContext, inheritanceContext, reviewLabel} from '../dist/clinvar-display.js';
+import {conditionLabels, classificationTone, classificationHeadline, genotypeAlleleContext, inheritanceContext, clinicalDisplayGroup, reviewLabel} from '../dist/clinvar-display.js';
 
 test('long ClinVar condition aliases become readable distinct labels',()=>{
   const names=conditionLabels('Autosomal recessive nonsyndromic hearing loss 1A|not provided| Hearing impairment |Nonsyndromic genetic hearing loss|Autosomal recessive nonsyndromic hearing loss 1A');
@@ -29,7 +29,7 @@ test('neutral ClinVar headline never downgrades or mislabels source classificati
   assert.equal(classificationHeadline('Likely pathogenic'),'Clinical evidence available');
   assert.equal(classificationHeadline('Conflicting classifications of pathogenicity'),'Mixed research classifications');
   assert.equal(classificationHeadline('Uncertain significance'),'Clinical meaning uncertain');
-  assert.equal(classificationHeadline('Benign'),'Reported as likely harmless');
+  assert.equal(classificationHeadline('Benign'),'Benign evidence reported');
 });
 test('CT and TC give identical per-allele counts; reference to alternate orientation still matters',()=>{
   const e={ref:'T',alt:'C'};
@@ -63,4 +63,18 @@ test('inheritance copy-number guidance is contextual, not a claimed diagnosis',(
   assert.match(inheritanceContext('Autosomal dominant sample condition',1),/One copy can matter/);
   assert.match(inheritanceContext('Autosomal dominant sample condition|Autosomal recessive sample condition',1),/both recessive and dominant/);
   assert.match(inheritanceContext('Unknown condition',1),/cannot be determined/);
+});
+
+test('only one-copy, explicitly recessive-pattern pathogenic autosomal records are secondary',()=>{
+  const e={chr:'13',sig:'Pathogenic',condition:'Autosomal recessive example condition'};
+  assert.equal(clinicalDisplayGroup(e,1),'one-copy-recessive');
+  assert.equal(clinicalDisplayGroup(e,2),'main');
+  assert.equal(clinicalDisplayGroup({...e,sig:'Likely pathogenic'},1),'one-copy-recessive');
+  assert.equal(clinicalDisplayGroup({...e,sig:'Benign'},1),'main');
+  assert.equal(clinicalDisplayGroup({...e,sig:'Uncertain significance'},1),'main');
+  assert.equal(clinicalDisplayGroup({...e,chr:'X'},1),'main');
+  assert.equal(clinicalDisplayGroup({...e,condition:'Autosomal recessive condition|Autosomal dominant condition'},1),'main');
+  assert.equal(clinicalDisplayGroup({...e,condition:'Recessive condition|X-linked condition'},1),'main');
+  assert.equal(clinicalDisplayGroup({...e,condition:'Condition with no mode listed'},1),'main');
+  assert.equal(clinicalDisplayGroup({...e,sig:'Conflicting classifications of pathogenicity'},1),'main');
 });
