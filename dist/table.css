@@ -66,3 +66,17 @@
 
 .clinvar-allele>a{display:inline-block;margin-top:9px;font-size:11px;font-weight:800;color:#28755b;text-decoration:underline;text-underline-offset:3px}
 .clinvar-allele>a:focus-visible{outline:2px solid #4c9a75;outline-offset:3px}
+
+/* One-copy findings that mention recessive inheritance are available,
+   but not presented as primary clinical alerts. */
+.clinvar-secondary{margin-top:25px;border:1px solid #dbe7df;background:#f7faf6;border-radius:14px;overflow:hidden}
+.clinvar-secondary>summary{list-style:none;display:flex;gap:7px;flex-direction:column;padding:18px 20px;cursor:pointer;color:#275541}
+.clinvar-secondary>summary::-webkit-details-marker{display:none}
+.clinvar-secondary>summary::after{content:"Show details";font-size:11px;color:#246e52;font-weight:800;display:block;margin-top:5px}
+.clinvar-secondary[open]>summary::after{content:"Hide details"}
+.clinvar-secondary>summary strong{font-size:14px;line-height:1.5;font-family:Manrope,sans-serif}
+.clinvar-secondary>summary span{font-size:12px;line-height:1.5;color:#617a68}
+.clinvar-secondary>summary:focus-visible{outline:2px solid #4c9a75;outline-offset:-3px}
+.clinvar-secondary-note{font-size:12px;line-height:1.7;color:#526e5e;margin:0 20px 18px}
+.clinvar-secondary>.clinvar-grid{padding:0 16px 18px}
+@media(max-width:480px){.clinvar-secondary>summary{padding:15px}.clinvar-secondary-note{margin:0 15px 15px}.clinvar-secondary>.clinvar-grid{padding:0 12px 15px}}
