@@ -15,6 +15,46 @@ export function conditionLabels(raw) {
   }
   return labels.length ? labels : ['Condition not specified'];
 }
+
+/**
+ * Carefully bounded GENERAL definitions, not inferred symptoms or a diagnosis.
+ * Wording is based on broad clinical terminology. Never derive phenotype from
+ * an rsID, genotype, or a condition-name fragment alone.
+ */
+export function conditionBrief(raw) {
+  const name=conditionLabels(raw)[0];
+  const n=name.toLowerCase();
+  const definitions=[
+    [/\b(?:nonsyndromic )?(?:sensorineural )?hearing loss\b|\bdeafness\b/i,
+      'A condition involving reduced hearing. Some inherited forms occur without other characteristic symptoms.'],
+    [/\bcystic fibrosis\b/i,
+      'An inherited condition that affects mucus production, particularly in the lungs and digestive system.'],
+    [/\b(?:hereditary )?hemochromatosis\b/i,
+      'A condition that may cause excess iron to accumulate in the body over time.'],
+    [/\bfamilial hypercholesterolemia\b/i,
+      'An inherited tendency to have unusually high LDL cholesterol levels.'],
+    [/\b(?:alpha|beta)[ -]thalass(?:a)?emia\b/i,
+      'An inherited blood condition that affects production of hemoglobin, which carries oxygen.'],
+    [/\bsickle.cell (?:disease|anemia|anaemia)\b/i,
+      'An inherited condition affecting red blood cells and their ability to carry oxygen.'],
+    [/\blong qt syndrome\b/i,
+      'An inherited or acquired condition involving the electrical timing of the heartbeat.'],
+    [/\bhypertrophic cardiomyopathy\b/i,
+      'A condition in which the heart muscle becomes abnormally thick.'],
+    [/\bfactor v leiden\b|\bthrombophilia\b/i,
+      'A condition associated with an increased tendency for blood to form clots.'],
+    [/\blynch syndrome\b/i,
+      'An inherited predisposition that can raise the risk of certain cancers.'],
+    [/\bphenylketonuria\b|\b(?:^| )pku\b/i,
+      'An inherited metabolic condition affecting how the body processes phenylalanine.']
+  ];
+  const matched=definitions.find(([pattern])=>pattern.test(n));
+  return matched ? {text:matched[1],specific:true} : {
+    text:'This is the condition name recorded alongside the variant in ClinVar. See the source record for its clinical description.',
+    specific:false
+  };
+}
+
 export function classificationTone(value) {
   const text = String(value || '').toLowerCase();
   // Conflicting classifications are NOT a pathogenic classification.
