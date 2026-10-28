@@ -43,9 +43,17 @@ test('real browser: click styled upload card opens native chooser and reads SNPs
   const page=await pageReady();
   try {
     const zone=await page.locator('#drop').boundingBox();
-    const chooserPromise=page.waitForEvent('filechooser');
-    await page.mouse.click(zone.x+zone.width/2,zone.y+zone.height/2);
-    const chooser=await chooserPromise;
+    const x=zone.x+zone.width/2, y=zone.y+zone.height/2;
+    const target=await page.evaluate(({x,y})=>{
+      const el=document.elementFromPoint(x,y);
+      return {tag:el?.tagName,id:el?.id,cls:el?.className,closestLabel:el?.closest('label')?.getAttribute('for'),hasInput:!!document.querySelector('#file')};
+    },{x,y});
+    const chooserPromise=page.waitForEvent('filechooser',{timeout:6000});
+    await page.mouse.click(x,y);
+    let chooser;
+    try{chooser=await chooserPromise}
+    catch(e){throw new Error('Click-to-upload failed. Target='+JSON.stringify(target)+'; '+e.message)}
+
     await chooser.setFiles({name:'synthetic-23andme.txt',mimeType:'text/plain',buffer:Buffer.from(source)});
     await page.waitForFunction(()=>document.querySelector('#total')?.textContent==='2');
     assert.match(await page.locator('#upload-status').innerText(),/Loaded 2 markers/);
