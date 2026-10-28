@@ -81,7 +81,9 @@ function draw(){
   let clinicalHtml='';
   if(category==='all'||category==='Health'){
     const limit=200;
-    const primaryHits=hits.filter(({e,call})=>clinicalDisplayGroup(e,[...call.genotype].filter(a=>a===e.alt).length)==='main');
+    const isBenign=(e)=>/^(?:benign|likely benign|benign\/likely benign)$/i.test(String(e.sig||'').trim());
+    const benignHits=hits.filter(({e})=>isBenign(e));
+    const primaryHits=hits.filter(({e,call})=>!isBenign(e)&&clinicalDisplayGroup(e,[...call.genotype].filter(a=>a===e.alt).length)==='main');
     const recessiveHits=hits.filter(({e,call})=>clinicalDisplayGroup(e,[...call.genotype].filter(a=>a===e.alt).length)==='one-copy-recessive');
     const renderCard=({e,call})=>{
       const conditions=conditionLabels(e.condition);
@@ -171,7 +173,7 @@ function draw(){
     const note=window.__snpBuild==='37'||window.__snpBuild==='38'?
       `${hits.length.toLocaleString()} matching variant–condition records`:
       'Exact matching requires a stated genome build (GRCh37 or GRCh38).';
-    const limitNote=primaryHits.length>limit||recessiveHits.length>limit?
+    const limitNote=primaryHits.length>limit||recessiveHits.length>limit||benignHits.length>limit?
       `Showing up to ${limit} records per section. Search by gene, rsID or condition to narrow results.`:'';
     const renderGeneGroups=(records)=>{
       const byGene=new Map();
@@ -190,6 +192,7 @@ function draw(){
     };
     const primaryHtml=renderGeneGroups(primaryHits);
     const recessiveHtml=renderGeneGroups(recessiveHits);
+    const benignHtml=renderGeneGroups(benignHits);
     clinicalHtml=`<section class="clinvar-section" aria-label="ClinVar allele-specific evidence">
       <div class="clinvar-heading"><div><h3>ClinVar evidence</h3><p>${safe(note)} · ${safe(clinvarMessage)}</p></div></div>
       <div class="clinvar-legend" aria-label="Inheritance pattern color guide">
@@ -202,6 +205,11 @@ function draw(){
       <p class="clinvar-disclaimer">These are variant-level research records, NOT disease diagnoses or verified carrier-screening results. An rsID is a variant identifier, not its chromosome position. Two detected variants in one gene do not prove that both gene copies are affected; phase (cis versus trans), untested variants, and clinical interpretation matter. The original ClinVar classification remains available in each card’s source details. Consumer DNA calls need clinical confirmation.</p>
       ${limitNote?`<p class="clinvar-limit">${safe(limitNote)}</p>`:''}
       ${primaryHtml?`<div class="clinvar-gene-groups">${primaryHtml}</div>`:''}
+      ${benignHtml?`<details class="clinvar-benign" aria-label="Benign variant records">
+        <summary><strong>${benignHits.length.toLocaleString()} ${benignHits.length===1?'benign variant':'benign variants'} found</strong><span>Generally not linked to increased risk for their listed conditions · not a whole-gene test</span></summary>
+        <p class="clinvar-secondary-note">These are benign or likely benign variant classifications for the listed conditions. Having two copies of a benign variant does not make it disease-associated. These records cannot establish that the entire gene is free from other variants.</p>
+        <div class="clinvar-gene-groups">${benignHtml}</div>
+      </details>`:''}
       ${recessiveHtml?`<details class="clinvar-secondary" aria-label="One-copy findings with recessive condition names">
         <summary><strong>${recessiveHits.length.toLocaleString()} one-copy ${recessiveHits.length===1?'finding':'findings'} with recessive condition names</strong><span>Possible carrier-related evidence · not a diagnosis</span></summary>
         <p class="clinvar-secondary-note">These records have one alternate allele and condition names that mention recessive inheritance without a dominant or X-linked label. They do not mean you have the condition. This provisional grouping is not a confirmed carrier-screening result. A second variant may be untested; even when two variants are detected, SNP-chip data often cannot show whether they are on opposite gene copies. All findings remain available for review.</p>
