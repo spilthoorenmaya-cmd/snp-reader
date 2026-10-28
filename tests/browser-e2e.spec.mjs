@@ -228,7 +228,9 @@ test('real browser: BRCA2 benign variants are gene-grouped and collapsed, not di
     assert.equal(await benign.locator('.clinvar-gene-group').count(),1);
     assert.equal(await benign.locator('.clinvar-gene-group .clinvar-card').count(),2);
     assert.equal(await benign.locator('.clinvar-gene-group h4').innerText(),'BRCA2');
-    assert.match(await benign.locator('.clinvar-gene-header').innerText(),/not a test of the whole gene/);
+    assert.match(await benign.locator('.clinvar-gene-header').innerText(),/BRCA2 is a normal DNA-repair gene/);
+    assert.match(await benign.locator('.clinvar-gene-header').innerText(),/does not indicate cancer/);
+    assert.match(await benign.locator('.clinvar-gene-header').innerText(),/does not test every possible variant/);
     const card=benign.locator('.clinvar-card').first();
     assert.match(await card.locator('.clinvar-condition-brief').innerText(),/hereditary cancer susceptibility syndrome/);
     assert.match(await card.locator('.clinvar-dose-status').innerText(),/benign variant/);
