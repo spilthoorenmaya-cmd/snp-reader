@@ -201,8 +201,10 @@ export function alleleDoseSummary(raw, alternateCopies, significance, chromosome
   };
   if(isBenign)return {
     type:'benign',
-    heading:alternateCopies===2?'Two alternate copies; reported as benign':'One alternate copy; reported as benign',
-    detail:'ClinVar reports this variant as benign or likely benign for the listed condition. Two copies do not turn a benign variant into disease evidence.'
+    heading:'Benign variant — not evidence of the listed disease',
+    detail:alternateCopies===2
+      ? 'Your genotype has two copies of this alternate allele, but ClinVar considers this particular variant benign or likely benign for the listed condition. Two copies do not turn a benign variant into disease evidence. This does not assess the whole gene.'
+      : 'Your genotype has one copy of this alternate allele, which ClinVar considers benign or likely benign for the listed condition. The classification concerns this variant only, not the whole gene.'
   };
   if(isUncertain)return {
     type:'review',
