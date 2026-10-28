@@ -2,7 +2,7 @@ import {extractDnaFromZip} from './zip-reader.js';
 import {parseDNA, isCalledDiploidSnp, isNoCall} from './dna-parser.js';
 import {curatedMatches, matchClinvar} from './snp-matching.js';
 import {extraCatalog} from './extra-catalog.js';
-import {conditionLabels, classificationTone, classificationHeadline, genotypeAlleleContext, inheritanceContext, inheritanceBrief, inheritancePattern, inheritanceDisplay, alleleDoseSummary, clinicalDisplayGroup, reviewLabel} from './clinvar-display.js';
+import {conditionLabels, conditionBrief, classificationTone, classificationHeadline, genotypeAlleleContext, inheritanceContext, inheritanceBrief, inheritancePattern, inheritanceDisplay, alleleDoseSummary, clinicalDisplayGroup, reviewLabel} from './clinvar-display.js';
 // SNP Reader MVP: deliberately static. Uploaded raw DNA never leaves this browser.
 const catalog = [
   {id:'rs4988235',gene:'MCM6 / LCT',title:'Adult lactose digestion',category:'Nutrition',alleles:['A','G'],evidence:'Established population association',source:'https://medlineplus.gov/genetics/condition/lactose-intolerance/',detail:'This regulatory variant near LCT helps control whether lactase production continues after childhood. The A allele on the GRCh37 forward strand is associated with lactase persistence in many European populations.',interpret(g){return g.includes('A')?'At least one A allele is associated with continued lactase production into adulthood in populations where this marker has been validated.':'GG is associated with lactase non-persistence in many European populations, but other genetic variants and non-genetic causes also affect lactose digestion.'},caution:'This single marker is less informative across some ancestries. Symptoms and clinical evaluation matter more than this genotype alone.'},
@@ -85,6 +85,7 @@ function draw(){
     const recessiveHits=hits.filter(({e,call})=>clinicalDisplayGroup(e,[...call.genotype].filter(a=>a===e.alt).length)==='one-copy-recessive');
     const renderCard=({e,call})=>{
       const conditions=conditionLabels(e.condition);
+      const definition=conditionBrief(e.condition);
 
       const alleles=genotypeAlleleContext(call,e);
       if(!alleles)return '';
@@ -98,28 +99,40 @@ function draw(){
       const dose=alleleDoseSummary(e.condition,alleles.alternateCopies,e.sig,e.chr);
       const isPossibleCarrier=clinicalDisplayGroup(e,alleles.alternateCopies)==='one-copy-recessive';
       const isDominantPattern=inheritancePattern(e.condition)==='dominant';
-      const personalStatus=isPossibleCarrier
-        ? `<div class="clinvar-personal-status clinvar-personal-status--carrier"><strong>Possible carrier-related finding — not a diagnosis</strong><p>You have one alternate copy. For a typical recessive condition, disease-associated changes in <em>both copies of the gene</em> are usually required; the changes can be different. This test cannot confirm carrier status, rule out a second variant, or establish whether changes at two different positions are on opposite gene copies (in trans). It cannot diagnose the condition.</p></div>`
+      const statusLabel=dose.type==='benign'
+        ? 'Benign evidence for this variant · not a whole-gene result'
+        : isPossibleCarrier
+        ? 'Possible carrier-related information · not a diagnosis'
         : isDominantPattern
-        ? `<div class="clinvar-personal-status"><strong>Dominant-pattern variant evidence — not a diagnosis</strong><p>One disease-associated gene copy can matter for some dominant conditions. A matching raw DNA allele does not mean you have the condition; the specific variant and clinical evidence are essential.</p></div>`
-        : `<div class="clinvar-personal-status"><strong>DNA variant match — not a diagnosis</strong><p>This record is about a genetic variant and a condition, not evidence that you have the condition. Whether it matters to you requires variant-specific interpretation and clinical confirmation.</p></div>`;
+        ? 'Dominant-pattern variant evidence · not a diagnosis'
+        : 'Variant-level evidence · not a diagnosis';
+      const personalStatus=`<p class="clinvar-personal-status ${isPossibleCarrier?'clinvar-personal-status--carrier':''}" role="note"><span aria-hidden="true">ⓘ</span><strong>${safe(statusLabel)}</strong></p>`;
       return `<article class="clinvar-card clinvar-card--${inheritanceVisual.tone}" data-inheritance="${inheritanceVisual.tone}" aria-label="ClinVar evidence for ${safe(e.id)}: ${safe(inheritanceVisual.label)}">
-        <div class="clinvar-inheritance-banner">
-          <span class="clinvar-inheritance-badge"><span class="inheritance-swatch" aria-hidden="true"></span>${safe(inheritanceVisual.label)}</span>
-          <span class="clinvar-inheritance-caption">${safe(inheritanceVisual.description)}</span>
-        </div>
-        ${personalStatus}
-        <div class="clinvar-dose-status clinvar-dose-status--${dose.type}" data-copy-meaning="${dose.type}">
-          <strong>${safe(dose.heading)}</strong><p>${safe(dose.detail)}</p>
-        </div>
         <div class="clinvar-card-header">
           <div class="clinvar-card-identity"><span class="clinvar-gene">${safe(e.gene||'Gene not specified')}</span><strong class="clinvar-rsid">${safe(e.id)}</strong></div>
           <span class="clinvar-classification clinvar-classification--${tone}">${safe(headline)}</span>
         </div>
+        <div class="clinvar-inheritance-banner">
+          <span class="clinvar-inheritance-badge"><span class="inheritance-swatch" aria-hidden="true"></span>${safe(inheritanceVisual.label)}</span>
+          <span class="clinvar-inheritance-caption">${safe(inheritanceVisual.description)}</span>
+        </div>
+        <div class="clinvar-card-condition">
+          <span class="clinvar-fact-label">Condition listed by ClinVar</span>
+          <p class="clinvar-condition-name">${safe(conditions[0])}</p>
+          <p class="clinvar-condition-brief">${safe(definition.text)}</p>
+          ${moreConditions}
+          <a class="clinvar-condition-source" href="https://www.ncbi.nlm.nih.gov/medgen/?term=${encodeURIComponent(conditions[0])}" target="_blank" rel="noopener noreferrer">Learn about this condition ↗</a>
+        </div>
+        ${personalStatus}
         <div class="clinvar-card-facts">
           <div class="clinvar-fact"><span class="clinvar-fact-label">Your genotype</span><span class="genotype-chip">${safe(call.genotype)}</span><span class="clinvar-fact-meta clinvar-zygosity">${safe(alleles.zygosity)} · ${alleles.alternateCopies} of 2 alternate allele copies</span></div>
           <div class="clinvar-fact"><span class="clinvar-fact-label">Reference → alternate</span><strong>${safe(alleles.ref)} → ${safe(alleles.alt)}</strong><span class="clinvar-fact-meta">${safe(e.build)} · reference-genome orientation</span></div>
         </div>
+        <div class="clinvar-dose-status clinvar-dose-status--${dose.type}" data-copy-meaning="${dose.type}">
+          <strong>${safe(dose.heading)}</strong><p>${safe(dose.detail)}</p>
+        </div>
+        <details class="clinvar-explanation">
+          <summary>Understand alleles, copy count and limitations</summary>
         <section class="clinvar-alleles" aria-label="Allele-by-allele explanation">
           <h4>What each allele represents</h4>
           <div class="clinvar-allele-grid">
@@ -141,11 +154,7 @@ function draw(){
           ${dose.type==='benign'||(dose.type==='review'&&inheritanceVisual.tone!=='review')?'':`<p class="clinvar-inheritance">${safe(clinicalContext)}</p>`}
           <a href="https://medlineplus.gov/genetics/understanding/inheritance/inheritancepatterns/" target="_blank" rel="noopener noreferrer">How inheritance patterns work ↗</a>
         </div>
-        <div class="clinvar-card-condition">
-          <span class="clinvar-fact-label">Condition listed by ClinVar</span>
-          <p class="clinvar-condition-name">${safe(conditions[0])}</p>
-          ${moreConditions}
-        </div>
+        </details>
         <details class="clinvar-source">
           <summary>Exact ClinVar classification and evidence</summary>
           <p><strong>Original ClinVar classification:</strong> ${safe(e.sig)}</p>
@@ -164,8 +173,23 @@ function draw(){
       'Exact matching requires a stated genome build (GRCh37 or GRCh38).';
     const limitNote=primaryHits.length>limit||recessiveHits.length>limit?
       `Showing up to ${limit} records per section. Search by gene, rsID or condition to narrow results.`:'';
-    const primaryHtml=primaryHits.slice(0,limit).map(renderCard).join('');
-    const recessiveHtml=recessiveHits.slice(0,limit).map(renderCard).join('');
+    const renderGeneGroups=(records)=>{
+      const byGene=new Map();
+      for(const hit of records.slice(0,limit)){
+        const gene=String(hit.e.gene||'Gene not specified').trim()||'Gene not specified';
+        if(!byGene.has(gene))byGene.set(gene,[]);
+        byGene.get(gene).push(hit);
+      }
+      return [...byGene].map(([gene,geneHits])=>`<section class="clinvar-gene-group" aria-label="${safe(gene)} variant records">
+        <header class="clinvar-gene-header">
+          <div><h4>${safe(gene)}</h4><span>${geneHits.length} ${geneHits.length===1?'variant record':'variant records'}</span></div>
+          <p>These are individual variant interpretations, not a test of the whole gene. A benign finding does not rule out other variants.</p>
+        </header>
+        <div class="clinvar-grid">${geneHits.map(renderCard).join('')}</div>
+      </section>`).join('');
+    };
+    const primaryHtml=renderGeneGroups(primaryHits);
+    const recessiveHtml=renderGeneGroups(recessiveHits);
     clinicalHtml=`<section class="clinvar-section" aria-label="ClinVar allele-specific evidence">
       <div class="clinvar-heading"><div><h3>ClinVar evidence</h3><p>${safe(note)} · ${safe(clinvarMessage)}</p></div></div>
       <div class="clinvar-legend" aria-label="Inheritance pattern color guide">
@@ -177,11 +201,11 @@ function draw(){
       <p class="clinvar-legend-note">Colors organize condition-name patterns only, not disease likelihood or diagnosis. A variant may have different implications for different conditions.</p>
       <p class="clinvar-disclaimer">These are variant-level research records, NOT disease diagnoses or verified carrier-screening results. An rsID is a variant identifier, not its chromosome position. Two detected variants in one gene do not prove that both gene copies are affected; phase (cis versus trans), untested variants, and clinical interpretation matter. The original ClinVar classification remains available in each card’s source details. Consumer DNA calls need clinical confirmation.</p>
       ${limitNote?`<p class="clinvar-limit">${safe(limitNote)}</p>`:''}
-      ${primaryHtml?`<div class="clinvar-grid">${primaryHtml}</div>`:''}
+      ${primaryHtml?`<div class="clinvar-gene-groups">${primaryHtml}</div>`:''}
       ${recessiveHtml?`<details class="clinvar-secondary" aria-label="One-copy findings with recessive condition names">
         <summary><strong>${recessiveHits.length.toLocaleString()} one-copy ${recessiveHits.length===1?'finding':'findings'} with recessive condition names</strong><span>Possible carrier-related evidence · not a diagnosis</span></summary>
         <p class="clinvar-secondary-note">These records have one alternate allele and condition names that mention recessive inheritance without a dominant or X-linked label. They do not mean you have the condition. This provisional grouping is not a confirmed carrier-screening result. A second variant may be untested; even when two variants are detected, SNP-chip data often cannot show whether they are on opposite gene copies. All findings remain available for review.</p>
-        <div class="clinvar-grid">${recessiveHtml}</div>
+        <div class="clinvar-gene-groups">${recessiveHtml}</div>
       </details>`:''}
     </section>`;
   }
