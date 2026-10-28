@@ -12,6 +12,11 @@
 .uncurated-note{font-size:13px;line-height:1.7;color:var(--muted);margin-bottom:14px}
 @media(max-width:800px){.hero-art::before{background-position:center 44%}}
 
-/* Always-visible native file picker: works even when clicking the custom drop zone fails. */
-.dna-file-input{display:block;position:relative;max-width:100%;margin:14px auto;padding:9px;border:1px solid rgba(31,91,76,.28);border-radius:10px;font:inherit;font-size:13px;color:inherit;background:rgba(255,255,255,.92);cursor:pointer}
-.dna-file-input::file-selector-button{border:0;border-radius:7px;background:#193e36;color:#fff;font:inherit;padding:9px 12px;margin-right:12px;cursor:pointer}
+
+/* Clean upload surface: native file input remains accessible via its label. */
+.drop{position:relative}
+.dna-file-input{position:absolute;inline-size:1px;block-size:1px;opacity:0;overflow:hidden;pointer-events:none}
+.upload-link{display:inline-block;cursor:pointer;text-decoration:underline;text-underline-offset:4px;font-weight:700}
+.upload-link:hover{text-decoration-thickness:2px}
+.upload-status{font-size:13px;line-height:1.5;color:#567a71;margin:12px auto 0;overflow-wrap:anywhere}
+.drop:focus-within{outline:2px solid #67b69e;outline-offset:4px}
