@@ -1,1 +1,38 @@
 .result-table-scroll{width:100%;overflow-x:auto;border:1px solid #dce6db;border-radius:14px;background:#fff}.result-table{border-collapse:collapse;width:100%;table-layout:fixed;text-align:left}.result-table th{padding:15px 18px;background:#eff5ec;color:#5d7868;font-size:11px;letter-spacing:.7px;text-transform:uppercase;border-bottom:1px solid #dce6db}.result-table th:nth-child(1){width:16%}.result-table th:nth-child(2){width:20%}.result-table th:nth-child(3){width:13%}.result-table th:nth-child(4){width:51%}.result-table td{padding:20px 18px;border-bottom:1px solid #e5ece4;vertical-align:top;font-size:13px;line-height:1.65}.result-table tr:last-child td{border-bottom:0}.result-table tbody tr:hover{background:#fafcf9}.result-table td strong{font-weight:800;font-size:14px;color:#234d40}.td-sub{display:block;font-size:11px;color:#8a9c90;margin-top:4px}.topic-title{display:block;font-weight:700;margin-bottom:8px}.result-table .tag{display:inline-block}.genotype-chip{display:inline-block;background:#eaf3e8;border:1px solid #d3e6d3;color:#25594a;padding:5px 11px;border-radius:7px;font:800 17px Manrope,sans-serif;letter-spacing:1px}.interpretation-main{font-weight:600;color:#315447}.result-table details{margin-top:10px}.result-table summary{color:#29735b;font-size:12px;font-weight:800;cursor:pointer}.result-table details p{font-size:12px;color:#5d7468;margin:10px 0}.result-table details .evidence-caution{background:#fcf8ef;padding:10px;border-radius:7px;color:#806747}.result-table details small{color:#73867a}.table-links{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px}.table-links a{color:#2a765b;font-weight:800;font-size:11px}.cards{display:block}@media(max-width:700px){.result-table{min-width:700px}.result-table td{padding:15px 12px}.result-table th{padding:13px 12px}}
+
+/* ClinVar: evidence cards instead of an unreadable four-column table. */
+.clinvar-section{margin-top:38px;min-width:0}
+.clinvar-heading h3{font-family:Manrope,sans-serif;font-size:24px;letter-spacing:-.65px;line-height:1.25;margin:0 0 6px;color:#23493d}
+.clinvar-heading p{font-size:12px;color:#6e8478;line-height:1.6;margin:0 0 14px}
+.clinvar-disclaimer{font-size:13px;color:#526a60;line-height:1.7;max-width:900px;margin:0 0 20px}
+.clinvar-limit{font-size:12px;color:#735f36;background:#fbf6e9;padding:10px 14px;border-radius:9px;margin:0 0 15px}
+.clinvar-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
+.clinvar-card{min-width:0;background:#fff;border:1px solid #dce6db;border-radius:15px;padding:22px 23px;box-shadow:0 3px 15px rgba(25,66,49,.04);overflow-wrap:anywhere}
+.clinvar-card-header{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px 18px;padding-bottom:16px;border-bottom:1px solid #e9eee7}
+.clinvar-card-identity{min-width:0;display:flex;flex-direction:column;gap:3px}
+.clinvar-gene{font:800 19px Manrope,sans-serif;letter-spacing:-.5px;color:#234f40}
+.clinvar-rsid{font-size:12px;font-weight:650;color:#637c70}
+.clinvar-classification{font-size:11px;line-height:1.35;font-weight:800;border-radius:20px;padding:7px 11px;max-width:100%;border:1px solid #dbe5db;color:#485e55;background:#f3f7f2}
+.clinvar-classification--pathogenic{border-color:#ead2ce;background:#fbefeb;color:#8a3c31}
+.clinvar-classification--benign{border-color:#d6e7d8;background:#eff7ef;color:#316d4b}
+.clinvar-classification--uncertain{border-color:#efdfbc;background:#fcf6e8;color:#886424}
+.clinvar-card-facts{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:18px 0}
+.clinvar-fact{display:flex;flex-direction:column;align-items:flex-start;gap:7px;min-width:0}
+.clinvar-fact-label{display:block;color:#70877a;letter-spacing:.45px;text-transform:uppercase;font-size:10px;font-weight:800;line-height:1.5}
+.clinvar-fact strong{font-size:14px;color:#24483d}
+.clinvar-fact-meta{color:#71867a;font-size:11px}
+.clinvar-card .genotype-chip{font-size:16px}
+.clinvar-card-condition{padding:16px;background:#f7f9f5;border:1px solid #edf1eb;border-radius:11px}
+.clinvar-condition-name{font-size:14px;font-weight:700;color:#244a3e;line-height:1.6;margin:7px 0 0;overflow-wrap:anywhere}
+.clinvar-more{margin-top:10px}
+.clinvar-more summary{font-size:12px;line-height:1.5;font-weight:800;color:#247055;cursor:pointer}
+.clinvar-more summary:hover{text-decoration:underline;text-underline-offset:3px}
+.clinvar-more summary:focus-visible,.clinvar-card-footer a:focus-visible{outline:2px solid #4c9a75;outline-offset:3px;border-radius:3px}
+.clinvar-more ul{margin:11px 0 0;padding:0 0 0 19px;max-height:220px;overflow-y:auto}
+.clinvar-more li{margin:7px 0;font-size:12px;line-height:1.6;color:#4f685b}
+.clinvar-card-footer{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding-top:17px}
+.clinvar-review{font-size:11px;line-height:1.5;color:#6d8275}
+.clinvar-card-footer a{font-size:12px;font-weight:800;color:#267357;text-decoration:underline;text-underline-offset:3px}
+.clinvar-card-footer a:hover{color:#14543c}
+@media(max-width:950px){.clinvar-grid{grid-template-columns:1fr}}
+@media(max-width:480px){.clinvar-card{padding:17px}.clinvar-card-facts{gap:10px}.clinvar-heading h3{font-size:21px}.clinvar-classification{font-size:10px}}
