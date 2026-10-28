@@ -94,7 +94,6 @@ function draw(){
       const tone=classificationTone(e.sig);
       const headline=classificationHeadline(e.sig);
       const clinicalContext=inheritanceContext(e.condition,alleles.alternateCopies);
-      const brief=inheritanceBrief(e.condition,alleles.alternateCopies);
       const inheritanceVisual=inheritanceDisplay(e.condition);
       const dose=alleleDoseSummary(e.condition,alleles.alternateCopies,e.sig,e.chr);
       const isPossibleCarrier=clinicalDisplayGroup(e,alleles.alternateCopies)==='one-copy-recessive';
@@ -138,7 +137,6 @@ function draw(){
         </section>
         <div class="clinvar-copy-context">
           <span class="clinvar-fact-label">What your allele count tells us</span>
-          <p class="clinvar-copy-brief"><strong>${safe(dose.heading)}</strong> ${safe(dose.detail)}</p>
           <p>${safe(alleles.copyMessage)}</p>
           ${dose.type==='benign'||(dose.type==='review'&&inheritanceVisual.tone!=='review')?'':`<p class="clinvar-inheritance">${safe(clinicalContext)}</p>`}
           <a href="https://medlineplus.gov/genetics/understanding/inheritance/inheritancepatterns/" target="_blank" rel="noopener noreferrer">How inheritance patterns work ↗</a>
