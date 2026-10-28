@@ -119,18 +119,31 @@ function draw(){
           <span class="clinvar-classification clinvar-classification--${tone}">${safe(headline)}</span>
         </div>
         ${personalStatus}
-        <div class="clinvar-inheritance-banner">
-          <span class="clinvar-inheritance-badge"><span class="inheritance-swatch" aria-hidden="true"></span>${safe(inheritanceVisual.label)}</span>
-          <span class="clinvar-inheritance-caption">${safe(inheritanceVisual.description)}</span>
-        </div>
-        <div class="clinvar-card-condition">
-          <span class="clinvar-fact-label">Condition listed by ClinVar</span>
-          <p class="clinvar-condition-name">${safe(conditions[0])}</p>
-          <p class="clinvar-condition-brief">${safe(definition.text)}</p>
-          ${moreConditions}
-          <a class="clinvar-condition-source" href="https://www.ncbi.nlm.nih.gov/medgen/?term=${encodeURIComponent(conditions[0])}" target="_blank" rel="noopener noreferrer">Learn about this condition ↗</a>
-        </div>
-        <div class="clinvar-card-facts">
+        ${dose.type==='benign'
+          ? `<p class="clinvar-benign-reassurance">This is a benign variant, not a sign that you have the condition named in ClinVar. Two copies of this benign allele do not make it harmful.</p>`
+          : `<div class="clinvar-inheritance-banner">
+              <span class="clinvar-inheritance-badge"><span class="inheritance-swatch" aria-hidden="true"></span>${safe(inheritanceVisual.label)}</span>
+              <span class="clinvar-inheritance-caption">${safe(inheritanceVisual.description)}</span>
+            </div>`}
+        ${dose.type==='benign'
+          ? `<details class="clinvar-condition-details"><summary>Why is this benign variant listed under a condition?</summary>
+              <div class="clinvar-card-condition">
+                <span class="clinvar-fact-label">ClinVar research context · not your diagnosis</span>
+                <p class="clinvar-condition-name">${safe(conditions[0])}</p>
+                <p class="clinvar-condition-brief">${safe(definition.text)}</p>
+                <p class="clinvar-context-note">ClinVar lists this condition to describe the variant's evidence. The particular allele shown here is classified as benign or likely benign for this condition, not as a disease diagnosis.</p>
+                ${moreConditions}
+                <a class="clinvar-condition-source" href="https://www.ncbi.nlm.nih.gov/medgen/?term=${encodeURIComponent(conditions[0])}" target="_blank" rel="noopener noreferrer">Learn about this condition ↗</a>
+              </div>
+            </details>`
+          : `<div class="clinvar-card-condition">
+              <span class="clinvar-fact-label">Condition listed by ClinVar</span>
+              <p class="clinvar-condition-name">${safe(conditions[0])}</p>
+              <p class="clinvar-condition-brief">${safe(definition.text)}</p>
+              ${moreConditions}
+              <a class="clinvar-condition-source" href="https://www.ncbi.nlm.nih.gov/medgen/?term=${encodeURIComponent(conditions[0])}" target="_blank" rel="noopener noreferrer">Learn about this condition ↗</a>
+            </div>`}
+        <div class="clinvar-card-facts ${dose.type==='benign'?'clinvar-card-facts--benign':''}">
           <div class="clinvar-fact"><span class="clinvar-fact-label">Your genotype</span><span class="genotype-chip">${safe(call.genotype)}</span><span class="clinvar-fact-meta clinvar-zygosity">${safe(alleles.zygosity)} · ${alleles.alternateCopies} of 2 alternate allele copies</span></div>
           <div class="clinvar-fact"><span class="clinvar-fact-label">Reference → alternate</span><strong>${safe(alleles.ref)} → ${safe(alleles.alt)}</strong><span class="clinvar-fact-meta">${safe(e.build)} · reference-genome orientation</span></div>
         </div>
