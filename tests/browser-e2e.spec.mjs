@@ -486,3 +486,57 @@ test('real browser: benign CFTR call is benign, not a carrier alert',async()=>{
     assert.match(await page.locator('#tab-panel-benign .clinvar-card-overview').innerText(),/Not evidence of the listed condition/);
   }finally{await page.close()}
 });
+
+test('real browser: baby eye-color explorer is playful, polygenic and never claims a baby-eye probability',async()=>{
+  const page=await pageReady();
+  const requests=[];
+  page.on('request',req=>{if(req.method()!=='GET'||/partnerEye|dark-brown|baby-eye|rs12913832=|genotype=AG/i.test(req.url()))requests.push(req.url())});
+  try{
+    const raw='# genome build 37\nrsid\tchromosome\tposition\tgenotype\nrs12913832\t15\t28365618\tAG\n';
+    await page.locator('#file').setInputFiles({name:'eye-traits.txt',mimeType:'text/plain',buffer:Buffer.from(raw)});
+    await page.locator('#tab-carrier').click();
+    const card=page.locator('.baby-eye-explorer');
+    await card.waitFor();
+    assert.match(await card.locator('h3').innerText(),/green-eyed baby/);
+    assert.match(await card.innerText(),/many genes/);
+    assert.match(await page.locator('#baby-eye-genotype').innerText(),/rs12913832 is AG/);
+    await page.locator('#baby-eye-self').selectOption('dark-brown');
+    await page.locator('#baby-eye-partner').selectOption('green');
+    assert.match(await page.locator('#baby-eye-headline').innerText(),/green-eyed child is possible/);
+    assert.match(await page.locator('#baby-eye-story').innerText(),/very dark brown eyes/);
+    assert.match(await page.locator('#baby-eye-story').innerText(),/green eyes/);
+    assert.equal(await page.locator('#baby-eye-offspring').isVisible(),false);
+    assert.match(await page.locator('#baby-eye-inheritance').innerText(),/does not tell us which HERC2 alleles/);
+
+    await page.locator('#baby-eye-partner-marker').selectOption('GG');
+    assert.match(await page.locator('#baby-eye-offspring').innerText(),/AG · GG/);
+    assert.match(await page.locator('#baby-eye-inheritance').innerText(),/NOT possible eye-colour predictions or percentages/);
+    assert.doesNotMatch(await page.locator('#baby-eye-result').innerText(),/\d+%/);
+
+    await page.locator('#tab-clinical').click();
+    await page.locator('#tab-carrier').click();
+    assert.equal(await page.locator('#baby-eye-partner').inputValue(),'green');
+    await page.locator('#context-age').fill('35');
+    assert.equal(await page.locator('#baby-eye-partner-marker').inputValue(),'GG');
+    assert.deepEqual(requests,[]);
+
+    await page.locator('#clear').click();
+    await page.locator('#file').setInputFiles({name:'eye-traits.txt',mimeType:'text/plain',buffer:Buffer.from(raw)});
+    await page.locator('#tab-carrier').click();
+    assert.equal(await page.locator('#baby-eye-self').inputValue(),'');
+    assert.equal(await page.locator('#baby-eye-partner').inputValue(),'');
+    assert.equal(await page.locator('#baby-eye-partner-marker').inputValue(),'');
+  }finally{await page.close()}
+});
+test('real browser: invalid or absent HERC2 position is never used as inherited-eye evidence',async()=>{
+  const page=await pageReady();
+  try{
+    const raw='# genome build 37\nrsid\tchromosome\tposition\tgenotype\nrs12913832\t15\t28365619\tAG\n';
+    await page.locator('#file').setInputFiles({name:'wrong-position.txt',mimeType:'text/plain',buffer:Buffer.from(raw)});
+    await page.locator('#tab-carrier').click();
+    assert.match(await page.locator('#baby-eye-genotype').innerText(),/could not be verified/);
+    await page.locator('#baby-eye-partner-marker').selectOption('AG');
+    assert.equal(await page.locator('#baby-eye-offspring').isVisible(),false);
+    assert.match(await page.locator('#baby-eye-inheritance').innerText(),/verified genotype for you is also needed/);
+  }finally{await page.close()}
+});
