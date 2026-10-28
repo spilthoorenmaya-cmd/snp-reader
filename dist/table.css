@@ -193,3 +193,13 @@
 .clinvar-benign .clinvar-gene-groups{padding:0 14px 18px}
 .clinvar-benign>.clinvar-secondary-note{margin:4px 20px 18px;color:#355c42}
 @media(max-width:520px){.clinvar-benign>summary{padding:12px}.clinvar-benign .clinvar-gene-groups{padding:0 9px 12px}.clinvar-benign>.clinvar-secondary-note{margin:0 13px 13px}}
+
+/* A benign variant is not a disease finding even when homozygous. */
+.clinvar-card--benign{--pattern:#246a46;--pattern-bg:#e8f5ec;--pattern-line:#c4e3cf}
+.clinvar-card--benign .clinvar-personal-status{
+  color:#225b3b!important;background:#e8f5ec!important;border:1px solid #c4e3cf!important;
+  padding:9px 11px!important;border-radius:9px;font-weight:800}
+.clinvar-card--benign .clinvar-personal-status strong{color:#225b3b!important;font-size:12px!important}
+.clinvar-card--benign .clinvar-personal-status span{color:#247248}
+.clinvar-card--benign .clinvar-dose-status{background:#edf8ef;border-color:#c8e4cf}
+.clinvar-card--benign .clinvar-dose-status strong{color:#246a46}
