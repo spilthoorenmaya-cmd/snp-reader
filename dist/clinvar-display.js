@@ -82,7 +82,7 @@ export function inheritanceBrief(raw,alternateCopies) {
   const pattern=inheritancePattern(raw);
   if(pattern==='recessive'&&alternateCopies===1)return {
     heading:'You have one alternate copy; recessive conditions typically require two affected gene copies.',
-    detail:'Those two copies need not contain the same variant. Your upload does not establish whether a second relevant variant is present, or confirm carrier status.'
+    detail:'The changes could be at different positions, but would generally need to affect opposite copies of the gene. Two variants on the same copy do not make two affected copies. This SNP-chip upload cannot establish that, detect all variants, or confirm carrier status.'
   };
   if(pattern==='recessive'&&alternateCopies===2)return {
     heading:'You have two copies of this alternate allele.',
@@ -104,7 +104,7 @@ export function inheritanceBrief(raw,alternateCopies) {
 export function inheritanceContext(raw,alternateCopies) {
   const pattern=inheritancePattern(raw);
   if(pattern==='recessive'&&alternateCopies===1)
-    return 'A listed condition name mentions recessive inheritance. You have only one alternate copy at this marker. A typical autosomal recessive disorder requires disease-associated changes in both gene copies, which may be different variants. This file cannot rule out another variant or confirm carrier status.';
+    return 'A listed condition name mentions recessive inheritance. You have only one alternate copy at this marker. A typical autosomal recessive disorder requires disease-associated changes in both copies of the gene; two different variants must generally be on opposite chromosome copies (in trans), not together on one (in cis). This file cannot identify all gene variants, establish their phase, or confirm carrier status.';
   if(pattern==='recessive')
     return 'A listed condition name mentions recessive inheritance. Two copies of a disease-associated change may be relevant, but the genotype does not establish a clinical diagnosis.';
   if(pattern==='dominant')
