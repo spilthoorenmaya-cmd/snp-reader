@@ -136,3 +136,125 @@ test('benign homozygous BRCA2 records get a non-alarming headline regardless of 
   assert.match(result.detail,/Two copies do not turn a benign variant into disease evidence/);
   assert.match(result.detail,/does not assess the whole gene/);
 });
+
+
+test('brief condition explanations cover supported categories without diagnosing the reader',()=>{
+ const cases=[
+  ['hereditary breast and ovarian cancer','hereditary cancer susceptibility'],
+  ['Autosomal recessive nonsyndromic hearing loss 1A','reduced hearing'],
+  ['Cystic fibrosis','mucus production'],
+  ['Hereditary hemochromatosis','excess iron'],
+  ['Familial hypercholesterolemia','LDL cholesterol'],
+  ['Beta thalassemia','hemoglobin'],
+  ['Sickle-cell disease','red blood cells'],
+  ['Long QT syndrome','heartbeat'],
+  ['Hypertrophic cardiomyopathy','heart muscle'],
+  ['Factor V Leiden thrombophilia','blood to form clots'],
+  ['Lynch syndrome','certain cancers'],
+  ['Phenylketonuria','phenylalanine']
+ ];
+ for(const [name,meaning] of cases){
+   const result=conditionBrief(name);
+   assert.equal(result.specific,true,name);
+   assert.match(result.text,new RegExp(meaning,'i'),name);
+   assert.doesNotMatch(result.text,/\byou have\b|\byou will\b/i,name);
+ }
+});
+
+test('ClinVar review labels and classification labels use defensible fallback behavior',()=>{
+ const cases=[
+  ['practice guideline','Practice guideline'],
+  ['criteria provided, multiple submitters, no conflicts','Multiple submitters, no conflicts'],
+  ['criteria provided, single submitter','Single submitter'],
+  ['not provided','not provided'],
+  ['', 'Review status not provided']
+ ];
+ for(const [raw,expected] of cases)assert.equal(reviewLabel(raw),expected);
+ assert.equal(classificationTone('Unknown classification'),'neutral');
+ assert.equal(classificationTone('Uncertain significance'),'uncertain');
+ assert.equal(classificationTone('Conflicting classifications of pathogenicity'),'uncertain');
+ assert.equal(classificationHeadline('Unknown classification'),'Research evidence available');
+ assert.equal(classificationHeadline(''), 'Research evidence available');
+});
+
+test('all inheritance visual categories retain meaningful names, not severity rankings',()=>{
+ const cases=[
+  ['Autosomal recessive example','recessive','Recessive pattern mentioned'],
+  ['Autosomal dominant example','dominant','Dominant pattern mentioned'],
+  ['Autosomal recessive example|Autosomal dominant example','review','Mixed inheritance patterns'],
+  ['X-linked recessive example','review','Special inheritance mentioned'],
+  ['Mitochondrial condition','review','Special inheritance mentioned'],
+  ['Condition with no indicated mode','unspecified','Inheritance not specified']
+ ];
+ for(const [condition,tone,label] of cases){
+   const result=inheritanceDisplay(condition);
+   assert.equal(result.tone,tone);
+   assert.equal(result.label,label);
+   assert.ok(result.description.length>20);
+   assert.doesNotMatch(result.label,/high risk|increased risk|diagnosis/i);
+ }
+});
+
+test('inheritance brief handles both dominant gene copies and ambiguous modes conservatively',()=>{
+ const dominant=inheritanceBrief('Autosomal dominant sample condition',2);
+ assert.match(dominant.heading,/two alternate copies/i);
+ assert.match(dominant.detail,/not proof of illness/i);
+ const mixed=inheritanceBrief('Autosomal recessive|Autosomal dominant',2);
+ assert.match(mixed.heading,/more than one inheritance pattern/i);
+ const unknown=inheritanceBrief('Unknown condition',0);
+ assert.match(unknown.heading,/Copy count alone cannot tell/i);
+});
+
+test('allele dosage branches distinguish benign, uncertain, carrier, dominant and reference calls',()=>{
+ const cases=[
+  {condition:'Autosomal recessive condition',copy:0,sig:'Pathogenic',chr:'13',type:'reference',text:/No alternate allele detected/},
+  {condition:'Autosomal recessive condition',copy:1,sig:'Benign',chr:'13',type:'benign',text:/Benign variant/},
+  {condition:'Autosomal recessive condition',copy:2,sig:'Likely benign',chr:'13',type:'benign',text:/Two copies do not turn a benign/},
+  {condition:'Autosomal dominant condition',copy:1,sig:'Conflicting classifications of pathogenicity',chr:'13',type:'review',text:/unresolved/i},
+  {condition:'Autosomal recessive condition',copy:2,sig:'Uncertain significance',chr:'13',type:'review',text:/unresolved/i},
+  {condition:'Autosomal recessive condition',copy:1,sig:'Pathogenic',chr:'13',type:'carrier',text:/usually insufficient alone/},
+  {condition:'Autosomal recessive condition',copy:2,sig:'Pathogenic',chr:'13',type:'two-copy',text:/Homozygous calls/},
+  {condition:'Autosomal recessive condition',copy:2,sig:'Not provided',chr:'13',type:'two-copy',text:/does not establish that this variant causes disease/},
+  {condition:'Autosomal dominant condition',copy:1,sig:'Likely pathogenic',chr:'13',type:'dominant',text:/may matter/},
+  {condition:'Autosomal dominant condition',copy:2,sig:'Likely pathogenic',chr:'13',type:'dominant',text:/does not require two/},
+  {condition:'Unknown condition',copy:1,sig:'Pathogenic',chr:'13',type:'review',text:/One alternate copy detected/},
+  {condition:'Unknown condition',copy:2,sig:'Pathogenic',chr:'13',type:'review',text:/Two alternate copies detected/},
+  {condition:'Autosomal recessive condition',copy:2,sig:'Pathogenic',chr:'X',type:'review',text:/chromosome-specific interpretation/},
+  {condition:'Autosomal recessive condition',copy:1,sig:'Pathogenic',chr:'MT',type:'review',text:/sex chromosome or mitochondrial/}
+ ];
+ for(const c of cases){
+   const result=alleleDoseSummary(c.condition,c.copy,c.sig,c.chr);
+   assert.equal(result.type,c.type,JSON.stringify(c));
+   assert.match(result.heading+' '+result.detail,c.text,JSON.stringify(c));
+   assert.doesNotMatch(result.detail,/\byou have (?:the |a )?(?:disorder|disease|cancer)\b/i);
+ }
+});
+
+test('genotype allele context validates chromosome and gene copy context',()=>{
+ const e={ref:'G',alt:'A',chr:'13'};
+ const zero=genotypeAlleleContext({genotype:'GG'},e);
+ const one=genotypeAlleleContext({genotype:'AG'},e);
+ const two=genotypeAlleleContext({genotype:'AA'},e);
+ assert.equal(zero.zygosity,'Homozygous reference');
+ assert.equal(one.zygosity,'Heterozygous');
+ assert.equal(two.zygosity,'Homozygous alternate');
+ assert.equal(zero.isAutosomal,true);
+ assert.equal(genotypeAlleleContext({genotype:'AT'},{...e,chr:'X'}).isAutosomal,false);
+ for(const evidence of [{ref:'G',alt:'G'},{ref:'-',alt:'A'},{ref:'G',alt:'AA'},{ref:'',alt:''}]){
+   assert.equal(genotypeAlleleContext({genotype:'GA'},evidence),null);
+ }
+ assert.equal(genotypeAlleleContext(null,e),null);
+});
+
+test('recessive carrier tab never silently groups mixed or sex-linked interpretations',()=>{
+ const base={chr:'13',sig:'Pathogenic',condition:'Autosomal recessive sample condition'};
+ for(const record of [
+  {...base,chr:'Y'},
+  {...base,chr:'MT'},
+  {...base,condition:'Autosomal recessive|Autosomal dominant'},
+  {...base,condition:'Autosomal recessive|Mitochondrial'},
+  {...base,sig:'Uncertain significance'},
+  {...base,sig:'Benign'}
+ ])assert.equal(clinicalDisplayGroup(record,1),'main',JSON.stringify(record));
+ assert.equal(clinicalDisplayGroup({...base,chr:'chr13'},1),'one-copy-recessive');
+});
