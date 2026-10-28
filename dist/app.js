@@ -98,7 +98,7 @@ function draw(){
       const isPossibleCarrier=clinicalDisplayGroup(e,alleles.alternateCopies)==='one-copy-recessive';
       const isDominantPattern=inheritancePattern(e.condition)==='dominant';
       const personalStatus=isPossibleCarrier
-        ? `<div class="clinvar-personal-status clinvar-personal-status--carrier"><strong>Possible carrier-related finding — not a diagnosis</strong><p>You have one alternate copy. For a typical recessive condition, disease-associated changes in <em>both copies of the gene</em> are usually required; the changes can be different. This test cannot confirm carrier status, rule out a second variant, or diagnose the condition.</p></div>`
+        ? `<div class="clinvar-personal-status clinvar-personal-status--carrier"><strong>Possible carrier-related finding — not a diagnosis</strong><p>You have one alternate copy. For a typical recessive condition, disease-associated changes in <em>both copies of the gene</em> are usually required; the changes can be different. This test cannot confirm carrier status, rule out a second variant, or establish whether changes at two different positions are on opposite gene copies (in trans). It cannot diagnose the condition.</p></div>`
         : isDominantPattern
         ? `<div class="clinvar-personal-status"><strong>Dominant-pattern variant evidence — not a diagnosis</strong><p>One disease-associated gene copy can matter for some dominant conditions. A matching raw DNA allele does not mean you have the condition; the specific variant and clinical evidence are essential.</p></div>`
         : `<div class="clinvar-personal-status"><strong>DNA variant match — not a diagnosis</strong><p>This record is about a genetic variant and a condition, not evidence that you have the condition. Whether it matters to you requires variant-specific interpretation and clinical confirmation.</p></div>`;
@@ -161,12 +161,12 @@ function draw(){
     const recessiveHtml=recessiveHits.slice(0,limit).map(renderCard).join('');
     clinicalHtml=`<section class="clinvar-section" aria-label="ClinVar allele-specific evidence">
       <div class="clinvar-heading"><div><h3>ClinVar evidence</h3><p>${safe(note)} · ${safe(clinvarMessage)}</p></div></div>
-      <p class="clinvar-disclaimer">These are variant-level research records, NOT disease diagnoses or verified carrier-screening results. A single allele does not establish a condition. The original ClinVar classification remains available in each card’s source details. Consumer DNA calls need clinical confirmation.</p>
+      <p class="clinvar-disclaimer">These are variant-level research records, NOT disease diagnoses or verified carrier-screening results. An rsID is a variant identifier, not its chromosome position. Two detected variants in one gene do not prove that both gene copies are affected; phase (cis versus trans), untested variants, and clinical interpretation matter. The original ClinVar classification remains available in each card’s source details. Consumer DNA calls need clinical confirmation.</p>
       ${limitNote?`<p class="clinvar-limit">${safe(limitNote)}</p>`:''}
       ${primaryHtml?`<div class="clinvar-grid">${primaryHtml}</div>`:''}
       ${recessiveHtml?`<details class="clinvar-secondary" aria-label="One-copy findings with recessive condition names">
         <summary><strong>${recessiveHits.length.toLocaleString()} one-copy ${recessiveHits.length===1?'finding':'findings'} with recessive condition names</strong><span>Possible carrier-related evidence · not a diagnosis</span></summary>
-        <p class="clinvar-secondary-note">These records have one alternate allele and condition names that mention recessive inheritance without a dominant or X-linked label. They do not mean you have the condition. This provisional grouping is not a confirmed carrier diagnosis or carrier-screening result. A second variant may be untested, and some conditions have more complex inheritance. All findings remain available for review.</p>
+        <p class="clinvar-secondary-note">These records have one alternate allele and condition names that mention recessive inheritance without a dominant or X-linked label. They do not mean you have the condition. This provisional grouping is not a confirmed carrier-screening result. A second variant may be untested; even when two variants are detected, SNP-chip data often cannot show whether they are on opposite gene copies. All findings remain available for review.</p>
         <div class="clinvar-grid">${recessiveHtml}</div>
       </details>`:''}
     </section>`;
