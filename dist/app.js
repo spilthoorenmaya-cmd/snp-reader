@@ -15,12 +15,13 @@ const catalog = [
 catalog.push(...extraCatalog);
 const $=id=>document.getElementById(id);
 let records=new Map();
-const resultTabNames=['clinical','carrier','research','benign'];
+const resultTabNames=['clinical','carrier','research','benign','explore'];
 const resultTabExplanations={
  clinical:'ClinVar allele-specific classifications that may deserve closer review. A match does not mean you have a condition.',
  carrier:'One-copy recessive-pattern findings and special inheritance checks. These do not confirm carrier status or a diagnosis.',
  research:'Genotype-specific traits and research associations from reviewed sources. Evidence strength varies; associations are not diagnoses.',
- benign:'Variants classified as benign for particular conditions, plus unreviewed raw markers. Benign is not the same as protective.'
+ benign:'Variants classified as benign for particular conditions, plus unreviewed raw markers. Benign is not the same as protective.',
+ explore:'A lighter space for exploring inheritance and family traits. Educational possibilities, not medical predictions.'
 };
 const babyEyeSelections={parentEye:'',partnerEye:'',partnerMarker:''};
 function clearBabyEyeChoices(){
@@ -399,7 +400,7 @@ function draw(){
   }
   const clinicalPanelHtml=`<div id="tab-panel-clinical" class="result-tab-panel" role="tabpanel" aria-labelledby="tab-clinical">${clinicalHtml}</div>`;
   const eyeCard=`<section class="baby-eye-explorer" aria-label="Explore eye-colour inheritance for fun">
-      <header class="baby-eye-header"><div><span class="baby-eye-kicker">✦ Just for fun · Family traits</span><h3>Could we have a green-eyed baby?</h3><p>Yes, even if you have very dark eyes and your partner has green eyes! Eye colour involves many genes—not a single “green-eyes gene.”</p></div>
+      <header class="baby-eye-header"><div><span class="baby-eye-kicker">✦ Just for fun · Family traits</span><h3>Could we have a green-eyed baby?</h3><p>Brown-eyed parents can have a green-eyed child. Eye colour involves many genes—not a single “green-eyes gene.” Explore the possibilities without pretending we can predict the outcome.</p></div>
       <span class="baby-eye-orbs" aria-hidden="true"><span class="baby-eye-orb brown"></span><span class="baby-eye-orb green"></span><span class="baby-eye-orb blue"></span></span></header>
       <div class="baby-eye-inputs">
         <label for="baby-eye-self">Your eye colour<select id="baby-eye-self"><option value="">Choose (optional)</option><option value="dark-brown">Very dark brown</option><option value="brown">Brown</option><option value="hazel">Hazel</option><option value="green">Green</option><option value="blue">Blue</option><option value="gray">Gray</option></select></label>
@@ -412,10 +413,14 @@ function draw(){
       </div>
       <p class="baby-eye-limit">This is an educational inheritance explorer, not a baby's eye-colour prediction. A green-eyed partner's appearance does not reveal their rs12913832 genotype. No percentages are calculated, and your selections stay in this tab. <a href="https://medlineplus.gov/genetics/understanding/traits/eyecolor/" target="_blank" rel="noopener noreferrer">How eye-colour genetics works ↗</a></p>
     </section>`;
-  const carrierPanelHtml=`<div id="tab-panel-carrier" class="result-tab-panel" role="tabpanel" aria-labelledby="tab-carrier"><div class="tab-panel-intro"><h3>Carrier information &amp; family planning</h3><p>A single disease-associated variant in a recessive gene may matter if a reproductive partner carries a disease-causing variant for the same condition. <strong>When both are confirmed carriers, each pregnancy typically has a 25% chance of an affected child.</strong> The variants need not be identical. These uploaded calls are <strong>not</strong> confirmed carrier-screening results or diagnoses. <a href="https://medlineplus.gov/genetics/understanding/inheritance/riskassessment/" target="_blank" rel="noopener noreferrer">How recessive inheritance works ↗</a></p></div>${eyeCard}</div>`;
+  const carrierPanelHtml=`<div id="tab-panel-carrier" class="result-tab-panel" role="tabpanel" aria-labelledby="tab-carrier"><div class="tab-panel-intro"><h3>Carrier information &amp; family planning</h3><p>A single disease-associated variant in a recessive gene may matter if a reproductive partner carries a disease-causing variant for the same condition. <strong>When both are confirmed carriers, each pregnancy typically has a 25% chance of an affected child.</strong> The variants need not be identical. These uploaded calls are <strong>not</strong> confirmed carrier-screening results or diagnoses. <a href="https://medlineplus.gov/genetics/understanding/inheritance/riskassessment/" target="_blank" rel="noopener noreferrer">How recessive inheritance works ↗</a></p></div></div>`;
   const researchPanelHtml=`<div id="tab-panel-research" class="result-tab-panel" role="tabpanel" aria-labelledby="tab-research"><div class="tab-panel-intro"><h3>Traits, nutrition &amp; research associations</h3><p>Genotype-specific educational findings from carefully selected sources, with their evidence and limitations. Some describe potentially useful traits, but a research association does not prove a personal benefit or health outcome. <a href="https://www.ebi.ac.uk/gwas/" target="_blank" rel="noopener noreferrer">Explore the NHGRI–EBI GWAS Catalog ↗</a></p></div>${curatedTable}</div>`;
   const benignPanelHtml=`<div id="tab-panel-benign" class="result-tab-panel" role="tabpanel" aria-labelledby="tab-benign"><div class="tab-panel-intro"><h3>Benign &amp; unreviewed variants</h3><p>A benign variant is not evidence of a disease, and does not automatically confer protection. Raw SNPs without an interpretation are shown for browsing, not as findings.</p></div>${otherTable?`<details class="raw-marker-section"><summary>Browse ${totalOther.toLocaleString()} unreviewed raw SNPs</summary>${otherTable}</details>`:''}</div>`;
-  $('cards').innerHTML=clinicalPanelHtml+carrierPanelHtml+researchPanelHtml+benignPanelHtml;
+  const explorePanelHtml=`<div id="tab-panel-explore" class="result-tab-panel result-tab-panel--explore" role="tabpanel" aria-labelledby="tab-explore">
+    <div class="tab-panel-intro tab-panel-intro--explore"><span class="explore-panel-kicker">✦ THE CURIOUS CORNER</span><h3>Exploring genetics, just for fun.</h3><p>Try a family-traits thought experiment. This is deliberately separate from clinical and carrier findings: it does not assess a condition or predict a child's features.</p></div>
+    ${eyeCard}
+  </div>`;
+  $('cards').innerHTML=clinicalPanelHtml+carrierPanelHtml+researchPanelHtml+benignPanelHtml+explorePanelHtml;
   const clinicalSection=$('tab-panel-clinical').querySelector('.clinvar-section');
   const carrierSection=clinicalSection?.querySelector('.clinvar-secondary');
   const benignSection=clinicalSection?.querySelector('.clinvar-benign');
