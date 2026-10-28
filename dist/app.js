@@ -2,7 +2,7 @@ import {extractDnaFromZip} from './zip-reader.js';
 import {parseDNA, isCalledDiploidSnp, isNoCall} from './dna-parser.js';
 import {curatedMatches, matchClinvar} from './snp-matching.js';
 import {extraCatalog} from './extra-catalog.js';
-import {conditionLabels, classificationTone, classificationHeadline, genotypeAlleleContext, inheritanceContext, clinicalDisplayGroup, reviewLabel} from './clinvar-display.js';
+import {conditionLabels, classificationTone, classificationHeadline, genotypeAlleleContext, inheritanceContext, inheritanceBrief, inheritancePattern, clinicalDisplayGroup, reviewLabel} from './clinvar-display.js';
 // SNP Reader MVP: deliberately static. Uploaded raw DNA never leaves this browser.
 const catalog = [
   {id:'rs4988235',gene:'MCM6 / LCT',title:'Adult lactose digestion',category:'Nutrition',alleles:['A','G'],evidence:'Established population association',source:'https://medlineplus.gov/genetics/condition/lactose-intolerance/',detail:'This regulatory variant near LCT helps control whether lactase production continues after childhood. The A allele on the GRCh37 forward strand is associated with lactase persistence in many European populations.',interpret(g){return g.includes('A')?'At least one A allele is associated with continued lactase production into adulthood in populations where this marker has been validated.':'GG is associated with lactase non-persistence in many European populations, but other genetic variants and non-genetic causes also affect lactose digestion.'},caution:'This single marker is less informative across some ancestries. Symptoms and clinical evaluation matter more than this genotype alone.'},
@@ -94,9 +94,13 @@ function draw(){
       const tone=classificationTone(e.sig);
       const headline=classificationHeadline(e.sig);
       const clinicalContext=inheritanceContext(e.condition,alleles.alternateCopies);
+      const brief=inheritanceBrief(e.condition,alleles.alternateCopies);
       const isPossibleCarrier=clinicalDisplayGroup(e,alleles.alternateCopies)==='one-copy-recessive';
+      const isDominantPattern=inheritancePattern(e.condition)==='dominant';
       const personalStatus=isPossibleCarrier
-        ? `<div class="clinvar-personal-status clinvar-personal-status--carrier"><strong>Possible carrier-related finding — not a diagnosis</strong><p>One alternate allele is present. This may be relevant to carrier screening for a recessive condition, but it does not mean you have that condition or confirm carrier status. Other variants may be missing from the uploaded data.</p></div>`
+        ? `<div class="clinvar-personal-status clinvar-personal-status--carrier"><strong>Possible carrier-related finding — not a diagnosis</strong><p>You have one alternate copy. For a typical recessive condition, disease-associated changes in <em>both copies of the gene</em> are usually required; the changes can be different. This test cannot confirm carrier status, rule out a second variant, or diagnose the condition.</p></div>`
+        : isDominantPattern
+        ? `<div class="clinvar-personal-status"><strong>Dominant-pattern variant evidence — not a diagnosis</strong><p>One disease-associated gene copy can matter for some dominant conditions. A matching raw DNA allele does not mean you have the condition; the specific variant and clinical evidence are essential.</p></div>`
         : `<div class="clinvar-personal-status"><strong>DNA variant match — not a diagnosis</strong><p>This record is about a genetic variant and a condition, not evidence that you have the condition. Whether it matters to you requires variant-specific interpretation and clinical confirmation.</p></div>`;
       return `<article class="clinvar-card" aria-label="ClinVar evidence for ${safe(e.id)}">
         ${personalStatus}
@@ -125,6 +129,7 @@ function draw(){
         </section>
         <div class="clinvar-copy-context">
           <span class="clinvar-fact-label">What your allele count tells us</span>
+          <p class="clinvar-copy-brief"><strong>${safe(brief.heading)}</strong> ${safe(brief.detail)}</p>
           <p>${safe(alleles.copyMessage)}</p>
           <p class="clinvar-inheritance">${safe(clinicalContext)}</p>
           <a href="https://medlineplus.gov/genetics/understanding/inheritance/inheritancepatterns/" target="_blank" rel="noopener noreferrer">How inheritance patterns work ↗</a>
