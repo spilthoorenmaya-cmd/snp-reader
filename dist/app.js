@@ -1,4 +1,5 @@
 import {extractDnaFromZip} from './zip-reader.js';
+import {interpretSerpina1} from './serpina1.js';
 import {parseDNA, isCalledDiploidSnp, isNoCall} from './dna-parser.js';
 import {curatedMatches, matchClinvar} from './snp-matching.js';
 import {extraCatalog} from './extra-catalog.js';
@@ -28,6 +29,7 @@ async function loadClinvar(){
 function clinvarMatches(){return matchClinvar(records,clinvarEntries,window.__snpBuild)}
 function refreshAnnotatedCount(){
   const validIds=curatedMatches(records,catalog).filter(c=>c.valid).map(c=>c.id);
+  for(const marker of interpretSerpina1(records,window.__snpBuild).markers)if(marker.status==='checked')validIds.push(marker.id);
   for(const {e} of clinvarMatches())validIds.push(e.id);
   $('annotated').textContent=new Set(validIds).size.toLocaleString();
 }
@@ -63,6 +65,8 @@ function updatePersonalContext(){
 function matches(){return curatedMatches(records,catalog)}
 function draw(){
   // Keep any expanded overview sections open when personal context changes.
+  const previousSerpina=$('cards')?.querySelector('.serpina1-panel');
+  const serpinaWasOpen=previousSerpina?previousSerpina.open:null;
   const openBenign=Boolean($('cards')?.querySelector('.clinvar-benign')?.open);
   const openRecessive=Boolean($('cards')?.querySelector('.clinvar-secondary')?.open);
   const term=$('search').value.toLowerCase().trim(),category=$('filter').value;
@@ -267,9 +271,38 @@ function draw(){
       </details>`:''}
     </section>`;
   }
-  $('cards').innerHTML=curatedTable+clinicalHtml+otherTable;
+  let serpinaHtml='';
+  const serpinaQuery='serpina1 alpha-1 alpha 1 antitrypsin aat deficiency rs28929474 rs17580 z s';
+  if((category==='all'||category==='Health')&&(!term||serpinaQuery.includes(term))){
+    const report=interpretSerpina1(records,window.__snpBuild);
+    const detected=report.markers.filter(m=>m.alternateCopies>0).length;
+    const details=report.markers.map(marker=>{
+      const detail=marker.status==='checked'?marker.description:marker.description;
+      const state=marker.status==='checked'?'Checked':marker.status==='not-tested'?'Not in file':marker.status==='no-call'?'No call':'Cannot verify';
+      return `<li class="serpina1-marker" data-marker="${safe(marker.id)}" data-status="${marker.status}">
+        <div><strong>${safe(marker.name)}</strong><a href="https://www.ncbi.nlm.nih.gov/snp/${safe(marker.id)}" target="_blank" rel="noopener noreferrer">${safe(marker.id)} ↗</a></div>
+        <span class="serpina1-marker-call">${safe(marker.call||'Not available')} · ${safe(state)}</span>
+        <p>${safe(detail)}</p>
+        <small>Reference → alternate: ${safe(marker.ref)} → ${safe(marker.alt)} on the genomic plus strand</small>
+        <a href="https://www.ncbi.nlm.nih.gov/clinvar/variation/${marker.clinvar}/" target="_blank" rel="noopener noreferrer">ClinVar evidence ↗</a>
+      </li>`;
+    }).join('');
+    const expand=detected>0||(term&&serpinaQuery.includes(term))?' open':'';
+    serpinaHtml=`<details class="serpina1-panel serpina1-panel--${safe(report.tone)}" data-coverage="${report.complete?'complete':'incomplete'}"${expand}>
+      <summary><span class="serpina1-summary-title">SERPINA1 · Alpha-1 antitrypsin</span><strong>${safe(report.heading)}</strong><span class="serpina1-summary-meta">${safe(report.coverage)} · S and Z marker check</span></summary>
+      <div class="serpina1-body">
+        <p class="serpina1-intro">This condition has <strong>codominant inheritance</strong>. Combinations of S and Z alleles can have different implications. SNP Reader does not assume the rest of your SERPINA1 gene was tested.</p>
+        <p class="serpina1-meaning">${safe(report.meaning)}</p>
+        <ul class="serpina1-markers">${details}</ul>
+        <p class="serpina1-caution">Consumer SNP data cannot determine whether you have this condition, detect every rare SERPINA1 variant, or replace clinical testing. If MyHeritage reported increased risk, a clinician can review the original report and consider alpha-1 antitrypsin blood levels, protein phenotyping and confirmatory genotyping.</p>
+        <div class="serpina1-links"><a href="https://medlineplus.gov/genetics/condition/alpha-1-antitrypsin-deficiency/" target="_blank" rel="noopener noreferrer">NIH condition guide ↗</a><a href="https://journal.copdfoundation.org/jcopdf/id/1115" target="_blank" rel="noopener noreferrer">Clinical testing guidelines ↗</a></div>
+      </div>
+    </details>`;
+  }
+  $('cards').innerHTML=curatedTable+serpinaHtml+clinicalHtml+otherTable;
   if(openBenign){const el=$('cards').querySelector('.clinvar-benign');if(el)el.open=true;}
   if(openRecessive){const el=$('cards').querySelector('.clinvar-secondary');if(el)el.open=true;}
+  if(serpinaWasOpen!==null){const el=$('cards').querySelector('.serpina1-panel');if(el)el.open=serpinaWasOpen;}
 }
 function show(result,label){window.__snpBuild=result.build;records=result.records;mode=label;$('results').hidden=false;$('error').hidden=true;$('total').textContent=records.size.toLocaleString();refreshAnnotatedCount();$('nocalls').textContent=[...records.values()].filter(x=>isNoCall(x.genotype)).length.toLocaleString();updateInventoryCount();$('result-summary').textContent=`${label} · ${result.format}${result.build?' · Genome build '+result.build:''}. Showing curated interpretations; the marker inventory is separate.`;$('search').value='';$('filter').value='all';draw();$('results').scrollIntoView({behavior:'smooth',block:'start'})}
 async function handle(file){
