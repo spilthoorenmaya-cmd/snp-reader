@@ -1,3 +1,4 @@
+import {extractDnaFromZip} from './zip-reader.js';
 import {extraCatalog} from './extra-catalog.js';
 // SNP Reader MVP: deliberately static. Uploaded raw DNA never leaves this browser.
 const catalog = [
@@ -101,10 +102,33 @@ function draw(){
   $('cards').innerHTML=curatedTable+clinicalHtml+otherTable;
 }
 function show(result,label){window.__snpBuild=result.build;records=result.records;mode=label;$('results').hidden=false;$('error').hidden=true;$('total').textContent=records.size.toLocaleString();$('annotated').textContent=catalog.filter(c=>records.has(c.id)).length;$('nocalls').textContent=[...records.values()].filter(x=>x.genotype==='--'||x.genotype==='00').length.toLocaleString();updateInventoryCount();$('result-summary').textContent=`${label} · ${result.format}${result.build?' · Genome build '+result.build:''}. Showing curated interpretations; the marker inventory is separate.`;$('search').value='';$('filter').value='all';draw();$('results').scrollIntoView({behavior:'smooth',block:'start'})}
-async function handle(file){if(!file)return;try{if(file.size>80*1024*1024)throw Error('File is over the 80 MB safety limit. Try the original compressed export or smaller raw text file.');const text=/\.zip$/i.test(file.name)?await unzip(file):await file.text();const result=parseDNA(text);show(result,file.name)}catch(e){$('error').textContent=e.message;$('error').hidden=false;$('error').scrollIntoView({behavior:'smooth',block:'center'})}}
+async function handle(file){
+  if(!file)return;
+  const status=$('upload-status');
+  $('error').hidden=true;
+  status.textContent=`Reading ${file.name} locally…`;
+  try{
+    if(file.size>120*1024*1024)throw Error('File exceeds the 120 MB limit. Extract the raw DNA text file if needed.');
+    const text=/\.zip$/i.test(file.name)?await extractDnaFromZip(file):await file.text();
+    // Give the browser a chance to show the loading state before parsing.
+    await new Promise(resolve=>setTimeout(resolve,0));
+    const result=parseDNA(text);
+    status.textContent=`Loaded ${result.records.size.toLocaleString()} markers from ${file.name}`;
+    show(result,file.name);
+  }catch(e){
+    status.textContent=`Unable to read ${file.name}`;
+    $('error').textContent=e.message||'Could not read this file. Please try the original raw DNA export.';
+    $('error').hidden=false;
+    $('error').scrollIntoView({behavior:'smooth',block:'center'});
+  }
+}
 const demo=`# Synthetic sample, forward strand build 37\nrsid\tchromosome\tposition\tgenotype\nrs4988235\t2\t136608646\tAG\nrs762551\t15\t74749576\tAA\nrs1800562\t6\t26093141\tAG\nrs999999\t1\t123456\tAA`;
 $('inventory-button').addEventListener('click',lookupInventory);
 $('inventory-search').addEventListener('keydown',e=>{if(e.key==='Enter')lookupInventory()});
 loadInventory();
 loadClinvar();
-$('browse').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();$('file').click()});$('file').addEventListener('click',e=>e.stopPropagation());$('drop').addEventListener('click',e=>{if(e.target.closest('#browse')||e.target.closest('#file'))return;$('file').click()});$('drop').addEventListener('keydown',e=>{if(e.target!==$('drop'))return;if(e.key==='Enter'||e.key===' '){e.preventDefault();$('file').click()}});$('file').addEventListener('change',e=>handle(e.target.files?.[0]));['dragenter','dragover'].forEach(t=>$('drop').addEventListener(t,e=>{e.preventDefault();$('drop').classList.add('drag')}));['dragleave','drop'].forEach(t=>$('drop').addEventListener(t,e=>{e.preventDefault();$('drop').classList.remove('drag')}));$('drop').addEventListener('drop',e=>handle(e.dataTransfer.files[0]));$('demo').addEventListener('click',()=>show(parseDNA(demo),'Fictional sample genome'));$('search').addEventListener('input',draw);$('filter').addEventListener('change',draw);$('clear').addEventListener('click',()=>{records.clear();mode='';$('file').value='';$('results').hidden=true;$('upload').scrollIntoView({behavior:'smooth'})});$('export').addEventListener('click',()=>{const rows=[['rsID','gene','topic','genotype','interpretation','evidence_source']];for(const c of matches()){const g=c.call?.genotype||'';const valid=g.length===2&&[...g].every(a=>c.alleles.includes(a));rows.push([c.id,c.gene,c.title,g,valid?c.interpret(g):'Not interpretable / not present',c.source])}const csv=rows.map(r=>r.map(s=>'"'+String(s).replace(/"/g,'""')+'"').join(',')).join('\r\n');const a=document.createElement('a');const url=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.href=url;a.download='snp-reader-curated-results.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)});
+$('drop').addEventListener('click',e=>{if(e.target.closest('label,input'))return;$('file').click()});
+$('drop').addEventListener('keydown',e=>{if(e.target!==$('drop'))return;if(e.key==='Enter'||e.key===' '){e.preventDefault();$('file').click()}});
+$('file').addEventListener('click',e=>e.stopPropagation());
+$('file').addEventListener('change',e=>handle(e.target.files?.[0]));
+['dragenter','dragover'].forEach(t=>$('drop').addEventListener(t,e=>{e.preventDefault();$('drop').classList.add('drag')}));['dragleave','drop'].forEach(t=>$('drop').addEventListener(t,e=>{e.preventDefault();$('drop').classList.remove('drag')}));$('drop').addEventListener('drop',e=>handle(e.dataTransfer.files[0]));$('demo').addEventListener('click',()=>show(parseDNA(demo),'Fictional sample genome'));$('search').addEventListener('input',draw);$('filter').addEventListener('change',draw);$('clear').addEventListener('click',()=>{records.clear();mode='';$('file').value='';$('results').hidden=true;$('upload').scrollIntoView({behavior:'smooth'})});$('export').addEventListener('click',()=>{const rows=[['rsID','gene','topic','genotype','interpretation','evidence_source']];for(const c of matches()){const g=c.call?.genotype||'';const valid=g.length===2&&[...g].every(a=>c.alleles.includes(a));rows.push([c.id,c.gene,c.title,g,valid?c.interpret(g):'Not interpretable / not present',c.source])}const csv=rows.map(r=>r.map(s=>'"'+String(s).replace(/"/g,'""')+'"').join(',')).join('\r\n');const a=document.createElement('a');const url=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.href=url;a.download='snp-reader-curated-results.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)});
