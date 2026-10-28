@@ -1,4 +1,6 @@
 import {extractDnaFromZip} from './zip-reader.js';
+import {parseDNA, isCalledDiploidSnp, isNoCall} from './dna-parser.js';
+import {curatedMatches, matchClinvar} from './snp-matching.js';
 import {extraCatalog} from './extra-catalog.js';
 // SNP Reader MVP: deliberately static. Uploaded raw DNA never leaves this browser.
 const catalog = [
@@ -18,28 +20,15 @@ async function loadClinvar(){
     if(!Array.isArray(payload.entries)) throw Error('Invalid ClinVar catalog');
     clinvarEntries=payload.entries;
     clinvarMessage=`ClinVar evidence snapshot: ${payload.generated||'unknown date'} · ${payload.count.toLocaleString()} allele-specific records`;
-    if(records.size)draw();
+    if(records.size){refreshAnnotatedCount();draw();}
   }catch(e){clinvarMessage=`ClinVar reference unavailable: ${e.message}. Curated results still work.`;if(records.size)draw()}
 }
-function clinvarMatches(){
-  if(!clinvarEntries.length||!records.size) return [];
-  const build=window.__snpBuild;
-  if(build!=='37'&&build!=='38')return [];
-  const assembly=build==='37'?'GRCh37':'GRCh38';
-  const hits=[];
-  for(const e of clinvarEntries){
-    if(e.build!==assembly)continue;
-    const call=records.get(e.id);
-    if(!call||call.genotype.length!==2||!^[ACGT]{2}$/.test(call.genotype))continue;
-    if(String(call.chr).replace(/^chr/i,'').toUpperCase()!==String(e.chr).toUpperCase())continue;
-    if(Number(call.pos)!==e.pos)continue;
-    if(![...call.genotype].every(a=>a===e.ref||a===e.alt))continue;
-    if(!call.genotype.includes(e.alt))continue;
-    hits.push({e,call});
-  }
-  return hits;
+function clinvarMatches(){return matchClinvar(records,clinvarEntries,window.__snpBuild)}
+function refreshAnnotatedCount(){
+  const validIds=curatedMatches(records,catalog).filter(c=>c.valid).map(c=>c.id);
+  for(const {e} of clinvarMatches())validIds.push(e.id);
+  $('annotated').textContent=new Set(validIds).size.toLocaleString();
 }
-
 async function loadInventory(){
   try{
     const response=await fetch('https://raw.githubusercontent.com/spilthoorenmaya-cmd/snp-reader/main/data/rsid_list.txt',{cache:'force-cache'});
@@ -57,20 +46,16 @@ function lookupInventory(){
   const known=inventory.has(id),curated=catalog.some(c=>c.id===id);
   $('inventory-status').textContent=known?`${id} is in the MyHeritage GSA inventory.${curated?' A curated explanation is available.':' No curated interpretation yet.'}`:`${id} was not in this supplied GSA inventory. Another chip version may include it.`;
 }
-function splitCsv(line){const out=[];let val='',quote=false;for(let i=0;i<line.length;i++){const c=line[i];if(c==='"'){if(quote&&line[i+1]==='"'){val+='"';i++}else quote=!quote}else if(c===','&&!quote){out.push(val.trim());val=''}else val+=c}out.push(val.trim());return out}
-function normalizeHeader(s){return s.toLowerCase().replace(/^#+/,'').trim().replace(/[^a-z0-9]/g,'')}
-export function parseDNA(text){const map=new Map();let format='',skip=0;let header=null,sep=null,build='';const lines=text.replace(/^\uFEFF/,'').split(/\r?\n/);for(const line of lines){const trim=line.trim();if(!trim)continue;if(/^#/.test(trim)){if(/build\s*3[78]|grch3[78]/i.test(trim)){const m=trim.match(/(?:build\s*|grch)(3[78])/i);if(m)build=m[1]}if(!/^(#?rsid[,\t ]|#?rsid\s+chromosome)/i.test(trim))continue}if(!sep)sep=trim.includes('\t')?'\t':trim.includes(',')?',':null;if(!sep)throw Error('Unrecognized layout: expected a tab- or comma-separated raw DNA file.');const cells=sep===','?splitCsv(trim.replace(/^#(?=rsid)/i,'')):trim.replace(/^#(?=rsid)/i,'').split('\t').map(x=>x.trim());const norm=cells.map(normalizeHeader);if(norm[0]==='rsid'&&norm.includes('chromosome')){header=norm;format=norm.includes('allele1')?'MyHeritage 5-column':sep===','?'MyHeritage CSV':'23andMe / TSV';continue}let id,chr,pos,geno;if(header){const get=(key)=>cells[header.indexOf(key)];id=get('rsid');chr=get('chromosome');pos=get('position');geno=header.includes('genotype')?get('genotype'):header.includes('result')?get('result'):header.includes('allele1')?String(get('allele1')||'')+String(get('allele2')||''):''}else if(cells.length>=4){[id,chr,pos,geno]=cells;format=sep===','?'CSV':'23andMe / TSV'}else{skip++;continue}if(!/^rs\d+$/i.test(id||'')){skip++;continue}const normalized=String(geno||'').toUpperCase().replace(/\s+/g,'');if(!/^(?:[ACGT]{1,2}|--|00|II|DD|ID|DI)$/.test(normalized)){skip++;continue}map.set(id.toLowerCase(),{id:id.toLowerCase(),chr,pos,genotype:normalized})}if(!map.size)throw Error('No recognized rsID genotype rows found. Check that this is an unmodified 23andMe or MyHeritage raw export.');return{records:map,format,build,skipped:skip}}
-async function unzip(file){const bytes=new Uint8Array(await file.arrayBuffer());if(bytes.length<30||bytes[0]!==0x50||bytes[1]!==0x4b)throw Error('This ZIP archive is not readable.');let offset=0;while(offset+30<bytes.length){const view=new DataView(bytes.buffer,bytes.byteOffset+offset);if(view.getUint32(0,true)!==0x04034b50)break;const flags=view.getUint16(6,true),method=view.getUint16(8,true),size=view.getUint32(18,true),nameLen=view.getUint16(26,true),extraLen=view.getUint16(28,true);const name=new TextDecoder().decode(bytes.slice(offset+30,offset+30+nameLen));const start=offset+30+nameLen+extraLen;if((flags&8)||size===0)throw Error('This ZIP format is unsupported. Please extract its TXT or CSV file first.');if(/\.(txt|csv|tsv)$/i.test(name)&&!name.startsWith('__MACOSX')){const compressed=bytes.slice(start,start+size);if(method===0)return new TextDecoder().decode(compressed);if(method===8){if(typeof DecompressionStream==='undefined')throw Error('Please extract the ZIP first; this browser cannot decompress it.');try{const output=new Blob([compressed]).stream().pipeThrough(new DecompressionStream('deflate-raw'));return await new Response(output).text()}catch{throw Error('Could not decompress ZIP here. Please extract the TXT or CSV file and upload that instead.')}}}offset=start+size}throw Error('No supported raw DNA TXT or CSV file found in ZIP. Try extracting it first.')}
 function safe(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function matches(){return catalog.filter(c=>records.has(c.id)).map(c=>({...c,call:records.get(c.id)}))}
+function matches(){return curatedMatches(records,catalog)}
 function draw(){
   const term=$('search').value.toLowerCase().trim(),category=$('filter').value;
   const filtered=matches().filter(c=>(category==='all'||c.category===category)&&[c.id,c.gene,c.title,c.category].join(' ').toLowerCase().includes(term));
   // The curated catalog is a subset of markers in the user's file; keep other calls browseable.
   const rows=filtered.map(c=>{
     const g=c.call?.genotype||'';
-    const valid=g&&g!=='--'&&g!=='00'&&g.length===2&&[...g].every(x=>c.alleles.includes(x));
-    const meaning=valid?c.interpret(g):c.call?'No-call or allele representation that cannot be interpreted safely.':'Not present in the uploaded file; this marker may not have been tested.';
+    const valid=c.valid;
+    const meaning=c.meaning;
     return `<tr><td><strong>${safe(c.id)}</strong><span class="td-sub">${safe(c.gene)}</span></td><td><span class="topic-title">${safe(c.title)}</span><span class="tag">${safe(c.category)}</span></td><td><span class="genotype-chip">${safe(g||'—')}</span><span class="td-sub">${valid?'Called':c.call?'Unresolved':'Not found'}</span></td><td class="interpretation-cell"><div class="interpretation-main">${safe(meaning)}</div><details><summary>Evidence and limitations</summary><p>${safe(c.detail)}</p><p class="evidence-caution">ⓘ ${safe(c.caution)}</p><small>Evidence: ${safe(c.evidence)}</small><div class="table-links"><a href="${c.source}" target="_blank" rel="noopener">NIH evidence ↗</a><a href="https://www.ncbi.nlm.nih.gov/snp/${c.id}" target="_blank" rel="noopener">dbSNP ↗</a><a href="https://www.ncbi.nlm.nih.gov/clinvar/?term=${c.id}" target="_blank" rel="noopener">ClinVar ↗</a></div></details></td></tr>`;
   }).join('');
   const curatedTable=filtered.length?`<div class="result-table-scroll"><table class="result-table"><thead><tr><th>SNP / Gene</th><th>Research topic</th><th>Genotype</th><th>Meaning & evidence</th></tr></thead><tbody>${rows}</tbody></table></div>`:'<div class="empty">No curated interpretation matches this search.</div>';
@@ -101,7 +86,7 @@ function draw(){
   }
   $('cards').innerHTML=curatedTable+clinicalHtml+otherTable;
 }
-function show(result,label){window.__snpBuild=result.build;records=result.records;mode=label;$('results').hidden=false;$('error').hidden=true;$('total').textContent=records.size.toLocaleString();$('annotated').textContent=catalog.filter(c=>records.has(c.id)).length;$('nocalls').textContent=[...records.values()].filter(x=>x.genotype==='--'||x.genotype==='00').length.toLocaleString();updateInventoryCount();$('result-summary').textContent=`${label} · ${result.format}${result.build?' · Genome build '+result.build:''}. Showing curated interpretations; the marker inventory is separate.`;$('search').value='';$('filter').value='all';draw();$('results').scrollIntoView({behavior:'smooth',block:'start'})}
+function show(result,label){window.__snpBuild=result.build;records=result.records;mode=label;$('results').hidden=false;$('error').hidden=true;$('total').textContent=records.size.toLocaleString();refreshAnnotatedCount();$('nocalls').textContent=[...records.values()].filter(x=>isNoCall(x.genotype)).length.toLocaleString();updateInventoryCount();$('result-summary').textContent=`${label} · ${result.format}${result.build?' · Genome build '+result.build:''}. Showing curated interpretations; the marker inventory is separate.`;$('search').value='';$('filter').value='all';draw();$('results').scrollIntoView({behavior:'smooth',block:'start'})}
 async function handle(file){
   if(!file)return;
   const status=$('upload-status');
@@ -129,4 +114,4 @@ loadInventory();
 loadClinvar();
 const picker=$('file');
 picker.addEventListener('change',()=>{const selected=picker.files?.[0];if(selected){$('upload-status').textContent=`Selected: ${selected.name}`;handle(selected)}});
-['dragenter','dragover'].forEach(t=>$('drop').addEventListener(t,e=>{e.preventDefault();$('drop').classList.add('drag')}));['dragleave','drop'].forEach(t=>$('drop').addEventListener(t,e=>{e.preventDefault();$('drop').classList.remove('drag')}));$('drop').addEventListener('drop',e=>handle(e.dataTransfer.files[0]));$('demo').addEventListener('click',()=>show(parseDNA(demo),'Fictional sample genome'));$('search').addEventListener('input',draw);$('filter').addEventListener('change',draw);$('clear').addEventListener('click',()=>{records.clear();mode='';$('file').value='';$('results').hidden=true;$('upload').scrollIntoView({behavior:'smooth'})});$('export').addEventListener('click',()=>{const rows=[['rsID','gene','topic','genotype','interpretation','evidence_source']];for(const c of matches()){const g=c.call?.genotype||'';const valid=g.length===2&&[...g].every(a=>c.alleles.includes(a));rows.push([c.id,c.gene,c.title,g,valid?c.interpret(g):'Not interpretable / not present',c.source])}const csv=rows.map(r=>r.map(s=>'"'+String(s).replace(/"/g,'""')+'"').join(',')).join('\r\n');const a=document.createElement('a');const url=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.href=url;a.download='snp-reader-curated-results.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)});
+['dragenter','dragover'].forEach(t=>$('drop').addEventListener(t,e=>{e.preventDefault();$('drop').classList.add('drag')}));['dragleave','drop'].forEach(t=>$('drop').addEventListener(t,e=>{e.preventDefault();$('drop').classList.remove('drag')}));$('drop').addEventListener('drop',e=>handle(e.dataTransfer.files[0]));$('demo').addEventListener('click',()=>show(parseDNA(demo),'Fictional sample genome'));$('search').addEventListener('input',draw);$('filter').addEventListener('change',draw);$('clear').addEventListener('click',()=>{records.clear();mode='';$('file').value='';$('results').hidden=true;$('upload').scrollIntoView({behavior:'smooth'})});$('export').addEventListener('click',()=>{const rows=[['rsID','gene','topic','genotype','interpretation','evidence_source']];for(const c of matches()){const g=c.call?.genotype||'';rows.push([c.id,c.gene,c.title,g,c.meaning,c.source])}const csv=rows.map(r=>r.map(s=>'"'+String(s).replace(/"/g,'""')+'"').join(',')).join('\r\n');const a=document.createElement('a');const url=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.href=url;a.download='snp-reader-curated-results.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)});
