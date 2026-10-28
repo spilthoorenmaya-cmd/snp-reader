@@ -303,3 +303,55 @@ test('real browser: age, sex and ancestry are optional, private and never change
     assert.match(await page.locator('#context-summary').innerText(),/No personal context selected/);
   }finally{await page.close()}
 });
+
+test('real browser: evidence tabs isolate clinical, carrier, traits and benign evidence',async()=>{
+  const base={id:'rs762551',gene:'EXAMPLE',build:'GRCh37',chr:'15',pos:74749576,
+    ref:'C',alt:'A',review:'reviewed by expert panel'};
+  const entries=[
+    {...base,sig:'Pathogenic',condition:'Autosomal dominant example condition',variation:8001},
+    {...base,sig:'Pathogenic',condition:'Autosomal recessive example condition',variation:8002},
+    {...base,sig:'Benign',condition:'Example harmless condition',variation:8003}
+  ];
+  const page=await pageReady(entries);
+  try{
+    await page.locator('#file').setInputFiles({name:'synthetic.txt',mimeType:'text/plain',buffer:Buffer.from(source)});
+    await page.locator('#tab-panel-clinical .clinvar-card').first().waitFor();
+    assert.equal(await page.locator('#tab-clinical').getAttribute('aria-selected'),'true');
+    assert.equal(await page.locator('#tab-panel-clinical .clinvar-card').count(),1);
+    assert.equal(await page.locator('#tab-panel-research').isVisible(),false);
+    assert.equal(await page.locator('#tab-panel-carrier').isVisible(),false);
+    assert.equal(await page.locator('#tab-panel-benign').isVisible(),false);
+
+    await page.locator('#tab-carrier').click();
+    assert.equal(await page.locator('#tab-carrier').getAttribute('aria-selected'),'true');
+    assert.equal(await page.locator('#tab-panel-clinical').isVisible(),false);
+    assert.equal(await page.locator('#tab-panel-carrier .clinvar-secondary .clinvar-card').count(),1);
+    assert.match(await page.locator('#tab-panel-carrier').innerText(),/not verified carrier-screening results or diagnoses/);
+
+    await page.locator('#tab-research').click();
+    assert.equal(await page.locator('#tab-panel-research').isVisible(),true);
+    assert.match(await page.locator('#tab-panel-research').innerText(),/Caffeine metabolism/);
+    assert.match(await page.locator('#tab-panel-research').innerText(),/research associations/);
+    assert.equal(await page.locator('#filter').isVisible(),true);
+    await page.locator('#filter').selectOption('Nutrition');
+    assert.match(await page.locator('#tab-panel-research').innerText(),/No curated interpretation matches this search|No curated interpretation matches this search|Adult lactose digestion/);
+    await page.locator('#filter').selectOption('all');
+
+    await page.locator('#tab-benign').click();
+    assert.equal(await page.locator('#tab-panel-benign').isVisible(),true);
+    assert.equal(await page.locator('#tab-panel-benign .clinvar-benign-example .clinvar-card').count(),1);
+    assert.match(await page.locator('#tab-panel-benign').innerText(),/Benign variants/);
+    assert.match(await page.locator('#tab-description').innerText(),/Benign is not the same as protective/);
+    assert.equal(await page.locator('#filter').isVisible(),false);
+
+    await page.locator('#tab-benign').focus();
+    await page.keyboard.press('ArrowLeft');
+    assert.equal(await page.locator('#tab-research').getAttribute('aria-selected'),'true');
+    assert.equal(await page.locator('#tab-research').evaluate(el=>document.activeElement===el),true);
+    await page.keyboard.press('Home');
+    assert.equal(await page.locator('#tab-clinical').getAttribute('aria-selected'),'true');
+    await page.keyboard.press('End');
+    assert.equal(await page.locator('#tab-benign').getAttribute('aria-selected'),'true');
+    assert.deepEqual(await page.locator('#result-tabs [role="tab"]').count(),4);
+  }finally{await page.close()}
+});
