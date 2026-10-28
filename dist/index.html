@@ -132,7 +132,7 @@
           </div>
         </nav>
         <p id="tab-description" class="result-tab-description" role="status" aria-live="polite">ClinVar allele-specific classifications for review. These records are not diagnoses or personal risk estimates.</p>
-        <div class="toolbar">
+        <div id="variant-toolbar" class="toolbar">
           <label class="search-wrap">⌕ <input id="search" placeholder="Search rsID, gene, or topic" aria-label="Search variants"></label>
           <select id="filter" aria-label="Filter categories">
             <option value="all">All topics</option>
@@ -141,7 +141,7 @@
             <option value="Health">Health research</option>
           </select><button id="export" class="btn outlined">Export matches ↓</button>
         </div>
-        <p class="catalog-explainer">Your DNA file may contain hundreds of thousands of markers. Only markers with checked, genotype-specific evidence receive interpretations. All other markers remain searchable below as unreviewed raw calls.</p>
+        <p id="catalog-explainer" class="catalog-explainer">Your DNA file may contain hundreds of thousands of markers. Only markers with checked, genotype-specific evidence receive interpretations. All other markers remain searchable below as unreviewed raw calls.</p>
         <div id="cards" class="cards">
         </div>
         <p class="result-footnote">Inventory membership does not imply clinical significance. Interpretations are educational summaries, not diagnoses or personalized medical advice. An unlisted or uncalled variant does not establish absence of a trait or condition.</p>
