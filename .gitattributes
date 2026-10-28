@@ -1,0 +1,6 @@
+# Reference snapshots are generated data, not authored application code.
+dist/clinvar-evidence.json linguist-generated=true
+data/rsid_list.txt linguist-generated=true
+
+# Static visual asset; never treat as text in Git diffs.
+dist/dna-hero.png binary
