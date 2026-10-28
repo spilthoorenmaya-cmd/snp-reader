@@ -61,18 +61,57 @@ export function genotypeAlleleContext(call,evidence) {
     : 'Two copies of the alternate allele were detected (homozygous). This can be important for some recessive conditions, but does not establish a diagnosis.';
   return {ref,alt,referenceCopies,alternateCopies,copyMessage};
 }
-export function inheritanceContext(raw,alternateCopies) {
-  // A ClinVar PhenotypeList is a list of names, not authoritative per-variant
-  // mode-of-inheritance data. Present any inheritance hints as educational only.
+/**
+ * A phenotype NAME mentioning an inheritance pattern is a clue, not a
+ * variant-specific molecular diagnosis. Do not assign mode of inheritance
+ * for X-linked or mixed-pattern names from a two-letter consumer genotype.
+ */
+export function inheritancePattern(raw) {
   const names=conditionLabels(raw);
+  if(names.some(x=>/\b(?:x.linked|y.linked|mitochondrial)\b/i.test(x)))return 'complex';
   const recessive=names.some(x=>/\b(?:autosomal\s+)?recessive\b/i.test(x));
   const dominant=names.some(x=>/\b(?:autosomal\s+)?dominant\b/i.test(x));
-  if(recessive&&dominant)return 'The condition names mention both recessive and dominant inheritance. One general copy-number rule cannot explain all of them; review the specific variant–condition record.';
-  if(recessive)return alternateCopies===1
-    ? 'A listed condition name mentions recessive inheritance. One variant copy alone usually does not cause a recessive disorder, but this test cannot rule out a second variant.'
-    : 'A listed condition name mentions recessive inheritance. Two copies may be relevant for some recessive conditions; this call is not a clinical diagnosis.';
-  if(dominant)return 'A listed condition name mentions dominant inheritance. One copy can matter for some dominant conditions, but this record alone does not establish an effect, penetrance, or diagnosis.';
-  return 'The clinical consequence of one versus two copies cannot be determined from this record alone. Condition-specific inheritance and penetrance matter.';
+  if(recessive&&dominant)return 'mixed';
+  if(recessive)return 'recessive';
+  if(dominant)return 'dominant';
+  return 'unknown';
+}
+
+/** Plain language about COPY NUMBER, not an assertion of having a disease. */
+export function inheritanceBrief(raw,alternateCopies) {
+  const pattern=inheritancePattern(raw);
+  if(pattern==='recessive'&&alternateCopies===1)return {
+    heading:'You have one alternate copy; recessive conditions typically require two affected gene copies.',
+    detail:'Those two copies need not contain the same variant. Your upload does not establish whether a second relevant variant is present, or confirm carrier status.'
+  };
+  if(pattern==='recessive'&&alternateCopies===2)return {
+    heading:'You have two copies of this alternate allele.',
+    detail:'Two disease-associated gene copies may matter for a recessive condition, but a matching consumer DNA call cannot establish that you have the condition.'
+  };
+  if(pattern==='dominant'&&alternateCopies>=1)return {
+    heading:alternateCopies===1?'You have one alternate copy; one can matter in some dominant conditions.':'You have two alternate copies; dominant conditions can be relevant with just one.',
+    detail:'An alternate allele is not proof of illness. The particular gene, variant, condition, penetrance and clinical confirmation determine its significance.'
+  };
+  if(pattern==='mixed')return {
+    heading:'The listed conditions have more than one inheritance pattern.',
+    detail:'Some may be recessive and others dominant. This record alone cannot determine which rule, if any, applies to your genotype.'
+  };
+  return {
+    heading:'Copy count alone cannot tell whether you would be affected.',
+    detail:'This record does not provide verified, condition-specific inheritance information. One copy may or may not matter depending on the variant and condition.'
+  };
+}
+export function inheritanceContext(raw,alternateCopies) {
+  const pattern=inheritancePattern(raw);
+  if(pattern==='recessive'&&alternateCopies===1)
+    return 'A listed condition name mentions recessive inheritance. You have only one alternate copy at this marker. A typical autosomal recessive disorder requires disease-associated changes in both gene copies, which may be different variants. This file cannot rule out another variant or confirm carrier status.';
+  if(pattern==='recessive')
+    return 'A listed condition name mentions recessive inheritance. Two copies of a disease-associated change may be relevant, but the genotype does not establish a clinical diagnosis.';
+  if(pattern==='dominant')
+    return 'A listed condition name mentions dominant inheritance. One disease-associated copy can matter, but not everyone with such a variant is affected. This record alone is not a diagnosis.';
+  if(pattern==='mixed')
+    return 'The condition names mention both recessive and dominant inheritance. There is no one copy-number rule that fits them all.';
+  return 'The clinical consequence of one versus two copies cannot be determined from this record alone. Condition-specific evidence is needed.';
 }
 
 /**
