@@ -183,6 +183,7 @@ h1 em {
 }
 .trust {
   display:flex;
+  justify-content:space-between;
   flex-wrap:wrap;
   gap:8px;
   color:#e1efe6;
