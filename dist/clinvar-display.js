@@ -41,7 +41,7 @@ export function classificationHeadline(value) {
   const classification=String(value || '').toLowerCase();
   if(classification.includes('conflicting'))return 'Mixed research classifications';
   if(classification.includes('uncertain'))return 'Clinical meaning uncertain';
-  if(classification.includes('benign'))return 'Reported as likely harmless';
+  if(classification.includes('benign'))return 'Benign evidence reported';
   if(classification.includes('pathogenic'))return 'Clinical evidence available';
   return 'Research evidence available';
 }
@@ -73,4 +73,22 @@ export function inheritanceContext(raw,alternateCopies) {
     : 'A listed condition name mentions recessive inheritance. Two copies may be relevant for some recessive conditions; this call is not a clinical diagnosis.';
   if(dominant)return 'A listed condition name mentions dominant inheritance. One copy can matter for some dominant conditions, but this record alone does not establish an effect, penetrance, or diagnosis.';
   return 'The clinical consequence of one versus two copies cannot be determined from this record alone. Condition-specific inheritance and penetrance matter.';
+}
+
+/**
+ * Conservative display grouping only. This does NOT determine true inheritance
+ * or carrier status. Actual modes need condition-specific curated evidence.
+ * For one-copy recessive-pattern findings with no dominant or X-linked
+ * indication in the names, group under a collapsed "review separately" area.
+ * Never silently drop a variant.
+ */
+export function clinicalDisplayGroup(e, alternateCopies) {
+  if (alternateCopies !== 1) return 'main';
+  if (!/^(Pathogenic|Likely pathogenic|Pathogenic\/Likely pathogenic)$/i.test(String(e?.sig || ''))) return 'main';
+  if (!/^(?:[1-9]|1\d|2[0-2])$/.test(String(e?.chr || '').replace(/^chr/i,''))) return 'main';
+  const names=conditionLabels(e?.condition);
+  const hasRecessive=names.some(name=>/\b(?:autosomal\s+)?recessive\b/i.test(name));
+  const hasDominant=names.some(name=>/\b(?:autosomal\s+)?dominant\b/i.test(name));
+  const hasOtherPatterns=names.some(name=>/\b(?:x.linked|y.linked|mitochondrial)\b/i.test(name));
+  return hasRecessive&&!hasDominant&&!hasOtherPatterns ? 'one-copy-recessive' : 'main';
 }
