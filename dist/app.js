@@ -22,6 +22,7 @@ const resultTabExplanations={
  benign:'Variants classified as benign for particular conditions, plus unreviewed raw markers. Benign is not the same as protective.'
 };
 let activeResultTab='research';
+let resultTabTouched=false;
 function selectResultTab(name,focus=false){
   if(!resultTabNames.includes(name))return;
   activeResultTab=name;
@@ -61,7 +62,7 @@ async function loadClinvar(){
     if(!Array.isArray(payload.entries)) throw Error('Invalid ClinVar catalog');
     clinvarEntries=payload.entries;
     clinvarMessage=`ClinVar evidence snapshot: ${payload.generated||'unknown date'} · ${payload.count.toLocaleString()} allele-specific records`;
-    if(records.size){refreshAnnotatedCount();draw();}
+    if(records.size){if(!resultTabTouched)activeResultTab=preferredResultTab();refreshAnnotatedCount();draw();}
   }catch(e){clinvarMessage=`ClinVar reference unavailable: ${e.message}. Curated results still work.`;if(records.size)draw()}
 }
 function clinvarMatches(){return matchClinvar(records,clinvarEntries,window.__snpBuild)}
@@ -416,7 +417,7 @@ function draw(){
   if(openRecessive){const el=$('cards').querySelector('.clinvar-secondary');if(el)el.open=true;}
   if(serpinaWasOpen!==null){const el=$('cards').querySelector('.serpina1-panel');if(el)el.open=serpinaWasOpen;}
 }
-function show(result,label){window.__snpBuild=result.build;records=result.records;mode=label;$('results').hidden=false;$('error').hidden=true;$('total').textContent=records.size.toLocaleString();refreshAnnotatedCount();$('nocalls').textContent=[...records.values()].filter(x=>isNoCall(x.genotype)).length.toLocaleString();updateInventoryCount();$('result-summary').textContent=`${label} · ${result.format}${result.build?' · Genome build '+result.build:''}. Showing curated interpretations; the marker inventory is separate.`;$('search').value='';$('filter').value='all';activeResultTab=preferredResultTab();draw();$('results').scrollIntoView({behavior:'smooth',block:'start'})}
+function show(result,label){window.__snpBuild=result.build;records=result.records;mode=label;$('results').hidden=false;$('error').hidden=true;$('total').textContent=records.size.toLocaleString();refreshAnnotatedCount();$('nocalls').textContent=[...records.values()].filter(x=>isNoCall(x.genotype)).length.toLocaleString();updateInventoryCount();$('result-summary').textContent=`${label} · ${result.format}${result.build?' · Genome build '+result.build:''}. Showing curated interpretations; the marker inventory is separate.`;$('search').value='';$('filter').value='all';resultTabTouched=false;activeResultTab=preferredResultTab();draw();$('results').scrollIntoView({behavior:'smooth',block:'start'})}
 async function handle(file){
   if(!file)return;
   const status=$('upload-status');
@@ -440,14 +441,14 @@ async function handle(file){
 const demo=`# Synthetic sample, forward strand build 37\nrsid\tchromosome\tposition\tgenotype\nrs4988235\t2\t136608646\tAG\nrs762551\t15\t74749576\tAA\nrs1800562\t6\t26093141\tAG\nrs999999\t1\t123456\tAA`;
 for(const name of resultTabNames){
   const button=$('tab-'+name);
-  button.addEventListener('click',()=>selectResultTab(name));
+  button.addEventListener('click',()=>{resultTabTouched=true;selectResultTab(name)});
   button.addEventListener('keydown',event=>{
     if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;
     event.preventDefault();
     const current=resultTabNames.indexOf(name);
     const next=event.key==='Home'?0:event.key==='End'?resultTabNames.length-1:
       (current+(event.key==='ArrowRight'?1:-1)+resultTabNames.length)%resultTabNames.length;
-    selectResultTab(resultTabNames[next],true);
+    resultTabTouched=true;selectResultTab(resultTabNames[next],true);
   });
 }
 $('inventory-button').addEventListener('click',lookupInventory);
