@@ -155,7 +155,7 @@ function draw(){
       ${limitNote?`<p class="clinvar-limit">${safe(limitNote)}</p>`:''}
       ${primaryHtml?`<div class="clinvar-grid">${primaryHtml}</div>`:''}
       ${recessiveHtml?`<details class="clinvar-secondary" aria-label="One-copy findings with recessive condition names">
-        <summary><strong>${recessiveHits.length.toLocaleString()} one-copy findings with recessive condition names</strong><span>Review separately · usually not sufficient alone for a recessive disorder</span></summary>
+        <summary><strong>${recessiveHits.length.toLocaleString()} one-copy ${recessiveHits.length===1?'finding':'findings'} with recessive condition names</strong><span>Review separately · usually not sufficient alone for a recessive disorder</span></summary>
         <p class="clinvar-secondary-note">These records contain one alternate allele and mention recessive inheritance, without an explicit dominant or X-linked label in the condition names. This is a provisional grouping based on names, not confirmed carrier status. A second variant may be untested, and some conditions have more complex inheritance. All findings remain available for review.</p>
         <div class="clinvar-grid">${recessiveHtml}</div>
       </details>`:''}
