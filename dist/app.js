@@ -94,7 +94,12 @@ function draw(){
       const tone=classificationTone(e.sig);
       const headline=classificationHeadline(e.sig);
       const clinicalContext=inheritanceContext(e.condition,alleles.alternateCopies);
+      const isPossibleCarrier=clinicalDisplayGroup(e,alleles.alternateCopies)==='one-copy-recessive';
+      const personalStatus=isPossibleCarrier
+        ? `<div class="clinvar-personal-status clinvar-personal-status--carrier"><strong>Possible carrier-related finding — not a diagnosis</strong><p>One alternate allele is present. This may be relevant to carrier screening for a recessive condition, but it does not mean you have that condition or confirm carrier status. Other variants may be missing from the uploaded data.</p></div>`
+        : `<div class="clinvar-personal-status"><strong>DNA variant match — not a diagnosis</strong><p>This record is about a genetic variant and a condition, not evidence that you have the condition. Whether it matters to you requires variant-specific interpretation and clinical confirmation.</p></div>`;
       return `<article class="clinvar-card" aria-label="ClinVar evidence for ${safe(e.id)}">
+        ${personalStatus}
         <div class="clinvar-card-header">
           <div class="clinvar-card-identity"><span class="clinvar-gene">${safe(e.gene||'Gene not specified')}</span><strong class="clinvar-rsid">${safe(e.id)}</strong></div>
           <span class="clinvar-classification clinvar-classification--${tone}">${safe(headline)}</span>
@@ -151,12 +156,12 @@ function draw(){
     const recessiveHtml=recessiveHits.slice(0,limit).map(renderCard).join('');
     clinicalHtml=`<section class="clinvar-section" aria-label="ClinVar allele-specific evidence">
       <div class="clinvar-heading"><div><h3>ClinVar evidence</h3><p>${safe(note)} · ${safe(clinvarMessage)}</p></div></div>
-      <p class="clinvar-disclaimer">These are evidence records, not diagnoses. A single allele does not establish a condition. The original ClinVar classification remains available in each card’s source details. Consumer DNA calls need clinical confirmation.</p>
+      <p class="clinvar-disclaimer">These are variant-level research records, NOT disease diagnoses or verified carrier-screening results. A single allele does not establish a condition. The original ClinVar classification remains available in each card’s source details. Consumer DNA calls need clinical confirmation.</p>
       ${limitNote?`<p class="clinvar-limit">${safe(limitNote)}</p>`:''}
       ${primaryHtml?`<div class="clinvar-grid">${primaryHtml}</div>`:''}
       ${recessiveHtml?`<details class="clinvar-secondary" aria-label="One-copy findings with recessive condition names">
-        <summary><strong>${recessiveHits.length.toLocaleString()} one-copy ${recessiveHits.length===1?'finding':'findings'} with recessive condition names</strong><span>Review separately · usually not sufficient alone for a recessive disorder</span></summary>
-        <p class="clinvar-secondary-note">These records contain one alternate allele and mention recessive inheritance, without an explicit dominant or X-linked label in the condition names. This is a provisional grouping based on names, not confirmed carrier status. A second variant may be untested, and some conditions have more complex inheritance. All findings remain available for review.</p>
+        <summary><strong>${recessiveHits.length.toLocaleString()} one-copy ${recessiveHits.length===1?'finding':'findings'} with recessive condition names</strong><span>Possible carrier-related evidence · not a diagnosis</span></summary>
+        <p class="clinvar-secondary-note">These records have one alternate allele and condition names that mention recessive inheritance without a dominant or X-linked label. They do not mean you have the condition. This provisional grouping is not a confirmed carrier diagnosis or carrier-screening result. A second variant may be untested, and some conditions have more complex inheritance. All findings remain available for review.</p>
         <div class="clinvar-grid">${recessiveHtml}</div>
       </details>`:''}
     </section>`;
