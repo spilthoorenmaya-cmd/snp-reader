@@ -239,7 +239,7 @@ test('genotype allele context validates chromosome and gene copy context',()=>{
  assert.equal(one.zygosity,'Heterozygous');
  assert.equal(two.zygosity,'Homozygous alternate');
  assert.equal(zero.isAutosomal,true);
- assert.equal(genotypeAlleleContext({genotype:'AT'},{...e,chr:'X'}).isAutosomal,false);
+ assert.equal(genotypeAlleleContext({genotype:'AG'},{...e,chr:'X'}).isAutosomal,false);
  for(const evidence of [{ref:'G',alt:'G'},{ref:'-',alt:'A'},{ref:'G',alt:'AA'},{ref:'',alt:''}]){
    assert.equal(genotypeAlleleContext({genotype:'GA'},evidence),null);
  }
