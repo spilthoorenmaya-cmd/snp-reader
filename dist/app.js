@@ -341,9 +341,9 @@ function draw(){
           <div class="clinvar-gene-groups">${otherBenignHtml}</div>
         </details>`:''}
       </details>`:''}
-      ${recessiveHtml?`<details class="clinvar-secondary" aria-label="One-copy findings with recessive condition names">
-        <summary><strong>${recessiveHits.length.toLocaleString()} one-copy ${recessiveHits.length===1?'finding':'findings'} with recessive condition names</strong><span>Possible carrier-related evidence · not a diagnosis</span></summary>
-        <p class="clinvar-secondary-note">These records have one alternate allele and condition names that mention recessive inheritance without a dominant or X-linked label. They do not mean you have the condition. This provisional grouping is not a confirmed carrier-screening result. A second variant may be untested; even when two variants are detected, SNP-chip data often cannot show whether they are on opposite gene copies. All findings remain available for review.</p>
+      ${recessiveHtml?`<details class="clinvar-secondary" aria-label="Possible one-copy carrier-related findings">
+        <summary><strong>${recessiveHits.length.toLocaleString()} possible carrier-related ${recessiveHits.length===1?'finding':'findings'}</strong><span>One alternate allele · not a diagnosis or confirmed carrier result</span></summary>
+        <p class="clinvar-secondary-note">These records have one alternate allele classified as pathogenic or likely pathogenic for an explicitly recessive condition or a curated CFTR cystic fibrosis association. This is a provisional evidence grouping, not a carrier diagnosis. A second gene variant may be untested, and raw SNP data usually cannot establish whether separate variants affect opposite gene copies. Clinical carrier screening can clarify reproductive implications.</p>
         <div class="clinvar-gene-groups">${recessiveHtml}</div>
       </details>`:''}
     </section>`;
