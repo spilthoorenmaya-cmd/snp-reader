@@ -42,6 +42,7 @@ const source='# genome build 37\n# rsid\tchromosome\tposition\tgenotype\nrs76255
 test('real browser: click styled upload card opens native chooser and reads SNPs',async()=>{
   const page=await pageReady();
   try {
+    await page.locator('#drop').scrollIntoViewIfNeeded();
     const zone=await page.locator('#drop').boundingBox();
     const x=zone.x+zone.width/2, y=zone.y+zone.height/2;
     const target=await page.evaluate(({x,y})=>{
