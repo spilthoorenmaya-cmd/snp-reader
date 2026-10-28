@@ -19,13 +19,17 @@ jobs:
           python-version: "3.12"
       - name: Run offline parser tests
         run: python -m unittest discover -s tests -p "test_compare_chip_inventory.py" -v
-      - name: Validate inventory if uploaded
+      - name: Verify published rsID reference inventory
         run: |
           python - <<'PY'
           from pathlib import Path
           import sys
+
           sys.path.insert(0, "scripts")
           from compare_chip_inventory import load_inventory
-          p = Path("data/rsid_list.txt")
-          print(f"Verified {len(load_inventory(p)):,} rsIDs" if p.exists() else "Inventory not uploaded yet")
+
+          reference = Path("data/rsid_list.txt")
+          if not reference.is_file():
+              raise SystemExit("Missing published reference inventory")
+          print(f"Verified {len(load_inventory(reference)):,} public rsIDs")
           PY
