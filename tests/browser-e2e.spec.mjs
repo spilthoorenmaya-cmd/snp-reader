@@ -123,7 +123,18 @@ test('real browser: ClinVar cards show concise condition and expandable aliases'
     await page.locator('.clinvar-card').waitFor();
     const card=page.locator('.clinvar-card').first();
     assert.match(await card.locator('.clinvar-gene').innerText(),/EXAMPLE/);
-    assert.match(await card.locator('.clinvar-classification').innerText(),/Pathogenic/);
+    assert.equal(await card.locator('.clinvar-classification').innerText(),'Clinical evidence available');
+    assert.match(await card.locator('.clinvar-allele-grid').innerText(),/Reference allele/);
+    assert.match(await card.locator('.clinvar-allele-grid').innerText(),/Alternate allele/);
+    assert.match(await card.locator('.clinvar-copy-context').innerText(),/One copy of the alternate allele/);
+    assert.equal(await card.locator('.clinvar-allele').count(),2);
+    assert.match(await card.locator('.clinvar-allele').first().innerText(),/1 copy/);
+    assert.match(await card.locator('.clinvar-allele').last().innerText(),/1 copy/);
+    assert.equal(await card.locator('.clinvar-allele').first().locator('a').getAttribute('href'),'https://www.ncbi.nlm.nih.gov/snp/rs762551');
+    assert.equal(await card.locator('.clinvar-allele').last().locator('a').getAttribute('href'),'https://www.ncbi.nlm.nih.gov/clinvar/variation/123456/');
+    await card.locator('.clinvar-source summary').click();
+    assert.match(await card.locator('.clinvar-source').innerText(),/Original ClinVar classification: Pathogenic/);
+    assert.match(await card.locator('.clinvar-source').innerText(),/not a personal diagnosis/);
     assert.equal(await card.locator('.clinvar-condition-name').innerText(),'Example condition alpha');
     assert.equal(await card.locator('.clinvar-more summary').innerText(),'View all 2 recorded condition names');
     assert.equal(await card.locator('.clinvar-more li').count(),2);
@@ -149,5 +160,39 @@ test('real browser: ClinVar cards become one column on mobile',async()=>{
     assert.equal(await grid.evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length),1);
     assert.equal(await page.locator('.clinvar-classification--uncertain').count(),1);
     assert.ok((await page.locator('.clinvar-card').boundingBox()).width<390);
+  }finally{await page.close()}
+});
+
+test('real browser: one-copy recessive-pattern evidence is collapsed, dominant and mixed evidence are prominent',async()=>{
+  const basic={id:'rs762551',gene:'EXAMPLE',build:'GRCh37',chr:'15',pos:74749576,ref:'C',alt:'A',
+    sig:'Pathogenic',review:'reviewed by expert panel',variation:1345};
+  const recessive={...basic,condition:'Autosomal recessive example condition',variation:1345};
+  const dominant={...basic,condition:'Autosomal dominant example condition',variation:1346};
+  const mixed={...basic,condition:'Autosomal recessive example condition|Autosomal dominant example condition',variation:1347};
+  const page=await pageReady([recessive,dominant,mixed]);
+  try{
+    await page.locator('#file').setInputFiles({name:'synthetic.txt',mimeType:'text/plain',buffer:Buffer.from(source)});
+    await page.locator('.clinvar-secondary').waitFor();
+    assert.equal(await page.locator('.clinvar-secondary').count(),1);
+    assert.equal(await page.locator('.clinvar-secondary .clinvar-card').count(),1);
+    assert.equal(await page.locator('.clinvar-section>.clinvar-grid .clinvar-card').count(),2);
+    assert.equal(await page.locator('.clinvar-secondary').evaluate(el=>el.open),false);
+    assert.match(await page.locator('.clinvar-secondary summary').innerText(),/1 one-copy findings/);
+    await page.locator('.clinvar-secondary>summary').click();
+    assert.equal(await page.locator('.clinvar-secondary').evaluate(el=>el.open),true);
+    assert.match(await page.locator('.clinvar-secondary .clinvar-card').innerText(),/recessive example condition/);
+  }finally{await page.close()}
+});
+test('real browser: two alternate copies remain visible even for recessive pattern',async()=>{
+  const example={id:'rs762551',gene:'EXAMPLE',build:'GRCh37',chr:'15',pos:74749576,ref:'C',alt:'A',sig:'Likely pathogenic',
+    review:'reviewed by expert panel',condition:'Autosomal recessive example condition',variation:11};
+  const page=await pageReady([example]);
+  try{
+    const text='# build 37\nrsid\tchromosome\tposition\tgenotype\nrs762551\t15\t74749576\tAA\n';
+    await page.locator('#file').setInputFiles({name:'synthetic.txt',mimeType:'text/plain',buffer:Buffer.from(text)});
+    await page.locator('.clinvar-card').waitFor();
+    assert.equal(await page.locator('.clinvar-secondary').count(),0);
+    assert.equal(await page.locator('.clinvar-section>.clinvar-grid .clinvar-card').count(),1);
+    assert.match(await page.locator('.clinvar-copy-context').innerText(),/Two copies/);
   }finally{await page.close()}
 });
