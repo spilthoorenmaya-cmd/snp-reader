@@ -178,16 +178,16 @@ test('real browser: single-copy recessive records are secondary; dominant/mixed 
   const page=await pageReady([recessive,dominant,mixed]);
   try{
     await page.locator('#file').setInputFiles({name:'synthetic.txt',mimeType:'text/plain',buffer:Buffer.from(source)});
-    const secondary=page.locator('.clinvar-secondary');
+    await page.locator('#tab-carrier').click();
+    const secondary=page.locator('#tab-panel-carrier .clinvar-secondary');
     await secondary.waitFor();
-    assert.equal(await secondary.evaluate(el=>el.open),false);
+    assert.equal(await secondary.evaluate(el=>el.open),true);
     assert.equal(await secondary.locator('.clinvar-card').count(),1);
     const primary=page.locator('.clinvar-section>.clinvar-gene-groups .clinvar-card');
     assert.equal(await primary.count(),2);
     assert.equal(await page.locator('.clinvar-section>.clinvar-gene-groups .clinvar-card--dominant').count(),1);
     assert.equal(await page.locator('.clinvar-section>.clinvar-gene-groups .clinvar-card--review').count(),1);
     assert.match(await secondary.locator(':scope>summary').innerText(),/not a diagnosis/);
-    await secondary.locator(':scope>summary').click();
     const carrierCard=secondary.locator('.clinvar-card');
     assert.match(await carrierCard.locator('.clinvar-personal-status').innerText(),/Possible carrier-related information/);
     assert.match(await carrierCard.locator('.clinvar-dose-status').innerText(),/usually insufficient alone for a recessive condition/);
@@ -228,10 +228,10 @@ test('real browser: benign BRCA2 variants show only one example until more are r
     await page.locator('#file').setInputFiles({name:'brca2-fixture.txt',mimeType:'text/plain',buffer:Buffer.from(data)});
     const benign=page.locator('.clinvar-benign');
     await benign.waitFor();
-    assert.equal(await benign.evaluate(el=>el.open),false);
+    assert.equal(await page.locator('#tab-benign').getAttribute('aria-selected'),'true');
+    assert.equal(await benign.evaluate(el=>el.open),true);
     assert.match(await benign.locator(':scope>summary').innerText(),/2 benign variants found/);
     assert.equal(await page.locator('.clinvar-section>.clinvar-gene-groups .clinvar-card').count(),0);
-    await benign.locator(':scope>summary').click();
     const example=benign.locator('.clinvar-benign-example>.clinvar-card');
     assert.equal(await example.count(),1);
     assert.match(await example.innerText(),/rs206076/);
@@ -271,16 +271,15 @@ test('real browser: age, sex and ancestry are optional, private and never change
   });
   try{
     await page.locator('#file').setInputFiles({name:'local.txt',mimeType:'text/plain',buffer:Buffer.from(source)});
+    await page.locator('#tab-benign').click();
     const benign=page.locator('.clinvar-benign');
     await benign.waitFor();
-    assert.equal(await benign.evaluate(el=>el.open),false);
+    assert.equal(await benign.evaluate(el=>el.open),true);
     assert.equal(await page.locator('#context-age').inputValue(),'');
     assert.equal(await page.locator('#context-sex').inputValue(),'');
     assert.equal(await page.locator('#context-ancestry').inputValue(),'');
     assert.equal(await page.locator('.clinvar-gene-context').count(),0);
 
-    await benign.locator(':scope>summary').click();
-    assert.equal(await benign.evaluate(el=>el.open),true);
     await page.locator('#context-age').fill('35');
     await page.locator('#context-sex').selectOption('female');
     await page.locator('#context-ancestry').selectOption('multiple');
