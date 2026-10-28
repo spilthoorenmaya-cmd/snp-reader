@@ -19,7 +19,7 @@ test('classification tones and review phrases remain descriptive rather than dia
   assert.equal(classificationTone('Pathogenic'),'pathogenic');
   assert.equal(classificationTone('Likely benign'),'benign');
   assert.equal(classificationTone('Uncertain significance'),'uncertain');
-  assert.equal(classificationTone('Conflicting classifications of pathogenicity'),'pathogenic');
+  assert.equal(classificationTone('Conflicting classifications of pathogenicity'),'uncertain');
   assert.equal(reviewLabel('reviewed by expert panel'),'Reviewed by expert panel');
   assert.equal(reviewLabel('criteria provided, single submitter'),'Single submitter');
 });
