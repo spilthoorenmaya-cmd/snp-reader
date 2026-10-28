@@ -103,6 +103,7 @@ function updatePersonalContext(){
 function matches(){return curatedMatches(records,catalog)}
 function draw(){
   // Keep any expanded overview sections open when personal context changes.
+  const openVariantKeys=new Set([...($('cards')?.querySelectorAll('.clinvar-card[open]')||[])].map(el=>el.getAttribute('data-variant-key')));
   const previousSerpina=$('cards')?.querySelector('.serpina1-panel');
   const serpinaWasOpen=previousSerpina?previousSerpina.open:null;
   const openBenign=Boolean($('cards')?.querySelector('.clinvar-benign')?.open);
@@ -170,11 +171,19 @@ function draw(){
         ? 'Dominant-pattern variant evidence · not a diagnosis'
         : 'Variant-level evidence · not a diagnosis';
       const personalStatus=`<p class="clinvar-personal-status ${isPossibleCarrier?'clinvar-personal-status--carrier':''}" role="note"><span aria-hidden="true">ⓘ</span><strong>${safe(statusLabel)}</strong></p>`;
-      return `<article class="clinvar-card clinvar-card--${inheritanceVisual.tone}" data-inheritance="${inheritanceVisual.tone}" aria-label="ClinVar evidence for ${safe(e.id)}: ${safe(inheritanceVisual.label)}">
-        <div class="clinvar-card-header">
-          <div class="clinvar-card-identity"><span class="clinvar-gene">${safe(e.gene||'Gene not specified')}</span><strong class="clinvar-rsid">${safe(e.id)}</strong></div>
-          <span class="clinvar-classification clinvar-classification--${tone}">${safe(dose.type==='benign'?'Benign variant':headline)}</span>
-        </div>
+      return `<details class="clinvar-card clinvar-card--${inheritanceVisual.tone}" data-inheritance="${inheritanceVisual.tone}" data-variant-key="${safe(e.id)}-${Number(e.variation)}" aria-label="ClinVar evidence for ${safe(e.id)}: ${safe(inheritanceVisual.label)}">
+        <summary class="clinvar-card-overview">
+          <span class="clinvar-card-header">
+            <span class="clinvar-card-identity"><span class="clinvar-gene">${safe(e.gene||'Gene not specified')}</span><strong class="clinvar-rsid">${safe(e.id)}</strong></span>
+            <span class="clinvar-classification clinvar-classification--${tone}">${safe(dose.type==='benign'?'Benign variant':headline)}</span>
+          </span>
+          <span class="clinvar-card-overview-meta">
+            <span>Genotype: <strong>${safe(call.genotype)}</strong></span>
+            <span>${safe(dose.type==='benign'?'Not evidence of the listed condition':isPossibleCarrier?'Possible carrier information · not a diagnosis':dose.type==='dominant'?'Dominant-pattern variant · not a diagnosis':'Variant evidence · not a diagnosis')}</span>
+            <span class="clinvar-card-toggle" aria-hidden="true">View details</span>
+          </span>
+        </summary>
+        <div class="clinvar-card-body">
         ${dose.type==='benign'
           ? `<p class="clinvar-benign-note" role="note">Not evidence of the listed condition. ${alleles.alternateCopies===2?'Having two copies at this position does not make this variant harmful.':alleles.alternateCopies===1?'Having one copy at this position does not make this variant harmful.':'No alternate copies were found at this position.'} This does not assess the entire gene.</p>`
           : `${personalStatus}<div class="clinvar-inheritance-banner">
@@ -241,7 +250,8 @@ function draw(){
           <span class="clinvar-review">${safe(reviewLabel(e.review))}</span>
           <a href="https://www.ncbi.nlm.nih.gov/clinvar/variation/${Number(e.variation)}/" target="_blank" rel="noopener noreferrer" aria-label="Open ClinVar source for ${safe(e.id)}">View ClinVar record ↗</a>
         </div>
-      </article>`;
+        </div>
+      </details>`;
     };
     const note=window.__snpBuild==='37'||window.__snpBuild==='38'?
       `${hits.length.toLocaleString()} matching variant–condition records`:
@@ -366,7 +376,14 @@ function draw(){
     const section=document.createElement('div');
     section.innerHTML=serpinaHtml;
     const card=section.firstElementChild;
-    if(card)(specialClinicallyRelevant?$('tab-panel-clinical'):$('tab-panel-carrier')).append(card);
+    if(card){
+      // When both S and Z alternate alleles are found, put the codominant
+      // overview above every individual ClinVar card. This is a review
+      // priority, NOT a diagnosis or a calibrated disease-risk ranking.
+      const bothSZDetected=zCopy>0&&sCopy>0;
+      if(specialClinicallyRelevant&&bothSZDetected)$('tab-panel-clinical').prepend(card);
+      else (specialClinicallyRelevant?$('tab-panel-clinical'):$('tab-panel-carrier')).append(card);
+    }
   }
   if(!clinicalPrimaryCount&&!specialClinicallyRelevant)$('tab-panel-clinical').insertAdjacentHTML('beforeend','<p class="tab-empty">No variant-level ClinVar records in this review group match the current search. This does not rule out other variants or medical conditions.</p>');
   if(!clinicalCarrierCount&&!serpinaHtml)$('tab-panel-carrier').insertAdjacentHTML('beforeend','<p class="tab-empty">No provisional one-copy recessive findings match this search. This is not a negative carrier-screening result.</p>');
@@ -375,6 +392,9 @@ function draw(){
   $('tab-count-research').textContent=String(filtered.length);
   $('tab-count-benign').textContent=String(clinicalBenignCount);
   selectResultTab(activeResultTab);
+  for(const el of $('cards').querySelectorAll('.clinvar-card')){
+    if(openVariantKeys.has(el.getAttribute('data-variant-key')))el.open=true;
+  }
   if(openBenign){const el=$('cards').querySelector('.clinvar-benign');if(el)el.open=true;}
   if(openOtherBenign){const el=$('cards').querySelector('.clinvar-benign-rest');if(el)el.open=true;}
   if(openRecessive){const el=$('cards').querySelector('.clinvar-secondary');if(el)el.open=true;}
