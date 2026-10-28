@@ -8,6 +8,37 @@ catalog.push(...extraCatalog);
 const $=id=>document.getElementById(id);
 let records=new Map(),mode='';
 let inventory=null;
+let clinvarEntries=[], clinvarMessage='ClinVar reference catalog has not been generated yet.';
+async function loadClinvar(){
+  try{
+    const response=await fetch('clinvar-evidence.json',{cache:'no-cache'});
+    if(!response.ok) throw Error('Reference catalog has not been published yet');
+    const payload=await response.json();
+    if(!Array.isArray(payload.entries)) throw Error('Invalid ClinVar catalog');
+    clinvarEntries=payload.entries;
+    clinvarMessage=`ClinVar evidence snapshot: ${payload.generated||'unknown date'} · ${payload.count.toLocaleString()} allele-specific records`;
+    if(records.size)draw();
+  }catch(e){clinvarMessage=`ClinVar reference unavailable: ${e.message}. Curated results still work.`;if(records.size)draw()}
+}
+function clinvarMatches(){
+  if(!clinvarEntries.length||!records.size) return [];
+  const build=window.__snpBuild;
+  if(build!=='37'&&build!=='38')return [];
+  const assembly=build==='37'?'GRCh37':'GRCh38';
+  const hits=[];
+  for(const e of clinvarEntries){
+    if(e.build!==assembly)continue;
+    const call=records.get(e.id);
+    if(!call||call.genotype.length!==2||!^[ACGT]{2}$/.test(call.genotype))continue;
+    if(String(call.chr).replace(/^chr/i,'').toUpperCase()!==String(e.chr).toUpperCase())continue;
+    if(Number(call.pos)!==e.pos)continue;
+    if(![...call.genotype].every(a=>a===e.ref||a===e.alt))continue;
+    if(!call.genotype.includes(e.alt))continue;
+    hits.push({e,call});
+  }
+  return hits;
+}
+
 async function loadInventory(){
   try{
     const response=await fetch('https://raw.githubusercontent.com/spilthoorenmaya-cmd/snp-reader/main/data/rsid_list.txt',{cache:'force-cache'});
@@ -59,12 +90,21 @@ function draw(){
     }
   }
   const otherTable=category==='all'&&totalOther?`<h3 class="uncurated-heading">Other markers in your file</h3><p class="uncurated-note">Showing ${shown.toLocaleString()} of ${totalOther.toLocaleString()} unreviewed matches${term?' for this search':''}. Search by rsID to find a specific marker. An rsID or a ClinVar search result is not, by itself, a medical finding.</p><div class="result-table-scroll"><table class="result-table"><thead><tr><th>rsID</th><th>Catalog status</th><th>Genotype</th><th>Research links</th></tr></thead><tbody>${otherRows}</tbody></table></div>`:'';
-  $('cards').innerHTML=curatedTable+otherTable;
+  const hits=clinvarMatches().filter(({e})=>!term||[e.id,e.gene,e.condition,e.sig].join(' ').toLowerCase().includes(term));
+  let clinicalHtml='';
+  if(category==='all'||category==='Health'){
+    const limit=200;
+    const html=hits.slice(0,limit).map(({e,call})=>`<tr><td><strong>${safe(e.id)}</strong><span class="td-sub">${safe(e.gene||'Unspecified')}</span></td><td><strong>${safe(e.sig)}</strong><span class="td-sub">${safe(e.condition||'Condition not specified')}</span></td><td><span class="genotype-chip">${safe(call.genotype)}</span><span class="td-sub">${safe(e.ref)} → ${safe(e.alt)}, ${safe(e.build)}</span></td><td class="interpretation-cell">A ClinVar record classifies this specific allele for the listed condition. This is not a diagnosis or a risk estimate.<span class="td-sub">${safe(e.review)}</span><div class="table-links"><a href="https://www.ncbi.nlm.nih.gov/clinvar/variation/${Number(e.variation)}/" target="_blank" rel="noopener">ClinVar record ↗</a></div></td></tr>`).join('');
+    const note=window.__snpBuild==='37'||window.__snpBuild==='38'? `${hits.length} matching variant-condition records`:'Exact ClinVar matching requires a stated genome build (GRCh37 or GRCh38); unknown-build files are not assigned clinical findings.';
+    clinicalHtml=`<h3 class="uncurated-heading">ClinVar allele-specific evidence</h3><p class="uncurated-note">${safe(clinvarMessage)}. ${safe(note)}. Matches require rsID, chromosome, position, reference/alternate allele and genome build. Confirm any health-relevant finding in a clinical lab.</p>${html?`<div class="result-table-scroll"><table class="result-table"><thead><tr><th>Variant</th><th>ClinVar classification</th><th>Uploaded call</th><th>Evidence</th></tr></thead><tbody>${html}</tbody></table></div>`:''}`;
+  }
+  $('cards').innerHTML=curatedTable+clinicalHtml+otherTable;
 }
-function show(result,label){records=result.records;mode=label;$('results').hidden=false;$('error').hidden=true;$('total').textContent=records.size.toLocaleString();$('annotated').textContent=catalog.filter(c=>records.has(c.id)).length;$('nocalls').textContent=[...records.values()].filter(x=>x.genotype==='--'||x.genotype==='00').length.toLocaleString();updateInventoryCount();$('result-summary').textContent=`${label} · ${result.format}${result.build?' · Genome build '+result.build:''}. Showing curated interpretations; the marker inventory is separate.`;$('search').value='';$('filter').value='all';draw();$('results').scrollIntoView({behavior:'smooth',block:'start'})}
+function show(result,label){window.__snpBuild=result.build;records=result.records;mode=label;$('results').hidden=false;$('error').hidden=true;$('total').textContent=records.size.toLocaleString();$('annotated').textContent=catalog.filter(c=>records.has(c.id)).length;$('nocalls').textContent=[...records.values()].filter(x=>x.genotype==='--'||x.genotype==='00').length.toLocaleString();updateInventoryCount();$('result-summary').textContent=`${label} · ${result.format}${result.build?' · Genome build '+result.build:''}. Showing curated interpretations; the marker inventory is separate.`;$('search').value='';$('filter').value='all';draw();$('results').scrollIntoView({behavior:'smooth',block:'start'})}
 async function handle(file){if(!file)return;try{if(file.size>80*1024*1024)throw Error('File is over the 80 MB safety limit. Try the original compressed export or smaller raw text file.');const text=/\.zip$/i.test(file.name)?await unzip(file):await file.text();const result=parseDNA(text);show(result,file.name)}catch(e){$('error').textContent=e.message;$('error').hidden=false;$('error').scrollIntoView({behavior:'smooth',block:'center'})}}
 const demo=`# Synthetic sample, forward strand build 37\nrsid\tchromosome\tposition\tgenotype\nrs4988235\t2\t136608646\tAG\nrs762551\t15\t74749576\tAA\nrs1800562\t6\t26093141\tAG\nrs999999\t1\t123456\tAA`;
 $('inventory-button').addEventListener('click',lookupInventory);
 $('inventory-search').addEventListener('keydown',e=>{if(e.key==='Enter')lookupInventory()});
 loadInventory();
+loadClinvar();
 $('browse').addEventListener('click',e=>{e.stopPropagation();$('file').click()});$('drop').addEventListener('click',()=> $('file').click());$('drop').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$('file').click()}});$('file').addEventListener('change',e=>handle(e.target.files[0]));['dragenter','dragover'].forEach(t=>$('drop').addEventListener(t,e=>{e.preventDefault();$('drop').classList.add('drag')}));['dragleave','drop'].forEach(t=>$('drop').addEventListener(t,e=>{e.preventDefault();$('drop').classList.remove('drag')}));$('drop').addEventListener('drop',e=>handle(e.dataTransfer.files[0]));$('demo').addEventListener('click',()=>show(parseDNA(demo),'Fictional sample genome'));$('search').addEventListener('input',draw);$('filter').addEventListener('change',draw);$('clear').addEventListener('click',()=>{records.clear();mode='';$('file').value='';$('results').hidden=true;$('upload').scrollIntoView({behavior:'smooth'})});$('export').addEventListener('click',()=>{const rows=[['rsID','gene','topic','genotype','interpretation','evidence_source']];for(const c of matches()){const g=c.call?.genotype||'';const valid=g.length===2&&[...g].every(a=>c.alleles.includes(a));rows.push([c.id,c.gene,c.title,g,valid?c.interpret(g):'Not interpretable / not present',c.source])}const csv=rows.map(r=>r.map(s=>'"'+String(s).replace(/"/g,'""')+'"').join(',')).join('\r\n');const a=document.createElement('a');const url=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.href=url;a.download='snp-reader-curated-results.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)});
