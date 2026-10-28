@@ -5,7 +5,7 @@ import {parseDNA, isCalledDiploidSnp, isNoCall} from './dna-parser.js';
 import {curatedMatches, matchClinvar} from './snp-matching.js';
 import {extraCatalog} from './extra-catalog.js';
 import {normalizePersonalContext,personalContextSummary,conditionContextNote} from './personal-context.js';
-import {conditionLabels, conditionBrief, classificationTone, classificationHeadline, genotypeAlleleContext, inheritanceContext, inheritanceBrief, inheritancePattern, inheritanceDisplay, alleleDoseSummary, clinicalDisplayGroup, reviewLabel} from './clinvar-display.js';
+import {conditionLabels, conditionBrief, classificationTone, classificationHeadline, genotypeAlleleContext, inheritanceContext, inheritanceBrief, inheritancePattern, inheritanceDisplay, alleleDoseSummary, clinicalDisplayGroup, carrierPlanningNote, isCysticFibrosisCondition, reviewLabel} from './clinvar-display.js';
 // SNP Reader MVP: deliberately static. Uploaded raw DNA never leaves this browser.
 const catalog = [
   {id:'rs4988235',gene:'MCM6 / LCT',title:'Adult lactose digestion',category:'Nutrition',alleles:['A','G'],evidence:'Established population association',source:'https://medlineplus.gov/genetics/condition/lactose-intolerance/',detail:'This regulatory variant near LCT helps control whether lactase production continues after childhood. The A allele on the GRCh37 forward strand is associated with lactase persistence in many European populations.',interpret(g){return g.includes('A')?'At least one A allele is associated with continued lactase production into adulthood in populations where this marker has been validated.':'GG is associated with lactase non-persistence in many European populations, but other genetic variants and non-genetic causes also affect lactose digestion.'},caution:'This single marker is less informative across some ancestries. Symptoms and clinical evaluation matter more than this genotype alone.'},
@@ -158,12 +158,21 @@ function draw(){
         : '';
       const tone=classificationTone(e.sig);
       const headline=classificationHeadline(e.sig);
-      const clinicalContext=inheritanceContext(e.condition,alleles.alternateCopies);
-      const inheritanceVisual=alleleDoseSummary(e.condition,alleles.alternateCopies,e.sig,e.chr).type==='benign'
-        ? {tone:'benign',label:'Benign variant',description:'This alternate allele is not classified as causing the listed condition.'}
-        : inheritanceDisplay(e.condition);
-      const dose=alleleDoseSummary(e.condition,alleles.alternateCopies,e.sig,e.chr);
       const isPossibleCarrier=clinicalDisplayGroup(e,alleles.alternateCopies)==='one-copy-recessive';
+      const carrierNote=carrierPlanningNote(e,alleles.alternateCopies);
+      const isCfCarrier=isPossibleCarrier&&isCysticFibrosisCondition(e);
+      const clinicalContext=isCfCarrier
+        ? 'Cystic fibrosis usually requires disease-causing changes in both CFTR gene copies. One call at this marker cannot establish whether another relevant variant exists or whether two variants are on opposite copies.'
+        : inheritanceContext(e.condition,alleles.alternateCopies);
+      const doseBase=alleleDoseSummary(e.condition,alleles.alternateCopies,e.sig,e.chr);
+      const dose=isCfCarrier
+        ? {type:'carrier',heading:'One CFTR allele detected: possible carrier-related information',detail:'Confirm the variant clinically before drawing conclusions about your own health or a future child.'}
+        : doseBase;
+      const inheritanceVisual=dose.type==='benign'
+        ? {tone:'benign',label:'Benign variant',description:'This alternate allele is not classified as causing the listed condition.'}
+        : isCfCarrier
+        ? {tone:'recessive',label:'Recessive pattern: cystic fibrosis',description:'Partner testing can matter when planning children, after both variants are clinically confirmed.'}
+        : inheritanceDisplay(e.condition);
       const isDominantPattern=inheritancePattern(e.condition)==='dominant';
       const statusLabel=isPossibleCarrier
         ? 'Possible carrier-related information · not a diagnosis'
@@ -179,7 +188,7 @@ function draw(){
           </span>
           <span class="clinvar-card-overview-meta">
             <span>Genotype: <strong>${safe(call.genotype)}</strong></span>
-            <span>${safe(dose.type==='benign'?'Not evidence of the listed condition':isPossibleCarrier?'Possible carrier information · not a diagnosis':dose.type==='dominant'?'Dominant-pattern variant · not a diagnosis':'Variant evidence · not a diagnosis')}</span>
+            <span>${safe(dose.type==='benign'?'Not evidence of the listed condition':isCfCarrier?'Possible CF carrier-related finding · consider partner testing':isPossibleCarrier?'Possible carrier information · partner screening may matter':dose.type==='dominant'?'Dominant-pattern variant · not a diagnosis':'Variant evidence · not a diagnosis')}</span>
             <span class="clinvar-card-toggle" aria-hidden="true">View details</span>
           </span>
         </summary>
@@ -215,6 +224,13 @@ function draw(){
         ${dose.type==='benign'?'':`<div class="clinvar-dose-status clinvar-dose-status--${dose.type}" data-copy-meaning="${dose.type}">
           <strong>${safe(dose.heading)}</strong><p>${safe(dose.detail)}</p>
         </div>`}
+        ${carrierNote?`<section class="carrier-family-planning" aria-label="Carrier information for family planning">
+          <h4>${safe(carrierNote.title)}</h4>
+          <p>${safe(carrierNote.message)}</p>
+          <p><strong>If planning children:</strong> ${safe(carrierNote.partner)}</p>
+          <p>${safe(carrierNote.action)}</p>
+          <a href="${carrierNote.source}" target="_blank" rel="noopener noreferrer">Inheritance and carrier-screening reference ↗</a>
+        </section>`:''}
         <details class="clinvar-explanation">
           <summary>Understand alleles, copy count and limitations</summary>
         <section class="clinvar-alleles" aria-label="Allele-by-allele explanation">
@@ -360,7 +376,7 @@ function draw(){
     </details>`;
   }
   const clinicalPanelHtml=`<div id="tab-panel-clinical" class="result-tab-panel" role="tabpanel" aria-labelledby="tab-clinical">${clinicalHtml}</div>`;
-  const carrierPanelHtml=`<div id="tab-panel-carrier" class="result-tab-panel" role="tabpanel" aria-labelledby="tab-carrier"><div class="tab-panel-intro"><h3>Carrier-related information</h3><p>One-copy findings that mention recessive inheritance, and special inheritance checks such as SERPINA1. These are not verified carrier-screening results or diagnoses.</p></div></div>`;
+  const carrierPanelHtml=`<div id="tab-panel-carrier" class="result-tab-panel" role="tabpanel" aria-labelledby="tab-carrier"><div class="tab-panel-intro"><h3>Carrier information &amp; family planning</h3><p>A single disease-associated variant in a recessive gene may matter if a reproductive partner carries a disease-causing variant for the same condition. <strong>When both are confirmed carriers, each pregnancy typically has a 25% chance of an affected child.</strong> The variants need not be identical. These uploaded calls are <strong>not</strong> confirmed carrier-screening results or diagnoses. <a href="https://medlineplus.gov/genetics/understanding/inheritance/riskassessment/" target="_blank" rel="noopener noreferrer">How recessive inheritance works ↗</a></p></div></div>`;
   const researchPanelHtml=`<div id="tab-panel-research" class="result-tab-panel" role="tabpanel" aria-labelledby="tab-research"><div class="tab-panel-intro"><h3>Traits, nutrition &amp; research associations</h3><p>Genotype-specific educational findings from carefully selected sources, with their evidence and limitations. Some describe potentially useful traits, but a research association does not prove a personal benefit or health outcome. <a href="https://www.ebi.ac.uk/gwas/" target="_blank" rel="noopener noreferrer">Explore the NHGRI–EBI GWAS Catalog ↗</a></p></div>${curatedTable}</div>`;
   const benignPanelHtml=`<div id="tab-panel-benign" class="result-tab-panel" role="tabpanel" aria-labelledby="tab-benign"><div class="tab-panel-intro"><h3>Benign &amp; unreviewed variants</h3><p>A benign variant is not evidence of a disease, and does not automatically confer protection. Raw SNPs without an interpretation are shown for browsing, not as findings.</p></div>${otherTable?`<details class="raw-marker-section"><summary>Browse ${totalOther.toLocaleString()} unreviewed raw SNPs</summary>${otherTable}</details>`:''}</div>`;
   $('cards').innerHTML=clinicalPanelHtml+carrierPanelHtml+researchPanelHtml+benignPanelHtml;
