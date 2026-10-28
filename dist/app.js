@@ -39,7 +39,7 @@ function selectResultTab(name,focus=false){
 }
 function preferredResultTab(){
   const hits=clinvarMatches();
-  const isBenign=e=>/^(benign|likely benign|benign\\/likely benign)$/i.test(String(e.sig||''));
+  const isBenign=e=>['benign','likely benign','benign/likely benign'].includes(String(e.sig||'').trim().toLowerCase());
   const primary=hits.some(({e,call})=>!isBenign(e)&&clinicalDisplayGroup(e,[...call.genotype].filter(a=>a===e.alt).length)==='main');
   const carrier=hits.some(({e,call})=>clinicalDisplayGroup(e,[...call.genotype].filter(a=>a===e.alt).length)==='one-copy-recessive');
   const report=interpretSerpina1(records,window.__snpBuild);
