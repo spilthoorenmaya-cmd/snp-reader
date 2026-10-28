@@ -237,3 +237,8 @@
 .clinvar-card{width:100%;min-width:0}
 .clinvar-card-condition,.clinvar-dose-status,.clinvar-benign-reassurance{max-width:none}
 @media(max-width:520px){.clinvar-gene-group{padding:12px}.clinvar-grid{gap:12px}}
+
+/* The parent results container previously forced all result sections into
+   half-width columns. Every table and ClinVar section should span full width. */
+#cards.cards{display:grid;grid-template-columns:minmax(0,1fr);gap:23px;min-width:0}
+#cards>.clinvar-section,#cards>.result-table-scroll,#cards>.empty{grid-column:1 / -1;min-width:0;width:100%}
