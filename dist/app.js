@@ -69,6 +69,7 @@ function draw(){
   const previousSerpina=$('cards')?.querySelector('.serpina1-panel');
   const serpinaWasOpen=previousSerpina?previousSerpina.open:null;
   const openBenign=Boolean($('cards')?.querySelector('.clinvar-benign')?.open);
+  const openOtherBenign=Boolean($('cards')?.querySelector('.clinvar-benign-rest')?.open);
   const openRecessive=Boolean($('cards')?.querySelector('.clinvar-secondary')?.open);
   const term=$('search').value.toLowerCase().trim(),category=$('filter').value;
   const filtered=matches().filter(c=>(category==='all'||c.category===category)&&[c.id,c.gene,c.title,c.category].join(' ').toLowerCase().includes(term));
@@ -312,6 +313,7 @@ function draw(){
   }
   $('cards').innerHTML=curatedTable+serpinaHtml+clinicalHtml+otherTable;
   if(openBenign){const el=$('cards').querySelector('.clinvar-benign');if(el)el.open=true;}
+  if(openOtherBenign){const el=$('cards').querySelector('.clinvar-benign-rest');if(el)el.open=true;}
   if(openRecessive){const el=$('cards').querySelector('.clinvar-secondary');if(el)el.open=true;}
   if(serpinaWasOpen!==null){const el=$('cards').querySelector('.serpina1-panel');if(el)el.open=serpinaWasOpen;}
 }
