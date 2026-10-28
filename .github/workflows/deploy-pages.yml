@@ -30,7 +30,13 @@ jobs:
         with:
           python-version: '3.12'
       - name: Node parser, alleles, ZIP and UI regression tests
-        run: npm test
+        run: |
+          npm run test:coverage | tee coverage-report.txt
+          echo "### JavaScript unit-test coverage" >> "$GITHUB_STEP_SUMMARY"
+          echo "This covers loaded \`dist/*.js\` helper modules only; browser-rendered \`app.js\` is exercised separately through Chromium tests." >> "$GITHUB_STEP_SUMMARY"
+          echo "\`\`\`text" >> "$GITHUB_STEP_SUMMARY"
+          sed -n '/# start of coverage report/,/# end of coverage report/p' coverage-report.txt >> "$GITHUB_STEP_SUMMARY"
+          echo "\`\`\`" >> "$GITHUB_STEP_SUMMARY"
       - name: Offline Python reference and ClinVar catalog tests
         run: |
           python -m unittest -v test_myheritage_snp_extract.py test_clinvar_local_match.py
