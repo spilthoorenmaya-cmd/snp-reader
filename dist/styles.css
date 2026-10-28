@@ -128,11 +128,24 @@ h1 em {
   color:#c3d2cc;
   max-width:490px
 }
+/* The button row and reassurance pills share the same intrinsic width:
+   the secondary button ends at the outer edge of the last privacy pill. */
+.hero-cta-stack {
+  display:inline-flex;
+  flex-direction:column;
+  align-items:stretch;
+  width:max-content;
+  max-width:100%
+}
 .hero-actions {
   display:flex;
+  width:100%;
   gap:12px;
   margin-top:25px;
   flex-wrap:wrap
+}
+.hero-actions .btn {
+  flex:1 1 auto
 }
 .btn {
   border-radius:9px;
