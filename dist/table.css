@@ -1323,62 +1323,186 @@
   }
 }
 /* Evidence navigation: independent categories, no implied disease-risk ranking. */
+/* Distinguish clinical reporting from curiosity-led exploration. */
 .result-tabs {
   display:grid;
-  grid-template-columns:repeat(4,minmax(0,1fr));
+  grid-template-columns:minmax(0,4fr) minmax(205px,1.05fr);
+  align-items:stretch;
+  gap:17px;
+  margin:26px 0 12px
+}
+.result-tab-family {
+  min-width:0;
+  padding:13px;
+  background:#f4f6f8;
+  border:1px solid #e3e7eb;
+  border-radius:15px
+}
+.result-tab-family--explore {
+  background:#f7f4ff;
+  border-color:#e3dbf1
+}
+.result-tab-family-heading {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
   gap:8px;
-  margin:24px 0 10px
+  padding:2px 4px 12px;
+  color:#6a7785;
+  font-size:11px;
+  font-weight:600
+}
+.result-tab-family-kicker {
+  color:#66758a;
+  font:800 10px/1.4 Manrope,sans-serif;
+  letter-spacing:.9px
+}
+.result-tab-family--explore .result-tab-family-kicker {
+  color:#7a599d
+}
+.result-tab-group {
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:8px
+}
+.result-tab-family--explore .result-tab-group {
+  grid-template-columns:minmax(0,1fr);
+  height:calc(100% - 30px)
 }
 .result-tab {
   display:flex;
   align-items:center;
-  justify-content:center;
-  gap:8px;
+  text-align:left;
+  gap:9px;
   min-width:0;
-  border:1px solid #d6e2d9;
-  border-radius:11px;
-  background:#f7faf7;
-  color:#587065;
+  min-height:76px;
+  border:1px solid #e3e7ec;
+  border-radius:10px;
+  padding:12px 10px;
+  background:#fff;
+  color:#35465c;
   cursor:pointer;
-  padding:14px 9px;
-  font:800 12px/1.4 Manrope,sans-serif;
-  transition:background-color .16s,border-color .16s,color .16s
+  font:600 12px/1.35 Manrope,sans-serif;
+  box-shadow:0 2px 8px rgba(38,54,75,.025);
+  transition:background-color .16s,border-color .16s,box-shadow .16s,transform .16s
 }
 .result-tab:hover {
-  border-color:#9abda9;
-  background:#edf5ef;
-  color:#285a42
+  border-color:#bac9d8;
+  box-shadow:0 4px 15px rgba(36,58,89,.08);
+  transform:translateY(-1px)
 }
 .result-tab[aria-selected="true"] {
-  background:#e6f1e9;
-  border-color:#66a783;
-  color:#225e43;
-  box-shadow:inset 0 -3px #418765
+  background:#f0f5fc;
+  border-color:#7b9cc6;
+  color:#20456d;
+  box-shadow:inset 0 -3px #5686b6,0 3px 12px rgba(47,86,136,.07)
 }
 .result-tab:focus-visible {
-  outline:3px solid #589d79;
-  outline-offset:2px
+  outline:3px solid #5686b6;
+  outline-offset:3px
+}
+.result-tab-symbol {
+  display:grid;
+  place-items:center;
+  flex:none;
+  width:29px;
+  height:29px;
+  border-radius:8px;
+  background:#eff2f7;
+  color:#667993;
+  font-size:16px;
+  font-weight:800
+}
+.result-tab[aria-selected="true"] .result-tab-symbol {
+  background:#dce8f7;
+  color:#34679d
+}
+.result-tab-copy {
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:3px
+}
+.result-tab-copy strong {
+  font:800 11px/1.35 Manrope,sans-serif;
+  color:inherit
+}
+.result-tab-copy>span {
+  color:#84909b;
+  font:500 10px/1.35 'DM Sans',sans-serif
 }
 .result-tab small {
   display:inline-flex;
   align-items:center;
   justify-content:center;
-  min-width:23px;
-  height:23px;
-  padding:0 6px;
-  background:#ecf0ec;
-  border-radius:20px;
-  color:inherit;
-  font-size:11px;
-  line-height:1
+  flex:none;
+  min-width:22px;
+  height:22px;
+  margin-left:auto;
+  padding:0 5px;
+  background:#f0f3f6;
+  border-radius:99px;
+  color:#60748b;
+  font-size:10px;
+  font-weight:800
 }
 .result-tab[aria-selected="true"] small {
-  background:#cfdfd4
+  background:#dce8f7;
+  color:#34679d
+}
+.result-tab--carrier[aria-selected="true"] {
+  background:#f4f2fb;
+  border-color:#a39acb;
+  color:#554c83;
+  box-shadow:inset 0 -3px #8980b3
+}
+.result-tab--carrier[aria-selected="true"] .result-tab-symbol {
+  background:#e6e1f5;
+  color:#61558d
+}
+.result-tab--benign[aria-selected="true"] {
+  background:#f3f6f4;
+  border-color:#93ada2;
+  color:#416454;
+  box-shadow:inset 0 -3px #85a394
+}
+.result-tab--explore {
+  width:100%;
+  min-height:76px;
+  background:#fdfbff;
+  border-color:#ded1f1;
+  color:#653e88
+}
+.result-tab--explore .result-tab-symbol {
+  color:#8a5eac;
+  background:#f0e7fa
+}
+.result-tab--explore .result-tab-copy>span {
+  color:#957eab
+}
+.result-tab--explore:hover {
+  border-color:#b697dc;
+  background:#f7efff
+}
+.result-tab--explore[aria-selected="true"] {
+  background:#f0e6fc;
+  border-color:#a47bcf;
+  color:#653b8b;
+  box-shadow:inset 0 -3px #9d6dcd
+}
+.result-tab--explore[aria-selected="true"] .result-tab-symbol {
+  background:#e4d2f7;
+  color:#6e4292
+}
+.result-tab--explore[aria-selected="true"] small {
+  color:#6e4292;
+  background:#e4d2f7
 }
 .result-tab-description {
   min-height:2em;
-  margin:5px 0 14px;
-  color:#566e60;
+  margin:4px 0 15px;
+  padding:0 2px;
+  color:#647487;
   font-size:12px;
   line-height:1.6
 }
@@ -1395,21 +1519,39 @@
 .tab-panel-intro h3 {
   font:800 23px/1.3 Manrope,sans-serif;
   letter-spacing:-.6px;
-  color:#234c3d;
+  color:#2b4056;
   margin:0 0 6px
 }
 .tab-panel-intro p {
   max-width:960px;
-  color:#587165;
+  color:#607184;
   font-size:13px;
   line-height:1.75;
   margin:0
 }
 .tab-panel-intro a {
-  color:#256c50;
+  color:#345e9e;
   font-weight:800;
   text-decoration:underline;
   text-underline-offset:3px
+}
+.tab-panel-intro--explore {
+  padding:22px 22px 12px;
+  margin:2px 0 18px;
+  border-radius:14px;
+  background:#f7f3ff;
+  border:1px solid #e7dcf4
+}
+.tab-panel-intro--explore h3 {
+  color:#624386
+}
+.tab-panel-intro--explore p {
+  color:#6b5e7d
+}
+.explore-panel-kicker {
+  font:800 10px/1.5 Manrope,sans-serif;
+  letter-spacing:1.2px;
+  color:#8a60a7
 }
 .tab-empty {
   border:1px solid #dce7df;
@@ -1458,26 +1600,63 @@
   margin:0 12px 12px;
   width:calc(100% - 24px)
 }
-@media(max-width:950px) {
+@media(max-width:1100px) {
   .result-tabs {
+    grid-template-columns:minmax(0,1fr);
+    gap:12px
+  }
+  .result-tab-family--explore .result-tab-group {
+    height:auto
+  }
+}
+@media(max-width:750px) {
+  .result-tab-group {
     grid-template-columns:repeat(2,minmax(0,1fr))
+  }
+  .result-tab {
+    min-height:69px
+  }
+  .result-tab-family--explore .result-tab {
+    min-height:64px
   }
 }
 @media(max-width:520px) {
-  .result-tabs {
+  .result-tab-family {
+    padding:10px
+  }
+  .result-tab-family-heading {
+    flex-wrap:wrap;
+    gap:3px;
+    padding:2px 3px 10px
+  }
+  .result-tab-group {
     gap:7px
   }
   .result-tab {
-    padding:11px 8px;
-    font-size:11px
+    padding:10px 8px;
+    gap:6px
+  }
+  .result-tab-symbol {
+    width:24px;
+    height:24px;
+    font-size:13px
+  }
+  .result-tab-copy strong {
+    font-size:10px
+  }
+  .result-tab-copy>span {
+    font-size:9px
   }
   .result-tab small {
-    min-width:20px;
-    height:20px;
-    font-size:10px
+    min-width:18px;
+    height:19px;
+    font-size:9px
   }
   .tab-panel-intro h3 {
     font-size:20px
+  }
+  .tab-panel-intro--explore {
+    padding:16px
   }
 }
 /* A benign result should have ONE green signal: its classification badge.
@@ -1593,25 +1772,48 @@
   margin-left:auto;
   display:inline-flex;
   align-items:center;
-  gap:5px;
-  font-weight:800;
-  color:#287057
+  justify-content:center;
+  gap:10px;
+  min-width:106px;
+  padding:7px 10px 7px 12px;
+  border:1px solid #d7e1e9;
+  border-radius:9px;
+  background:#f6f9fc;
+  font:800 11px/1.35 Manrope,sans-serif;
+  color:#3d607f;
+  white-space:nowrap
 }
-.clinvar-card-toggle:after {
-  content:"⌄";
-  display:inline-block;
-  font-size:19px;
-  line-height:1
+.clinvar-card-toggle .toggle-open-label {
+  display:none
 }
-.clinvar-card[open] .clinvar-card-toggle:after {
-  transform:rotate(180deg)
+.clinvar-card-toggle .toggle-chevron {
+  display:block;
+  flex:none;
+  width:8px;
+  height:8px;
+  border-right:2px solid currentColor;
+  border-bottom:2px solid currentColor;
+  transform:translateY(-2px) rotate(45deg);
+  transition:transform .18s ease
 }
 .clinvar-card[open] .clinvar-card-toggle {
-  font-size:0
+  color:#365c80;
+  background:#eaf1f8;
+  border-color:#cad9e8
 }
-.clinvar-card[open] .clinvar-card-toggle:before {
-  content:"Hide details";
-  font-size:12px
+.clinvar-card[open] .clinvar-card-toggle .toggle-open-label {
+  display:inline
+}
+.clinvar-card[open] .clinvar-card-toggle .toggle-closed-label {
+  display:none
+}
+.clinvar-card[open] .clinvar-card-toggle .toggle-chevron {
+  transform:translateY(2px) rotate(225deg)
+}
+.clinvar-card>summary.clinvar-card-overview:hover .clinvar-card-toggle {
+  border-color:#8aaaca;
+  background:#edf4fb;
+  text-decoration:none
 }
 .clinvar-card-body {
   padding-top:15px;
