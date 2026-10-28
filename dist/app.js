@@ -186,13 +186,18 @@ function draw(){
         if(!byGene.has(gene))byGene.set(gene,[]);
         byGene.get(gene).push(hit);
       }
-      return [...byGene].map(([gene,geneHits])=>`<section class="clinvar-gene-group" aria-label="${safe(gene)} variant records">
+      return [...byGene].map(([gene,geneHits])=>{
+        const geneNote=gene.toUpperCase()==='BRCA2'
+          ? 'BRCA2 is a normal DNA-repair gene. A benign BRCA2 variant does not indicate cancer or a harmful BRCA2 mutation. This upload does not test every possible variant in BRCA2.'
+          : 'Each result concerns an individual variant—not the entire gene. A benign finding does not rule out other variants.';
+        return `<section class="clinvar-gene-group" aria-label="${safe(gene)} variant records">
         <header class="clinvar-gene-header">
           <div><h4>${safe(gene)}</h4><span>${geneHits.length} ${geneHits.length===1?'variant record':'variant records'}</span></div>
-          <p>These are individual variant interpretations, not a test of the whole gene. A benign finding does not rule out other variants.</p>
+          <p>${safe(geneNote)}</p>
         </header>
         <div class="clinvar-grid">${geneHits.map(renderCard).join('')}</div>
-      </section>`).join('');
+      </section>`;
+      }).join('');
     };
     const primaryHtml=renderGeneGroups(primaryHits);
     const recessiveHtml=renderGeneGroups(recessiveHits);
