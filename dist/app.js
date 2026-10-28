@@ -164,11 +164,7 @@ function draw(){
       const dose=alleleDoseSummary(e.condition,alleles.alternateCopies,e.sig,e.chr);
       const isPossibleCarrier=clinicalDisplayGroup(e,alleles.alternateCopies)==='one-copy-recessive';
       const isDominantPattern=inheritancePattern(e.condition)==='dominant';
-      const statusLabel=dose.type==='benign'
-        ? (String(e.gene||'').toUpperCase()==='BRCA2'
-            ? 'Benign BRCA2 variant — not evidence of BRCA2-related cancer'
-            : 'Benign variant — not evidence of the listed condition')
-        : isPossibleCarrier
+      const statusLabel=isPossibleCarrier
         ? 'Possible carrier-related information · not a diagnosis'
         : isDominantPattern
         ? 'Dominant-pattern variant evidence · not a diagnosis'
@@ -177,22 +173,21 @@ function draw(){
       return `<article class="clinvar-card clinvar-card--${inheritanceVisual.tone}" data-inheritance="${inheritanceVisual.tone}" aria-label="ClinVar evidence for ${safe(e.id)}: ${safe(inheritanceVisual.label)}">
         <div class="clinvar-card-header">
           <div class="clinvar-card-identity"><span class="clinvar-gene">${safe(e.gene||'Gene not specified')}</span><strong class="clinvar-rsid">${safe(e.id)}</strong></div>
-          <span class="clinvar-classification clinvar-classification--${tone}">${safe(headline)}</span>
+          <span class="clinvar-classification clinvar-classification--${tone}">${safe(dose.type==='benign'?'Benign variant':headline)}</span>
         </div>
-        ${personalStatus}
         ${dose.type==='benign'
-          ? `<p class="clinvar-benign-reassurance">This is a benign variant, not a sign that you have the condition named in ClinVar. Two copies of this benign allele do not make it harmful.</p>`
-          : `<div class="clinvar-inheritance-banner">
+          ? `<p class="clinvar-benign-note" role="note">Not evidence of the listed condition. ${alleles.alternateCopies===2?'Having two copies at this position does not make this variant harmful.':alleles.alternateCopies===1?'Having one copy at this position does not make this variant harmful.':'No alternate copies were found at this position.'} This does not assess the entire gene.</p>`
+          : `${personalStatus}<div class="clinvar-inheritance-banner">
               <span class="clinvar-inheritance-badge"><span class="inheritance-swatch" aria-hidden="true"></span>${safe(inheritanceVisual.label)}</span>
               <span class="clinvar-inheritance-caption">${safe(inheritanceVisual.description)}</span>
             </div>`}
         ${dose.type==='benign'
-          ? `<details class="clinvar-condition-details"><summary>Why is this benign variant listed under a condition?</summary>
+          ? `<details class="clinvar-condition-details"><summary>About the condition listed in ClinVar</summary>
               <div class="clinvar-card-condition">
                 <span class="clinvar-fact-label">ClinVar research context · not your diagnosis</span>
                 <p class="clinvar-condition-name">${safe(conditions[0])}</p>
                 <p class="clinvar-condition-brief">${safe(definition.text)}</p>
-                <p class="clinvar-context-note">ClinVar lists this condition to describe the variant's evidence. The particular allele shown here is classified as benign or likely benign for this condition, not as a disease diagnosis.</p>
+                <p class="clinvar-context-note">ClinVar uses a condition name to describe the research context for this specific variant. It does not mean you have that condition.</p>
                 ${moreConditions}
                 <a class="clinvar-condition-source" href="https://www.ncbi.nlm.nih.gov/medgen/?term=${encodeURIComponent(conditions[0])}" target="_blank" rel="noopener noreferrer">Learn about this condition ↗</a>
               </div>
@@ -208,9 +203,9 @@ function draw(){
           <div class="clinvar-fact"><span class="clinvar-fact-label">Your genotype</span><span class="genotype-chip">${safe(call.genotype)}</span><span class="clinvar-fact-meta clinvar-zygosity">${safe(alleles.zygosity)} · ${alleles.alternateCopies} of 2 alternate allele copies</span></div>
           <div class="clinvar-fact"><span class="clinvar-fact-label">Reference → alternate</span><strong>${safe(alleles.ref)} → ${safe(alleles.alt)}</strong><span class="clinvar-fact-meta">${safe(e.build)} · reference-genome orientation</span></div>
         </div>
-        <div class="clinvar-dose-status clinvar-dose-status--${dose.type}" data-copy-meaning="${dose.type}">
+        ${dose.type==='benign'?'':`<div class="clinvar-dose-status clinvar-dose-status--${dose.type}" data-copy-meaning="${dose.type}">
           <strong>${safe(dose.heading)}</strong><p>${safe(dose.detail)}</p>
-        </div>
+        </div>`}
         <details class="clinvar-explanation">
           <summary>Understand alleles, copy count and limitations</summary>
         <section class="clinvar-alleles" aria-label="Allele-by-allele explanation">
