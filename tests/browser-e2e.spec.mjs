@@ -212,14 +212,14 @@ test('real browser: homozygous alternate recessive call is visible but not calle
     assert.match(await card.locator('.clinvar-personal-status').innerText(),/not a diagnosis/);
   }finally{await page.close()}
 });
-test('real browser: BRCA2 benign variants are gene-grouped and collapsed, not disease findings',async()=>{
+test('real browser: benign BRCA2 variants show only one example until more are requested',async()=>{
   const evidence=[{
     id:'rs206076',gene:'BRCA2',build:'GRCh37',chr:'13',pos:32900000,ref:'G',alt:'C',
     sig:'Benign',review:'reviewed by expert panel',
     condition:'Breast-ovarian cancer, familial, susceptibility to, 2',variation:132780
   },{
     id:'rs4942486',gene:'BRCA2',build:'GRCh37',chr:'13',pos:32900001,ref:'T',alt:'C',
-    sig:'Benign',review:'reviewed by expert panel',
+    sig:'Benign',review:'criteria provided, single submitter',
     condition:'Breast-ovarian cancer, familial, susceptibility to, 2',variation:126190
   }];
   const page=await pageReady(evidence);
@@ -232,22 +232,15 @@ test('real browser: BRCA2 benign variants are gene-grouped and collapsed, not di
     assert.match(await benign.locator(':scope>summary').innerText(),/2 benign variants found/);
     assert.equal(await page.locator('.clinvar-section>.clinvar-gene-groups .clinvar-card').count(),0);
     await benign.locator(':scope>summary').click();
-    assert.equal(await benign.locator('.clinvar-gene-group').count(),1);
-    assert.equal(await benign.locator('.clinvar-gene-group .clinvar-card').count(),2);
-    assert.equal(await benign.locator('.clinvar-single').count(),0);
-    const items=benign.locator('.clinvar-gene-group .clinvar-card');
-    const firstBounds=await items.nth(0).boundingBox(),secondBounds=await items.nth(1).boundingBox();
-    assert.ok(secondBounds.y>=firstBounds.y+firstBounds.height,'Same-gene cards must stack, not sit side by side');
-    assert.ok(Math.abs(firstBounds.width-secondBounds.width)<2,'Stacked cards should have equal widths');
-    const groupBounds=await benign.locator('.clinvar-gene-group').boundingBox();
-    assert.ok(firstBounds.width>groupBounds.width*0.8,'Grouped cards must be wide');
-    const root=await page.locator('#cards').boundingBox();
-    assert.ok(groupBounds.width>root.width*0.75,'Grouped gene section must span outer results area');
-    assert.equal(await benign.locator('.clinvar-gene-header h4').innerText(),'BRCA2');
-    assert.match(await benign.locator('.clinvar-gene-header').innerText(),/BRCA2 is a normal DNA-repair gene/);
-    assert.match(await benign.locator('.clinvar-gene-header').innerText(),/does not indicate cancer/);
-    assert.match(await benign.locator('.clinvar-gene-header').innerText(),/does not test every possible variant/);
-    const card=benign.locator('.clinvar-card').first();
+    const example=benign.locator('.clinvar-benign-example>.clinvar-card');
+    assert.equal(await example.count(),1);
+    assert.match(await example.innerText(),/rs206076/);
+    assert.match(await benign.locator('.clinvar-benign-example-caption').innerText(),/One example/);
+    const more=benign.locator('.clinvar-benign-rest');
+    assert.equal(await more.count(),1);
+    assert.equal(await more.evaluate(el=>el.open),false);
+    assert.match(await more.locator(':scope>summary').innerText(),/Show 1 other benign record/);
+    const card=example;
     assert.equal(await card.locator('.clinvar-condition-details').evaluate(el=>el.open),false);
     assert.match(await card.locator('.clinvar-benign-reassurance').innerText(),/not a sign that you have the condition/);
     await card.locator('.clinvar-condition-details>summary').click();
@@ -256,7 +249,14 @@ test('real browser: BRCA2 benign variants are gene-grouped and collapsed, not di
     assert.match(await card.locator('.clinvar-personal-status').innerText(),/Benign BRCA2 variant — not evidence of BRCA2-related cancer/);
     assert.equal(await card.getAttribute('data-inheritance'),'benign');
     assert.match(await card.locator('.clinvar-dose-status').innerText(),/Two copies do not turn a benign variant into disease evidence/);
-    assert.equal(await card.locator('.clinvar-explanation').evaluate(el=>el.open),false);
+    await more.locator(':scope>summary').click();
+    assert.equal(await more.evaluate(el=>el.open),true);
+    assert.equal(await more.locator('.clinvar-card').count(),1);
+    assert.match(await more.locator('.clinvar-card').innerText(),/rs4942486/);
+    assert.equal(await benign.locator('.clinvar-card').count(),2);
+    const firstBox=await example.boundingBox(), secondBox=await more.locator('.clinvar-card').boundingBox();
+    assert.ok(firstBox.width>0.75*(await page.locator('#cards').boundingBox()).width);
+    assert.ok(secondBox.y>=firstBox.y+firstBox.height,'Other variants should be stacked below the single example');
   }finally{await page.close()}
 });
 
