@@ -1,6 +1,5 @@
 import {extractDnaFromZip} from './zip-reader.js';
 import {selectBenignExample} from './benign-example.js';
-import {readEyeMarker, exploreBabyEyeColor} from './baby-eye-explorer.js';
 import {interpretSerpina1} from './serpina1.js';
 import {parseDNA, isCalledDiploidSnp, isNoCall} from './dna-parser.js';
 import {curatedMatches, matchClinvar} from './snp-matching.js';
@@ -15,34 +14,13 @@ const catalog = [
 catalog.push(...extraCatalog);
 const $=id=>document.getElementById(id);
 let records=new Map();
-const resultTabNames=['clinical','carrier','research','benign','explore'];
+const resultTabNames=['clinical','carrier','research','benign'];
 const resultTabExplanations={
  clinical:'ClinVar allele-specific classifications that may deserve closer review. A match does not mean you have a condition.',
  carrier:'One-copy recessive-pattern findings and special inheritance checks. These do not confirm carrier status or a diagnosis.',
  research:'Genotype-specific traits and research associations from reviewed sources. Evidence strength varies; associations are not diagnoses.',
- benign:'Variants classified as benign for particular conditions, plus unreviewed raw markers. Benign is not the same as protective.',
- explore:'A lighter space for exploring inheritance and family traits. Educational possibilities, not medical predictions.'
+ benign:'Variants classified as benign for particular conditions, plus unreviewed raw markers. Benign is not the same as protective.'
 };
-const babyEyeSelections={parentEye:'',partnerEye:'',partnerMarker:''};
-function clearBabyEyeChoices(){
-  babyEyeSelections.parentEye='';
-  babyEyeSelections.partnerEye='';
-  babyEyeSelections.partnerMarker='';
-}
-function updateBabyEyeExplorer(){
-  const target=$('baby-eye-result');
-  if(!target)return;
-  const detail=exploreBabyEyeColor(babyEyeSelections,readEyeMarker(records,window.__snpBuild));
-  $('baby-eye-headline').textContent=detail.headline;
-  $('baby-eye-story').textContent=detail.narrative;
-  $('baby-eye-genotype').textContent=detail.markerText;
-  $('baby-eye-inheritance').textContent=detail.inheritance;
-  const offspring=$('baby-eye-offspring');
-  offspring.hidden=!detail.offspring.length;
-  offspring.textContent=detail.offspring.length
-    ?'Possible HERC2 letter pairs: '+detail.offspring.join(' · ')
-    :'';
-}
 let activeResultTab='research';
 let resultTabTouched=false;
 function selectResultTab(name,focus=false){
@@ -58,8 +36,6 @@ function selectResultTab(name,focus=false){
   }
   $('tab-description').textContent=resultTabExplanations[name];
   $('filter').hidden=name!=='research';
-  $('variant-toolbar').hidden=name==='explore';
-  $('catalog-explainer').hidden=name==='explore';
   if(focus)$('tab-'+name).focus();
 }
 function preferredResultTab(){
@@ -401,28 +377,10 @@ function draw(){
     </details>`;
   }
   const clinicalPanelHtml=`<div id="tab-panel-clinical" class="result-tab-panel" role="tabpanel" aria-labelledby="tab-clinical">${clinicalHtml}</div>`;
-  const eyeCard=`<section class="baby-eye-explorer" aria-label="Explore eye-colour inheritance for fun">
-      <header class="baby-eye-header"><div><span class="baby-eye-kicker">✦ Just for fun · Family traits</span><h3>Could we have a green-eyed baby?</h3><p>Brown-eyed parents can have a green-eyed child. Eye colour involves many genes—not a single “green-eyes gene.” Explore the possibilities without pretending we can predict the outcome.</p></div>
-      <span class="baby-eye-orbs" aria-hidden="true"><span class="baby-eye-orb brown"></span><span class="baby-eye-orb green"></span><span class="baby-eye-orb blue"></span></span></header>
-      <div class="baby-eye-inputs">
-        <label for="baby-eye-self">Your eye colour<select id="baby-eye-self"><option value="">Choose (optional)</option><option value="dark-brown">Very dark brown</option><option value="brown">Brown</option><option value="hazel">Hazel</option><option value="green">Green</option><option value="blue">Blue</option><option value="gray">Gray</option></select></label>
-        <label for="baby-eye-partner">Your partner's eye colour<select id="baby-eye-partner"><option value="">Choose (optional)</option><option value="dark-brown">Very dark brown</option><option value="brown">Brown</option><option value="hazel">Hazel</option><option value="green">Green</option><option value="blue">Blue</option><option value="gray">Gray</option></select></label>
-        <label for="baby-eye-partner-marker">Partner's HERC2 rs12913832 <small>(only if known)</small><select id="baby-eye-partner-marker"><option value="">Unknown — that's fine</option><option value="AA">AA</option><option value="AG">AG</option><option value="GG">GG</option></select></label>
-      </div>
-      <div id="baby-eye-result" class="baby-eye-result" role="status" aria-live="polite">
-        <strong id="baby-eye-headline"></strong><p id="baby-eye-story"></p>
-        <div class="baby-eye-snp"><span>What your DNA can add</span><p id="baby-eye-genotype"></p><p id="baby-eye-inheritance"></p><p id="baby-eye-offspring" class="baby-eye-offspring" hidden></p></div>
-      </div>
-      <p class="baby-eye-limit">This is an educational inheritance explorer, not a baby's eye-colour prediction. A green-eyed partner's appearance does not reveal their rs12913832 genotype. No percentages are calculated, and your selections stay in this tab. <a href="https://medlineplus.gov/genetics/understanding/traits/eyecolor/" target="_blank" rel="noopener noreferrer">How eye-colour genetics works ↗</a></p>
-    </section>`;
   const carrierPanelHtml=`<div id="tab-panel-carrier" class="result-tab-panel" role="tabpanel" aria-labelledby="tab-carrier"><div class="tab-panel-intro"><h3>Carrier information &amp; family planning</h3><p>A single disease-associated variant in a recessive gene may matter if a reproductive partner carries a disease-causing variant for the same condition. <strong>When both are confirmed carriers, each pregnancy typically has a 25% chance of an affected child.</strong> The variants need not be identical. These uploaded calls are <strong>not</strong> confirmed carrier-screening results or diagnoses. <a href="https://medlineplus.gov/genetics/understanding/inheritance/riskassessment/" target="_blank" rel="noopener noreferrer">How recessive inheritance works ↗</a></p></div></div>`;
   const researchPanelHtml=`<div id="tab-panel-research" class="result-tab-panel" role="tabpanel" aria-labelledby="tab-research"><div class="tab-panel-intro"><h3>Traits, nutrition &amp; research associations</h3><p>Genotype-specific educational findings from carefully selected sources, with their evidence and limitations. Some describe potentially useful traits, but a research association does not prove a personal benefit or health outcome. <a href="https://www.ebi.ac.uk/gwas/" target="_blank" rel="noopener noreferrer">Explore the NHGRI–EBI GWAS Catalog ↗</a></p></div>${curatedTable}</div>`;
   const benignPanelHtml=`<div id="tab-panel-benign" class="result-tab-panel" role="tabpanel" aria-labelledby="tab-benign"><div class="tab-panel-intro"><h3>Benign &amp; unreviewed variants</h3><p>A benign variant is not evidence of a disease, and does not automatically confer protection. Raw SNPs without an interpretation are shown for browsing, not as findings.</p></div>${otherTable?`<details class="raw-marker-section"><summary>Browse ${totalOther.toLocaleString()} unreviewed raw SNPs</summary>${otherTable}</details>`:''}</div>`;
-  const explorePanelHtml=`<div id="tab-panel-explore" class="result-tab-panel result-tab-panel--explore" role="tabpanel" aria-labelledby="tab-explore">
-    <div class="tab-panel-intro tab-panel-intro--explore"><span class="explore-panel-kicker">✦ THE CURIOUS CORNER</span><h3>Exploring genetics, just for fun.</h3><p>Try a family-traits thought experiment. This is deliberately separate from clinical and carrier findings: it does not assess a condition or predict a child's features.</p></div>
-    ${eyeCard}
-  </div>`;
-  $('cards').innerHTML=clinicalPanelHtml+carrierPanelHtml+researchPanelHtml+benignPanelHtml+explorePanelHtml;
+  $('cards').innerHTML=clinicalPanelHtml+carrierPanelHtml+researchPanelHtml+benignPanelHtml;
   const clinicalSection=$('tab-panel-clinical').querySelector('.clinvar-section');
   const carrierSection=clinicalSection?.querySelector('.clinvar-secondary');
   const benignSection=clinicalSection?.querySelector('.clinvar-benign');
@@ -451,15 +409,6 @@ function draw(){
   $('tab-count-research').textContent=String(filtered.length);
   $('tab-count-benign').textContent=String(clinicalBenignCount);
   selectResultTab(activeResultTab);
-  for(const [id,key] of [['baby-eye-self','parentEye'],['baby-eye-partner','partnerEye'],['baby-eye-partner-marker','partnerMarker']]){
-    const select=$(id);
-    select.value=babyEyeSelections[key];
-    select.addEventListener('change',()=>{
-      babyEyeSelections[key]=select.value;
-      updateBabyEyeExplorer();
-    });
-  }
-  updateBabyEyeExplorer();
   for(const el of $('cards').querySelectorAll('.clinvar-card')){
     if(openVariantKeys.has(el.getAttribute('data-variant-key')))el.open=true;
   }
@@ -512,4 +461,4 @@ $('context-ancestry').addEventListener('change',updatePersonalContext);
 updatePersonalContext();
 const picker=$('file');
 picker.addEventListener('change',()=>{const selected=picker.files?.[0];if(selected){$('upload-status').textContent=`Selected: ${selected.name}`;handle(selected)}});
-['dragenter','dragover'].forEach(t=>$('drop').addEventListener(t,e=>{e.preventDefault();$('drop').classList.add('drag')}));['dragleave','drop'].forEach(t=>$('drop').addEventListener(t,e=>{e.preventDefault();$('drop').classList.remove('drag')}));$('drop').addEventListener('drop',e=>handle(e.dataTransfer.files[0]));$('demo').addEventListener('click',()=>show(parseDNA(demo),'Fictional sample genome'));$('search').addEventListener('input',draw);$('filter').addEventListener('change',draw);$('clear').addEventListener('click',()=>{records.clear();clearBabyEyeChoices();window.__snpBuild='';$('file').value='';$('context-age').value='';$('context-sex').value='';$('context-ancestry').value='';updatePersonalContext();$('results').hidden=true;$('upload').scrollIntoView({behavior:'smooth'})});$('export').addEventListener('click',()=>{const rows=[['rsID','gene','topic','genotype','interpretation','evidence_source']];for(const c of matches()){const g=c.call?.genotype||'';rows.push([c.id,c.gene,c.title,g,c.meaning,c.source])}const csv=rows.map(r=>r.map(s=>'"'+String(s).replace(/"/g,'""')+'"').join(',')).join('\r\n');const a=document.createElement('a');const url=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.href=url;a.download='snp-reader-curated-results.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)});
+['dragenter','dragover'].forEach(t=>$('drop').addEventListener(t,e=>{e.preventDefault();$('drop').classList.add('drag')}));['dragleave','drop'].forEach(t=>$('drop').addEventListener(t,e=>{e.preventDefault();$('drop').classList.remove('drag')}));$('drop').addEventListener('drop',e=>handle(e.dataTransfer.files[0]));$('demo').addEventListener('click',()=>show(parseDNA(demo),'Fictional sample genome'));$('search').addEventListener('input',draw);$('filter').addEventListener('change',draw);$('clear').addEventListener('click',()=>{records.clear();window.__snpBuild='';$('file').value='';$('context-age').value='';$('context-sex').value='';$('context-ancestry').value='';updatePersonalContext();$('results').hidden=true;$('upload').scrollIntoView({behavior:'smooth'})});$('export').addEventListener('click',()=>{const rows=[['rsID','gene','topic','genotype','interpretation','evidence_source']];for(const c of matches()){const g=c.call?.genotype||'';rows.push([c.id,c.gene,c.title,g,c.meaning,c.source])}const csv=rows.map(r=>r.map(s=>'"'+String(s).replace(/"/g,'""')+'"').join(',')).join('\r\n');const a=document.createElement('a');const url=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.href=url;a.download='snp-reader-curated-results.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)});
