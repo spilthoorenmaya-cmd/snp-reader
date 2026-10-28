@@ -1,4 +1,4 @@
-.result-table-scroll{width:100%;overflow-x:auto;border:1px solid #dce6db;border-radius:14px;background:#fff}.result-table{border-collapse:collapse;width:100%;table-layout:fixed;text-align:left}.result-table th{padding:15px 18px;background:#eff5ec;color:#5d7868;font-size:11px;letter-spacing:.7px;text-transform:uppercase;border-bottom:1px solid #dce6db}.result-table th:nth-child(1){width:16%}.result-table th:nth-child(2){width:20%}.result-table th:nth-child(3){width:13%}.result-table th:nth-child(4){width:51%}.result-table td{padding:20px 18px;border-bottom:1px solid #e5ece4;vertical-align:top;font-size:13px;line-height:1.65}.result-table tr:last-child td{border-bottom:0}.result-table tbody tr:hover{background:#fafcf9}.result-table td strong{font-weight:800;font-size:14px;color:#234d40}.td-sub{display:block;font-size:11px;color:#8a9c90;margin-top:4px}.topic-title{display:block;font-weight:700;margin-bottom:8px}.result-table .tag{display:inline-block}.genotype-chip{display:inline-block;background:#eaf3e8;border:1px solid #d3e6d3;color:#25594a;padding:5px 11px;border-radius:7px;font:800 17px Manrope,sans-serif;letter-spacing:1px}.interpretation-main{font-weight:600;color:#315447}.result-table details{margin-top:10px}.result-table summary{color:#29735b;font-size:12px;font-weight:800;cursor:pointer}.result-table details p{font-size:12px;color:#5d7468;margin:10px 0}.result-table details .evidence-caution{background:#fcf8ef;padding:10px;border-radius:7px;color:#806747}.result-table details small{color:#73867a}.table-links{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px}.table-links a{color:#2a765b;font-weight:800;font-size:11px}.cards{display:block}@media(max-width:700px){.result-table{min-width:700px}.result-table td{padding:15px 12px}.result-table th{padding:13px 12px}}
+.result-table-scroll{width:100%;overflow-x:auto;border:1px solid #dce6db;border-radius:14px;background:#fff}.result-table{border-collapse:collapse;width:100%;table-layout:fixed;text-align:left}.result-table th{padding:15px 18px;background:#eff5ec;color:#5d7868;font-size:11px;letter-spacing:.7px;text-transform:uppercase;border-bottom:1px solid #dce6db}.result-table th:nth-child(1){width:16%}.result-table th:nth-child(2){width:20%}.result-table th:nth-child(3){width:13%}.result-table th:nth-child(4){width:51%}.result-table td{padding:20px 18px;border-bottom:1px solid #e5ece4;vertical-align:top;font-size:13px;line-height:1.65}.result-table tr:last-child td{border-bottom:0}.result-table tbody tr:hover{background:#fafcf9}.result-table td strong{font-weight:800;font-size:14px;color:#234d40}.td-sub{display:block;font-size:11px;color:#8a9c90;margin-top:4px}.topic-title{display:block;font-weight:700;margin-bottom:8px}.result-table .tag{display:inline-block}.genotype-chip{display:inline-block;background:#eaf3e8;border:1px solid #d3e6d3;color:#25594a;padding:5px 11px;border-radius:7px;font:800 17px Manrope,sans-serif;letter-spacing:1px}.interpretation-main{font-weight:600;color:#315447}.result-table details{margin-top:10px}.result-table summary{color:#29735b;font-size:12px;font-weight:800;cursor:pointer}.result-table details p{font-size:12px;color:#5d7468;margin:10px 0}.result-table details .evidence-caution{background:#fcf8ef;padding:10px;border-radius:7px;color:#806747}.result-table details small{color:#73867a}.table-links{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px}.table-links a{color:#2a765b;font-weight:800;font-size:11px}@media(max-width:700px){.result-table{min-width:700px}.result-table td{padding:15px 12px}.result-table th{padding:13px 12px}}
 
 /* ClinVar: evidence cards instead of an unreadable four-column table. */
 .clinvar-section{margin-top:38px;min-width:0}
@@ -89,9 +89,6 @@
 .clinvar-personal-status--carrier{background:#f4f7f0;border-color:#dce8d7}
 .clinvar-personal-status--carrier strong{color:#376044}
 
-.clinvar-copy-brief{background:#eff6f0;border-radius:9px;padding:11px 12px;margin:8px 0!important;line-height:1.65!important}
-.clinvar-copy-brief strong{display:block;font-size:13px;margin-bottom:4px;color:#20553e}
-
 
 /* Inheritance color language: informational, NEVER a disease-severity scale.
    Labels and explanations accompany every color for accessibility. */
@@ -109,8 +106,6 @@
 .inheritance-swatch{display:inline-block;flex:none;width:11px;height:11px;border-radius:3px;
   background:var(--pattern);border:1px solid rgba(0,0,0,.08)}
 .clinvar-inheritance-caption{font-size:12px;line-height:1.55;color:#435665}
-.clinvar-card .clinvar-copy-brief{background:var(--pattern-bg);border:1px solid var(--pattern-line)}
-.clinvar-card .clinvar-copy-brief strong{color:var(--pattern)}
 .clinvar-card .clinvar-copy-context{border-left-color:var(--pattern)}
 .clinvar-card--recessive .clinvar-personal-status--carrier{background:#eaf5fc;border-color:#c5e1f1}
 .clinvar-card--recessive .clinvar-personal-status--carrier strong{color:#145d81}
@@ -207,8 +202,6 @@
 /* Calm, human-first benign result, with research disease-name kept optional. */
 .clinvar-card--benign{box-shadow:0 5px 20px rgba(27,94,59,.045)}
 .clinvar-card--benign .clinvar-card-header{padding-bottom:12px}
-.clinvar-benign-reassurance{margin:0 0 13px;color:#205a3e;background:#eef8f0;border-radius:10px;
-  padding:13px 14px;font-size:13px;font-weight:650;line-height:1.65}
 .clinvar-card--benign .clinvar-personal-status{margin:0 0 9px!important}
 .clinvar-condition-details{margin:12px 0;border:1px solid #dae8dd;border-radius:10px;background:#fafdfb;overflow:hidden}
 .clinvar-condition-details>summary{display:list-item;cursor:pointer;padding:12px 15px;color:#295f45;
@@ -219,7 +212,7 @@
 .clinvar-context-note{color:#4c6e58;font-size:12px;line-height:1.65;margin:10px 0}
 .clinvar-card--benign .clinvar-dose-status{margin:10px 0 7px}
 .clinvar-card-facts--benign{background:#fafcfb;border-radius:8px;padding:12px;margin:10px 0}
-@media(max-width:520px){.clinvar-benign-reassurance{padding:11px}.clinvar-card-facts--benign{padding:9px}}
+@media(max-width:520px){.clinvar-card-facts--benign{padding:9px}}
 
 /* Context is a self-report explanation, never an individualized risk score. */
 .clinvar-gene-context{margin:0 0 14px;background:#eef6f3;border-left:3px solid #4d9d7b;padding:10px 13px;
@@ -235,7 +228,7 @@
 .clinvar-gene-group>.clinvar-grid{grid-template-columns:minmax(0,1fr)}
 .clinvar-gene-group{width:100%;min-width:0;padding:18px 21px}
 .clinvar-card{width:100%;min-width:0}
-.clinvar-card-condition,.clinvar-dose-status,.clinvar-benign-reassurance{max-width:none}
+.clinvar-card-condition,.clinvar-dose-status{max-width:none}
 @media(max-width:520px){.clinvar-gene-group{padding:12px}.clinvar-grid{gap:12px}}
 
 /* The parent results container previously forced all result sections into
