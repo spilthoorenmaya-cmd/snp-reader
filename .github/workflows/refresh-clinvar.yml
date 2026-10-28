@@ -35,6 +35,16 @@ jobs:
             echo "No new evidence"
           else
             git commit -m "Refresh ClinVar reference evidence catalog"
-            git pull --rebase origin main
-            git push origin HEAD:main
+            for attempt in 1 2 3 4 5; do
+              git fetch origin main
+              git rebase origin/main
+              if git push origin HEAD:main; then
+                echo "Published ClinVar evidence catalog."
+                exit 0
+              fi
+              echo "Main changed during publication; retrying ($attempt/5)."
+              sleep 5
+            done
+            echo "::error::Could not publish after five fast-forward attempts."
+            exit 1
           fi
