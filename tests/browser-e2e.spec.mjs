@@ -128,6 +128,8 @@ test('real browser: cards show a compact, sourced condition summary and expandab
     const singleBox=await card.boundingBox();
     const containerBox=await page.locator('.clinvar-single').boundingBox();
     assert.ok(singleBox.width>containerBox.width*0.9,'Single variant should use most of the available width');
+    const rootBox=await page.locator('#cards').boundingBox();
+    assert.ok(singleBox.width>rootBox.width*0.75,'Single variant must span the outer results area, not a half-width parent column');
     assert.match(await card.locator('.clinvar-gene').innerText(),/EXAMPLE/);
     assert.equal(await card.locator('.clinvar-classification').innerText(),'Clinical evidence available');
     assert.equal(await card.locator('.clinvar-condition-name').innerText(),'Example condition alpha');
@@ -239,6 +241,8 @@ test('real browser: BRCA2 benign variants are gene-grouped and collapsed, not di
     assert.ok(Math.abs(firstBounds.width-secondBounds.width)<2,'Stacked cards should have equal widths');
     const groupBounds=await benign.locator('.clinvar-gene-group').boundingBox();
     assert.ok(firstBounds.width>groupBounds.width*0.8,'Grouped cards must be wide');
+    const root=await page.locator('#cards').boundingBox();
+    assert.ok(groupBounds.width>root.width*0.75,'Grouped gene section must span outer results area');
     assert.equal(await benign.locator('.clinvar-gene-header h4').innerText(),'BRCA2');
     assert.match(await benign.locator('.clinvar-gene-header').innerText(),/BRCA2 is a normal DNA-repair gene/);
     assert.match(await benign.locator('.clinvar-gene-header').innerText(),/does not indicate cancer/);
