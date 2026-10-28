@@ -122,7 +122,12 @@ test('real browser: cards show a compact, sourced condition summary and expandab
     await page.locator('#file').setInputFiles({name:'synthetic.txt',mimeType:'text/plain',buffer:Buffer.from(source)});
     const card=page.locator('.clinvar-card').first();
     await card.waitFor();
-    assert.equal(await page.locator('.clinvar-gene-group h4').first().innerText(),'EXAMPLE');
+    assert.equal(await page.locator('.clinvar-gene-group').count(),0);
+    assert.equal(await page.locator('.clinvar-single').count(),1);
+    assert.match(await card.locator('.clinvar-gene').innerText(),/EXAMPLE/);
+    const singleBox=await card.boundingBox();
+    const containerBox=await page.locator('.clinvar-single').boundingBox();
+    assert.ok(singleBox.width>containerBox.width*0.9,'Single variant should use most of the available width');
     assert.match(await card.locator('.clinvar-gene').innerText(),/EXAMPLE/);
     assert.equal(await card.locator('.clinvar-classification').innerText(),'Clinical evidence available');
     assert.equal(await card.locator('.clinvar-condition-name').innerText(),'Example condition alpha');
@@ -227,6 +232,13 @@ test('real browser: BRCA2 benign variants are gene-grouped and collapsed, not di
     await benign.locator(':scope>summary').click();
     assert.equal(await benign.locator('.clinvar-gene-group').count(),1);
     assert.equal(await benign.locator('.clinvar-gene-group .clinvar-card').count(),2);
+    assert.equal(await benign.locator('.clinvar-single').count(),0);
+    const items=benign.locator('.clinvar-gene-group .clinvar-card');
+    const firstBounds=await items.nth(0).boundingBox(),secondBounds=await items.nth(1).boundingBox();
+    assert.ok(secondBounds.y>=firstBounds.y+firstBounds.height,'Same-gene cards must stack, not sit side by side');
+    assert.ok(Math.abs(firstBounds.width-secondBounds.width)<2,'Stacked cards should have equal widths');
+    const groupBounds=await benign.locator('.clinvar-gene-group').boundingBox();
+    assert.ok(firstBounds.width>groupBounds.width*0.8,'Grouped cards must be wide');
     assert.equal(await benign.locator('.clinvar-gene-header h4').innerText(),'BRCA2');
     assert.match(await benign.locator('.clinvar-gene-header').innerText(),/BRCA2 is a normal DNA-repair gene/);
     assert.match(await benign.locator('.clinvar-gene-header').innerText(),/does not indicate cancer/);
