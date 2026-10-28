@@ -243,3 +243,48 @@ test('real browser: BRCA2 benign variants are gene-grouped and collapsed, not di
     assert.equal(await card.locator('.clinvar-explanation').evaluate(el=>el.open),false);
   }finally{await page.close()}
 });
+
+test('real browser: age, sex and ancestry are optional, private and never change benign ClinVar classification',async()=>{
+  const fixture={id:'rs762551',gene:'TESTGENE',build:'GRCh37',chr:'15',pos:74749576,
+    ref:'C',alt:'A',sig:'Benign',review:'reviewed by expert panel',
+    condition:'Hereditary breast cancer',variation:5000};
+  const page=await pageReady([fixture]);
+  const outgoing=[];
+  page.on('request',request=>{
+    if(request.method()!=='GET'||/age=|ancestry=|female|european|context=/i.test(request.url()))outgoing.push({method:request.method(),url:request.url()});
+  });
+  try{
+    await page.locator('#file').setInputFiles({name:'local.txt',mimeType:'text/plain',buffer:Buffer.from(source)});
+    const benign=page.locator('.clinvar-benign');
+    await benign.waitFor();
+    assert.equal(await benign.evaluate(el=>el.open),false);
+    assert.equal(await page.locator('#context-age').inputValue(),'');
+    assert.equal(await page.locator('#context-sex').inputValue(),'');
+    assert.equal(await page.locator('#context-ancestry').inputValue(),'');
+    assert.equal(await page.locator('.clinvar-gene-context').count(),0);
+
+    await benign.locator(':scope>summary').click();
+    assert.equal(await benign.evaluate(el=>el.open),true);
+    await page.locator('#context-age').fill('35');
+    await page.locator('#context-sex').selectOption('female');
+    await page.locator('#context-ancestry').selectOption('multiple');
+    assert.match(await page.locator('#context-summary').innerText(),/Age: 35/);
+    assert.match(await page.locator('#context-summary').innerText(),/Female at birth/);
+    assert.match(await page.locator('#context-summary').innerText(),/Multiple \/ mixed backgrounds/);
+    assert.equal(await benign.evaluate(el=>el.open),true);
+    assert.equal(await page.locator('.clinvar-card--benign').count(),1);
+    assert.match(await page.locator('.clinvar-gene-context').innerText(),/Age matters for population cancer rates/);
+    assert.match(await page.locator('.clinvar-gene-context').innerText(),/Sex-related anatomy/);
+    assert.match(await page.locator('.clinvar-gene-context').innerText(),/Genetic studies may have unequal representation/);
+    assert.match(await page.locator('.clinvar-dose-status--benign').innerText(),/Benign variant/);
+    assert.doesNotMatch(await page.locator('.clinvar-gene-context').innerText(),/\d+%|increased risk|average risk/i);
+    assert.deepEqual(outgoing,[]);
+
+    await page.locator('#clear').click();
+    assert.equal(await page.locator('#results').isVisible(),false);
+    assert.equal(await page.locator('#context-age').inputValue(),'');
+    assert.equal(await page.locator('#context-sex').inputValue(),'');
+    assert.equal(await page.locator('#context-ancestry').inputValue(),'');
+    assert.match(await page.locator('#context-summary').innerText(),/No personal context selected/);
+  }finally{await page.close()}
+});
