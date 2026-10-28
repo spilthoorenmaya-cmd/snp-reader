@@ -54,12 +54,14 @@ export function genotypeAlleleContext(call,evidence) {
      ![...genotype].every(x=>x===ref||x===alt))return null;
   const alternateCopies=[...genotype].filter(x=>x===alt).length;
   const referenceCopies=2-alternateCopies;
+  const zygosity=alternateCopies===2?'Homozygous alternate':alternateCopies===1?'Heterozygous':'Homozygous reference';
+  const isAutosomal=/^(?:[1-9]|1\\d|2[0-2])$/.test(String(evidence?.chr||'').replace(/^chr/i,''));
   const copyMessage=alternateCopies===0
     ? 'No copies of the alternate allele were identified at this marker in the uploaded file. This does not exclude other genetic findings.'
     : alternateCopies===1
     ? 'One copy of the alternate allele was detected (heterozygous). Whether one copy has a clinical effect depends on the specific condition and its inheritance pattern.'
     : 'Two copies of the alternate allele were detected (homozygous). This can be important for some recessive conditions, but does not establish a diagnosis.';
-  return {ref,alt,referenceCopies,alternateCopies,copyMessage};
+  return {ref,alt,referenceCopies,alternateCopies,zygosity,isAutosomal,copyMessage};
 }
 /**
  * A phenotype NAME mentioning an inheritance pattern is a clue, not a
@@ -131,6 +133,61 @@ export function inheritanceBrief(raw,alternateCopies) {
   return {
     heading:'Copy count alone cannot tell whether you would be affected.',
     detail:'This record does not provide verified, condition-specific inheritance information. One copy may or may not matter depending on the variant and condition.'
+  };
+}
+/**
+ * Meaning of alternate-copy count relative to an evidence classification.
+ * Two alternate calls are an observation, not a disease diagnosis; benign
+ * variants must never be presented as disease evidence.
+ */
+export function alleleDoseSummary(raw, alternateCopies, significance, chromosome) {
+  const pattern=inheritancePattern(raw);
+  const sig=String(significance||'').toLowerCase();
+  const isBenign=sig.includes('benign');
+  const isUncertain=sig.includes('uncertain')||sig.includes('conflicting');
+  const isDiseaseAssociated=sig.includes('pathogenic')&&!isUncertain&&!isBenign;
+  const isAutosomal=/^(?:[1-9]|1\\d|2[0-2])$/.test(String(chromosome||'').replace(/^chr/i,''));
+  if(!isAutosomal)return {
+    type:'review',
+    heading:'Copy count needs chromosome-specific interpretation',
+    detail:'A two-letter genotype on a sex chromosome or mitochondrial marker is not reliable proof of two gene copies. Check the exact variant and clinical context.'
+  };
+  if(alternateCopies===0)return {
+    type:'reference',
+    heading:'No alternate allele detected here',
+    detail:'This does not rule out variants elsewhere in the gene or an inherited condition.'
+  };
+  if(isBenign)return {
+    type:'benign',
+    heading:alternateCopies===2?'Two alternate copies; reported as benign':'One alternate copy; reported as benign',
+    detail:'ClinVar reports this variant as benign or likely benign for the listed condition. Two copies do not turn a benign variant into disease evidence.'
+  };
+  if(isUncertain)return {
+    type:'review',
+    heading:alternateCopies===2?'Two alternate copies; clinical significance is unresolved':'One alternate copy; clinical significance is unresolved',
+    detail:'The source classification is uncertain or conflicting. Copy count alone cannot resolve whether the variant causes a condition.'
+  };
+  if(pattern==='recessive'&&alternateCopies===2)return {
+    type:'two-copy',
+    heading:'Two alternate copies: potentially relevant to a recessive condition',
+    detail:isDiseaseAssociated
+      ? 'ClinVar reports a disease-associated classification for this variant. Homozygous calls can be relevant to some recessive conditions, but SNP-chip results require clinical confirmation and do not establish a diagnosis.'
+      : 'The evidence does not establish that this variant causes disease. Two copies alone cannot establish a diagnosis.'
+  };
+  if(pattern==='recessive'&&alternateCopies===1)return {
+    type:'carrier',
+    heading:'One alternate copy: usually insufficient alone for a recessive condition',
+    detail:'A recessive condition generally requires changes affecting both copies of the gene. A different second variant may be untested; this does not confirm carrier status or rule out the condition.'
+  };
+  if(pattern==='dominant'&&alternateCopies>=1)return {
+    type:'dominant',
+    heading:alternateCopies===2?'Two alternate copies: a dominant pattern does not require two':'One alternate copy: may matter for a dominant condition',
+    detail:'Some dominant conditions can be associated with one disease-associated gene copy, but the source classification, penetrance and clinical confirmation determine any significance.'
+  };
+  return {
+    type:'review',
+    heading:alternateCopies===2?'Two alternate copies detected':'One alternate copy detected',
+    detail:'The source does not establish a single inheritance rule for this record. Copy count alone cannot tell whether the variant affects health.'
   };
 }
 export function inheritanceContext(raw,alternateCopies) {
