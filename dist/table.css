@@ -284,3 +284,34 @@
 .clinvar-benign-rest>p{font-size:12px;line-height:1.65;color:#506c5c;padding:0 16px;margin:0 0 12px}
 .clinvar-benign-rest>.clinvar-gene-groups{padding:0 12px 16px;gap:14px}
 @media(max-width:520px){.clinvar-benign-example{margin:0 10px 12px}.clinvar-benign-rest{margin:8px 10px 12px}.clinvar-benign-rest>.clinvar-gene-groups{padding:0 7px 11px}}
+
+/* Evidence navigation: independent categories, no implied disease-risk ranking. */
+.result-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:24px 0 10px}
+.result-tab{display:flex;align-items:center;justify-content:center;gap:8px;min-width:0;border:1px solid #d6e2d9;border-radius:11px;
+  background:#f7faf7;color:#587065;cursor:pointer;padding:14px 9px;font:800 12px/1.4 Manrope,sans-serif;
+  transition:background-color .16s,border-color .16s,color .16s}
+.result-tab:hover{border-color:#9abda9;background:#edf5ef;color:#285a42}
+.result-tab[aria-selected="true"]{background:#e6f1e9;border-color:#66a783;color:#225e43;box-shadow:inset 0 -3px #418765}
+.result-tab:focus-visible{outline:3px solid #589d79;outline-offset:2px}
+.result-tab small{display:inline-flex;align-items:center;justify-content:center;min-width:23px;height:23px;padding:0 6px;
+  background:#ecf0ec;border-radius:20px;color:inherit;font-size:11px;line-height:1}
+.result-tab[aria-selected="true"] small{background:#cfdfd4}
+.result-tab-description{min-height:2em;margin:5px 0 14px;color:#566e60;font-size:12px;line-height:1.6}
+.result-tab-panel{width:100%;min-width:0}
+.result-tab-panel[hidden]{display:none!important}
+.tab-panel-intro{padding:13px 0 16px}
+.tab-panel-intro h3{font:800 23px/1.3 Manrope,sans-serif;letter-spacing:-.6px;color:#234c3d;margin:0 0 6px}
+.tab-panel-intro p{max-width:960px;color:#587165;font-size:13px;line-height:1.75;margin:0}
+.tab-panel-intro a{color:#256c50;font-weight:800;text-decoration:underline;text-underline-offset:3px}
+.tab-empty{border:1px solid #dce7df;border-radius:10px;background:#f9fbf9;color:#5a7466;padding:18px;font-size:13px;line-height:1.65}
+#tab-panel-benign>.clinvar-benign{margin:0 0 18px}
+#tab-panel-carrier>.clinvar-secondary{margin:0 0 18px}
+#tab-panel-clinical>.clinvar-section{margin-top:0}
+.raw-marker-section{margin-top:20px;border:1px solid #dce5e0;border-radius:11px;background:#f8faf8;overflow:hidden}
+.raw-marker-section>summary{padding:15px 17px;cursor:pointer;font-size:13px;font-weight:800;color:#365e4d}
+.raw-marker-section>summary:hover{background:#edf5ef}
+.raw-marker-section>summary:focus-visible{outline:2px solid #438f6b;outline-offset:-3px}
+.raw-marker-section>.uncurated-heading,.raw-marker-section>.uncurated-note{margin-left:15px;margin-right:15px}
+.raw-marker-section>.result-table-scroll{margin:0 12px 12px;width:calc(100% - 24px)}
+@media(max-width:950px){.result-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.result-tabs{gap:7px}.result-tab{padding:11px 8px;font-size:11px}.result-tab small{min-width:20px;height:20px;font-size:10px}.tab-panel-intro h3{font-size:20px}}
