@@ -772,13 +772,6 @@
 .clinvar-dose-status--dominant strong {
   color:#664693
 }
-.clinvar-dose-status--benign {
-  background:#eff6f0;
-  border-color:#d5e6d7
-}
-.clinvar-dose-status--benign strong {
-  color:#346343
-}
 .clinvar-dose-status--review {
   background:#f8f4eb;
   border-color:#e8ddc7
@@ -996,37 +989,12 @@
   --pattern-bg:#e8f5ec;
   --pattern-line:#c4e3cf
 }
-.clinvar-card--benign .clinvar-personal-status {
-  color:#225b3b!important;
-  background:#e8f5ec!important;
-  border:1px solid #c4e3cf!important;
-  padding:9px 11px!important;
-  border-radius:9px;
-  font-weight:800
-}
-.clinvar-card--benign .clinvar-personal-status strong {
-  color:#225b3b!important;
-  font-size:12px!important
-}
-.clinvar-card--benign .clinvar-personal-status span {
-  color:#247248
-}
-.clinvar-card--benign .clinvar-dose-status {
-  background:#edf8ef;
-  border-color:#c8e4cf
-}
-.clinvar-card--benign .clinvar-dose-status strong {
-  color:#246a46
-}
 /* Calm, human-first benign result, with research disease-name kept optional. */
 .clinvar-card--benign {
   box-shadow:0 5px 20px rgba(27,94,59,.045)
 }
 .clinvar-card--benign .clinvar-card-header {
   padding-bottom:12px
-}
-.clinvar-card--benign .clinvar-personal-status {
-  margin:0 0 9px!important
 }
 .clinvar-condition-details {
   margin:12px 0;
@@ -1064,9 +1032,6 @@
   font-size:12px;
   line-height:1.65;
   margin:10px 0
-}
-.clinvar-card--benign .clinvar-dose-status {
-  margin:10px 0 7px
 }
 .clinvar-card-facts--benign {
   background:#fafcfb;
