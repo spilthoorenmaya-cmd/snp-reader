@@ -2,7 +2,7 @@ import {extractDnaFromZip} from './zip-reader.js';
 import {parseDNA, isCalledDiploidSnp, isNoCall} from './dna-parser.js';
 import {curatedMatches, matchClinvar} from './snp-matching.js';
 import {extraCatalog} from './extra-catalog.js';
-import {conditionLabels, classificationTone, reviewLabel} from './clinvar-display.js';
+import {conditionLabels, classificationTone, classificationHeadline, genotypeAlleleContext, inheritanceContext, reviewLabel} from './clinvar-display.js';
 // SNP Reader MVP: deliberately static. Uploaded raw DNA never leaves this browser.
 const catalog = [
   {id:'rs4988235',gene:'MCM6 / LCT',title:'Adult lactose digestion',category:'Nutrition',alleles:['A','G'],evidence:'Established population association',source:'https://medlineplus.gov/genetics/condition/lactose-intolerance/',detail:'This regulatory variant near LCT helps control whether lactase production continues after childhood. The A allele on the GRCh37 forward strand is associated with lactase persistence in many European populations.',interpret(g){return g.includes('A')?'At least one A allele is associated with continued lactase production into adulthood in populations where this marker has been validated.':'GG is associated with lactase non-persistence in many European populations, but other genetic variants and non-genetic causes also affect lactose digestion.'},caution:'This single marker is less informative across some ancestries. Symptoms and clinical evaluation matter more than this genotype alone.'},
@@ -83,26 +83,55 @@ function draw(){
     const limit=200;
     const html=hits.slice(0,limit).map(({e,call})=>{
       const conditions=conditionLabels(e.condition);
-      const alternateCopies=[...call.genotype].filter(a=>a===e.alt).length;
+
+      const alleles=genotypeAlleleContext(call,e);
+      if(!alleles)return '';
       const moreConditions=conditions.length>1
         ? `<details class="clinvar-more"><summary>View all ${conditions.length} recorded condition names</summary><ul>${conditions.map(label=>`<li>${safe(label)}</li>`).join('')}</ul></details>`
         : '';
-      const status=classificationTone(e.sig);
-      const copyLabel=`${alternateCopies} of 2 copies`;
+      const tone=classificationTone(e.sig);
+      const headline=classificationHeadline(e.sig);
+      const clinicalContext=inheritanceContext(e.condition,alleles.alternateCopies);
       return `<article class="clinvar-card" aria-label="ClinVar evidence for ${safe(e.id)}">
         <div class="clinvar-card-header">
           <div class="clinvar-card-identity"><span class="clinvar-gene">${safe(e.gene||'Gene not specified')}</span><strong class="clinvar-rsid">${safe(e.id)}</strong></div>
-          <span class="clinvar-classification clinvar-classification--${status}">${safe(e.sig)}</span>
+          <span class="clinvar-classification clinvar-classification--${tone}">${safe(headline)}</span>
         </div>
         <div class="clinvar-card-facts">
           <div class="clinvar-fact"><span class="clinvar-fact-label">Your genotype</span><span class="genotype-chip">${safe(call.genotype)}</span></div>
-          <div class="clinvar-fact"><span class="clinvar-fact-label">Alternate allele</span><strong>${safe(e.ref)} → ${safe(e.alt)}</strong><span class="clinvar-fact-meta">${copyLabel} · ${safe(e.build)}</span></div>
+          <div class="clinvar-fact"><span class="clinvar-fact-label">Reference → alternate</span><strong>${safe(alleles.ref)} → ${safe(alleles.alt)}</strong><span class="clinvar-fact-meta">${safe(e.build)} · reference-genome orientation</span></div>
+        </div>
+        <section class="clinvar-alleles" aria-label="Allele-by-allele explanation">
+          <h4>What each allele represents</h4>
+          <div class="clinvar-allele-grid">
+            <div class="clinvar-allele">
+              <div class="clinvar-allele-heading"><span class="clinvar-allele-letter">${safe(alleles.ref)}</span><strong>Reference allele</strong><span class="clinvar-allele-count">${alleles.referenceCopies} ${alleles.referenceCopies===1?'copy':'copies'}</span></div>
+              <p>The base shown in the reference genome at this position. “Reference” does not automatically mean protective or harmless.</p>
+            </div>
+            <div class="clinvar-allele">
+              <div class="clinvar-allele-heading"><span class="clinvar-allele-letter">${safe(alleles.alt)}</span><strong>Alternate allele</strong><span class="clinvar-allele-count">${alleles.alternateCopies} ${alleles.alternateCopies===1?'copy':'copies'}</span></div>
+              <p>The base change evaluated by the linked ClinVar record for a listed condition. This is variant-level evidence, not a finding about your health.</p>
+            </div>
+          </div>
+        </section>
+        <div class="clinvar-copy-context">
+          <span class="clinvar-fact-label">What your allele count tells us</span>
+          <p>${safe(alleles.copyMessage)}</p>
+          <p class="clinvar-inheritance">${safe(clinicalContext)}</p>
+          <a href="https://medlineplus.gov/genetics/understanding/inheritance/inheritancepatterns/" target="_blank" rel="noopener noreferrer">How inheritance patterns work ↗</a>
         </div>
         <div class="clinvar-card-condition">
           <span class="clinvar-fact-label">Condition listed by ClinVar</span>
           <p class="clinvar-condition-name">${safe(conditions[0])}</p>
           ${moreConditions}
         </div>
+        <details class="clinvar-source">
+          <summary>Exact ClinVar classification and evidence</summary>
+          <p><strong>Original ClinVar classification:</strong> ${safe(e.sig)}</p>
+          <p><strong>Review status:</strong> ${safe(reviewLabel(e.review))}</p>
+          <p>The classification concerns the alternate allele for a specific condition; it is not a personal diagnosis. “Pathogenic” and “Likely pathogenic” are distinct terms and are preserved exactly as reported.</p>
+          <p><a href="https://www.ncbi.nlm.nih.gov/clinvar/variation/${Number(e.variation)}/" target="_blank" rel="noopener noreferrer">Read this variant's ClinVar entry ↗</a></p>
+        </details>
         <div class="clinvar-card-footer">
           <span class="clinvar-review">${safe(reviewLabel(e.review))}</span>
           <a href="https://www.ncbi.nlm.nih.gov/clinvar/variation/${Number(e.variation)}/" target="_blank" rel="noopener noreferrer" aria-label="Open ClinVar source for ${safe(e.id)}">View ClinVar record ↗</a>
@@ -115,7 +144,7 @@ function draw(){
     const limitNote=hits.length>limit?`Showing the first ${limit} records. Search by gene, rsID or condition to narrow results.`:'';
     clinicalHtml=`<section class="clinvar-section" aria-label="ClinVar allele-specific evidence">
       <div class="clinvar-heading"><div><h3>ClinVar evidence</h3><p>${safe(note)} · ${safe(clinvarMessage)}</p></div></div>
-      <p class="clinvar-disclaimer">These are classifications of individual variants for specific conditions—not diagnoses or personal risk estimates. Consumer DNA findings should be clinically confirmed.</p>
+      <p class="clinvar-disclaimer">Each record describes the reference and alternate alleles for a condition, not a diagnosis or personal risk estimate. The original ClinVar classification is available under each card’s evidence details. Consumer DNA findings require clinical confirmation.</p>
       ${limitNote?`<p class="clinvar-limit">${safe(limitNote)}</p>`:''}
       ${html?`<div class="clinvar-grid">${html}</div>`:''}
     </section>`;
