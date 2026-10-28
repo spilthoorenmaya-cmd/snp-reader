@@ -1127,12 +1127,32 @@
 }
 .serpina1-panel>summary {
   display:flex;
+  position:relative;
   flex-direction:column;
   gap:5px;
   cursor:pointer;
-  padding:17px 20px;
+  list-style:none;
+  padding:17px 60px 17px 20px;
   color:#244b59;
   line-height:1.5
+}
+.serpina1-panel>summary::-webkit-details-marker {
+  display:none
+}
+.serpina1-panel>summary::after {
+  content:"";
+  position:absolute;
+  top:calc(50% - 7px);
+  right:26px;
+  width:11px;
+  height:11px;
+  border-right:2px solid #587b91;
+  border-bottom:2px solid #587b91;
+  transform:rotate(45deg);
+  transition:transform .18s ease
+}
+.serpina1-panel[open]>summary::after {
+  transform:translateY(5px) rotate(225deg)
 }
 .serpina1-panel>summary:focus-visible {
   outline:2px solid #488eaa;
