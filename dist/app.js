@@ -62,6 +62,9 @@ function updatePersonalContext(){
 }
 function matches(){return curatedMatches(records,catalog)}
 function draw(){
+  // Keep any expanded overview sections open when personal context changes.
+  const openBenign=Boolean($('cards')?.querySelector('.clinvar-benign')?.open);
+  const openRecessive=Boolean($('cards')?.querySelector('.clinvar-secondary')?.open);
   const term=$('search').value.toLowerCase().trim(),category=$('filter').value;
   const filtered=matches().filter(c=>(category==='all'||c.category===category)&&[c.id,c.gene,c.title,c.category].join(' ').toLowerCase().includes(term));
   // The curated catalog is a subset of markers in the user's file; keep other calls browseable.
@@ -255,6 +258,8 @@ function draw(){
     </section>`;
   }
   $('cards').innerHTML=curatedTable+clinicalHtml+otherTable;
+  if(openBenign){const el=$('cards').querySelector('.clinvar-benign');if(el)el.open=true;}
+  if(openRecessive){const el=$('cards').querySelector('.clinvar-secondary');if(el)el.open=true;}
 }
 function show(result,label){window.__snpBuild=result.build;records=result.records;mode=label;$('results').hidden=false;$('error').hidden=true;$('total').textContent=records.size.toLocaleString();refreshAnnotatedCount();$('nocalls').textContent=[...records.values()].filter(x=>isNoCall(x.genotype)).length.toLocaleString();updateInventoryCount();$('result-summary').textContent=`${label} · ${result.format}${result.build?' · Genome build '+result.build:''}. Showing curated interpretations; the marker inventory is separate.`;$('search').value='';$('filter').value='all';draw();$('results').scrollIntoView({behavior:'smooth',block:'start'})}
 async function handle(file){
