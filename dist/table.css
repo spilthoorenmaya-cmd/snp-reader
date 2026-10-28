@@ -133,3 +133,20 @@
   .clinvar-card[class*="clinvar-card--"]{padding-left:14px}
   .clinvar-inheritance-banner{padding:11px}
 }
+
+/* A second, non-diagnostic visual layer: alternate-allele dosage.
+   Source classification, gene-copy count and phenotype risk are distinct. */
+.clinvar-dose-status{padding:12px 14px;margin:0 0 17px;border:1px solid #dbe5e2;border-radius:11px;background:#f5f8f7}
+.clinvar-dose-status strong{display:block;font:800 13px/1.45 Manrope,sans-serif;color:#314e46}
+.clinvar-dose-status p{margin:7px 0 0;font-size:12px;line-height:1.6;color:#50695e}
+.clinvar-dose-status--carrier,.clinvar-dose-status--two-copy{background:#edf6fc;border-color:#c6e0ef}
+.clinvar-dose-status--carrier strong,.clinvar-dose-status--two-copy strong{color:#155b7d}
+.clinvar-dose-status--dominant{background:#f3effb;border-color:#dbd1ef}
+.clinvar-dose-status--dominant strong{color:#664693}
+.clinvar-dose-status--benign{background:#eff6f0;border-color:#d5e6d7}
+.clinvar-dose-status--benign strong{color:#346343}
+.clinvar-dose-status--review{background:#f8f4eb;border-color:#e8ddc7}
+.clinvar-dose-status--review strong{color:#735726}
+.clinvar-dose-status--reference{background:#f2f5f6;border-color:#d9e2e7}
+.clinvar-dose-status--reference strong{color:#455e6d}
+.clinvar-zygosity{line-height:1.55;font-size:12px;color:#415c5f;font-weight:700;max-width:100%}
