@@ -315,3 +315,23 @@
 .raw-marker-section>.result-table-scroll{margin:0 12px 12px;width:calc(100% - 24px)}
 @media(max-width:950px){.result-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:520px){.result-tabs{gap:7px}.result-tab{padding:11px 8px;font-size:11px}.result-tab small{min-width:20px;height:20px;font-size:10px}.tab-panel-intro h3{font-size:20px}}
+
+/* A benign result should have ONE green signal: its classification badge.
+   Technical details stay on white/slate surfaces, not stacked green panels. */
+.clinvar-card--benign{--pattern:#d7e0dc;--pattern-bg:#fff;--pattern-line:#e2e8e5;border-left:1px solid #dce6df!important;background:#fff}
+.clinvar-card--benign .clinvar-classification--benign{background:#e9f4ec;color:#265a42;border-color:#d1e5d8}
+.clinvar-benign-note{font-size:13px;line-height:1.65;color:#52645d;background:transparent;padding:0;margin:0 0 15px}
+.clinvar-card--benign .clinvar-card-facts,.clinvar-card--benign .clinvar-card-facts--benign{background:#f8f9f9;border:1px solid #edf0ef}
+.clinvar-card--benign .genotype-chip{background:#f0f2f3;color:#38534b;border-color:#dce3df}
+.clinvar-card--benign .clinvar-condition-details{background:#fff;border-color:#e2e6e4}
+.clinvar-card--benign .clinvar-condition-details>summary{color:#4b6158}
+.clinvar-card--benign .clinvar-condition-details>summary:hover{background:#f5f7f6}
+.clinvar-card--benign .clinvar-explanation,.clinvar-card--benign .clinvar-source{border-top-color:#e4e9e6}
+.clinvar-card--benign .clinvar-explanation>summary,.clinvar-card--benign .clinvar-source>summary{color:#4d655b}
+.clinvar-benign{background:#fafbfa;border-color:#e0e6e2}
+.clinvar-benign>summary{color:#34574a}
+.clinvar-benign>summary span{color:#60756a}
+.clinvar-benign .clinvar-benign-example-caption{color:#4c6155}
+.clinvar-benign-rest{background:#fff;border-color:#e0e6e2}
+.clinvar-benign-rest>summary{color:#50685a}
+.clinvar-benign-rest>summary:hover{background:#f5f7f5}
