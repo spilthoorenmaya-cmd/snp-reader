@@ -181,3 +181,15 @@
  .clinvar-gene-header h4{font-size:18px}
  .clinvar-secondary .clinvar-gene-groups{padding:0 10px 12px}
 }
+
+/* Benign records are informational, deliberately separate from main findings. */
+.clinvar-benign{margin:22px 0 0;border:1px solid #c9dfd0;border-radius:13px;background:#eff8f1;overflow:hidden}
+.clinvar-benign>summary{padding:17px 20px;display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;cursor:pointer;color:#235a3e}
+.clinvar-benign>summary strong{font:800 14px/1.5 Manrope,sans-serif}
+.clinvar-benign>summary span{font-size:12px;line-height:1.5;color:#4b6d55}
+.clinvar-benign>summary:focus-visible{outline:2px solid #34895f;outline-offset:-3px}
+.clinvar-benign>summary::after{content:"Show records";font-size:11px;font-weight:800;margin-left:auto;white-space:nowrap}
+.clinvar-benign[open]>summary::after{content:"Hide records"}
+.clinvar-benign .clinvar-gene-groups{padding:0 14px 18px}
+.clinvar-benign>.clinvar-secondary-note{margin:4px 20px 18px;color:#355c42}
+@media(max-width:520px){.clinvar-benign>summary{padding:12px}.clinvar-benign .clinvar-gene-groups{padding:0 9px 12px}.clinvar-benign>.clinvar-secondary-note{margin:0 13px 13px}}
