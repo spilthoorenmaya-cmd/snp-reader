@@ -14,6 +14,43 @@ const catalog = [
 catalog.push(...extraCatalog);
 const $=id=>document.getElementById(id);
 let records=new Map(),mode='';
+const resultTabNames=['clinical','carrier','research','benign'];
+const resultTabExplanations={
+ clinical:'ClinVar allele-specific classifications that may deserve closer review. A match does not mean you have a condition.',
+ carrier:'One-copy recessive-pattern findings and special inheritance checks. These do not confirm carrier status or a diagnosis.',
+ research:'Genotype-specific traits and research associations from reviewed sources. Evidence strength varies; associations are not diagnoses.',
+ benign:'Variants classified as benign for particular conditions, plus unreviewed raw markers. Benign is not the same as protective.'
+};
+let activeResultTab='research';
+function selectResultTab(name,focus=false){
+  if(!resultTabNames.includes(name))return;
+  activeResultTab=name;
+  for(const tabName of resultTabNames){
+    const selected=tabName===name;
+    const button=$('tab-'+tabName);
+    const panel=$('tab-panel-'+tabName);
+    button.setAttribute('aria-selected',String(selected));
+    button.tabIndex=selected?0:-1;
+    if(panel)panel.hidden=!selected;
+  }
+  $('tab-description').textContent=resultTabExplanations[name];
+  $('filter').hidden=name!=='research';
+  if(focus)$('tab-'+name).focus();
+}
+function preferredResultTab(){
+  const hits=clinvarMatches();
+  const isBenign=e=>/^(benign|likely benign|benign\\/likely benign)$/i.test(String(e.sig||''));
+  const primary=hits.some(({e,call})=>!isBenign(e)&&clinicalDisplayGroup(e,[...call.genotype].filter(a=>a===e.alt).length)==='main');
+  const carrier=hits.some(({e,call})=>clinicalDisplayGroup(e,[...call.genotype].filter(a=>a===e.alt).length)==='one-copy-recessive');
+  const report=interpretSerpina1(records,window.__snpBuild);
+  const [z,s]=report.markers.map(m=>m.alternateCopies||0);
+  if(primary||z===2||(z&&s))return 'clinical';
+  if(carrier||z===1||s>0)return 'carrier';
+  if(matches().some(c=>c.valid))return 'research';
+  if(hits.length)return 'benign';
+  return 'research';
+}
+
 let inventory=null;
 let clinvarEntries=[], clinvarMessage='ClinVar reference catalog has not been generated yet.';
 async function loadClinvar(){
