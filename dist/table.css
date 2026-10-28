@@ -335,3 +335,30 @@
 .clinvar-benign-rest{background:#fff;border-color:#e0e6e2}
 .clinvar-benign-rest>summary{color:#50685a}
 .clinvar-benign-rest>summary:hover{background:#f5f7f5}
+
+/* Compact expandable ClinVar variant summaries; nested reference and allele
+   disclosures remain accessible only when a record is opened. */
+.clinvar-card>summary.clinvar-card-overview{list-style:none;cursor:pointer;display:block;padding:1px 0 0}
+.clinvar-card>summary.clinvar-card-overview::-webkit-details-marker{display:none}
+.clinvar-card>summary.clinvar-card-overview:focus-visible{outline:3px solid #549b7a;outline-offset:4px;border-radius:6px}
+.clinvar-card>summary.clinvar-card-overview:hover .clinvar-card-toggle{color:#155c42;text-decoration:underline;text-underline-offset:3px}
+.clinvar-card>summary .clinvar-card-header{padding-bottom:9px;border-bottom:0}
+.clinvar-card-overview-meta{display:flex;align-items:center;flex-wrap:wrap;gap:6px 18px;padding:8px 0 0;color:#5b7267;font-size:12px;line-height:1.5}
+.clinvar-card-overview-meta strong{color:#345d4d;font-weight:800}
+.clinvar-card-toggle{margin-left:auto;display:inline-flex;align-items:center;gap:5px;font-weight:800;color:#287057}
+.clinvar-card-toggle:after{content:"⌄";display:inline-block;font-size:19px;line-height:1}
+.clinvar-card[open] .clinvar-card-toggle:after{transform:rotate(180deg)}
+.clinvar-card[open] .clinvar-card-toggle{font-size:0}
+.clinvar-card[open] .clinvar-card-toggle:before{content:"Hide details";font-size:12px}
+.clinvar-card-body{padding-top:15px;margin-top:13px;border-top:1px solid #e7eee9}
+.clinvar-card:not([open]){padding-top:17px;padding-bottom:17px}
+.clinvar-card:not([open]) .clinvar-card-header{margin:0;padding:0}
+.clinvar-card:not([open]) .clinvar-card-overview-meta{padding-top:5px}
+.clinvar-card[open] .clinvar-card-header{margin:0}
+.clinvar-card--benign .clinvar-card-overview-meta{color:#6a7970}
+.carrier-family-planning{margin:16px 0;background:#f2f7fc;border:1px solid #d4e5f1;border-radius:11px;padding:15px 17px;color:#34576a}
+.carrier-family-planning h4{font:800 14px/1.5 Manrope,sans-serif;color:#245b7f;margin:0 0 7px}
+.carrier-family-planning p{font-size:12px;line-height:1.75;margin:8px 0;color:#415c6a}
+.carrier-family-planning p strong{color:#205577}
+.carrier-family-planning a{font-size:12px;font-weight:800;color:#266985;text-decoration:underline;text-underline-offset:3px}
+@media(max-width:520px){.clinvar-card-overview-meta{font-size:11px;gap:4px 11px}.carrier-family-planning{padding:12px}}
