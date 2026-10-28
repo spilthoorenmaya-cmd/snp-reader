@@ -61,7 +61,7 @@ test('inheritance copy-number guidance is contextual, not a claimed diagnosis',(
   assert.match(inheritanceContext('Autosomal recessive sample condition',1),/both copies of the gene/);
   assert.match(inheritanceContext('Autosomal recessive sample condition',1),/in trans/);
   assert.match(inheritanceContext('Autosomal recessive sample condition',1),/in cis/);
-  assert.match(inheritanceContext('Autosomal recessive sample condition',2),/not a clinical diagnosis/);
+  assert.match(inheritanceContext('Autosomal recessive sample condition',2),/does not establish a clinical diagnosis/);
   assert.match(inheritanceContext('Autosomal dominant sample condition',1),/One disease-associated copy can matter/);
   assert.match(inheritanceContext('Autosomal dominant sample condition|Autosomal recessive sample condition',1),/both recessive and dominant/);
   assert.match(inheritanceContext('Unknown condition',1),/cannot be determined/);
