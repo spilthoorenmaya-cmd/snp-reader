@@ -258,8 +258,7 @@ test('real browser: benign BRCA2 variants show only one example until more are r
     await card.locator('.clinvar-condition-details>summary').click();
     assert.match(await card.locator('.clinvar-condition-brief').innerText(),/hereditary cancer susceptibility syndrome/);
     assert.equal(await card.locator('.clinvar-classification').innerText(),'Benign variant');
-    assert.equal(await card.evaluate(el=>el.open),false);
-    await card.locator(':scope>summary').click();
+    assert.equal(await card.evaluate(el=>el.open),true);
     assert.equal(await card.locator('.clinvar-personal-status').count(),0);
     assert.equal(await card.getAttribute('data-inheritance'),'benign');
     assert.match(await card.locator('.clinvar-benign-note').innerText(),/two copies at this position does not make this variant harmful/);
@@ -345,7 +344,7 @@ test('real browser: evidence tabs isolate clinical, carrier, traits and benign e
     assert.equal(await page.locator('#tab-carrier').getAttribute('aria-selected'),'true');
     assert.equal(await page.locator('#tab-panel-clinical').isVisible(),false);
     assert.equal(await page.locator('#tab-panel-carrier .clinvar-secondary .clinvar-card').count(),1);
-    assert.match(await page.locator('#tab-panel-carrier').innerText(),/not verified carrier-screening results or diagnoses/);
+    assert.match(await page.locator('#tab-panel-carrier').innerText(),/not confirmed carrier-screening results or diagnoses/);
 
     await page.locator('#tab-research').click();
     assert.equal(await page.locator('#tab-panel-research').isVisible(),true);
@@ -390,6 +389,8 @@ test('real browser: one benign marker shows a single green badge with neutral de
     assert.equal(await card.locator('.clinvar-personal-status').count(),0);
     assert.equal(await card.locator('.clinvar-dose-status').count(),0);
     assert.equal(await card.locator('.clinvar-benign-reassurance').count(),0);
+    assert.equal(await card.evaluate(el=>el.open),false);
+    await card.locator(':scope>summary').click();
     assert.match(await card.locator('.clinvar-benign-note').innerText(),/Not evidence of the listed condition/);
     assert.equal(await card.locator('.clinvar-condition-details').evaluate(el=>el.open),false);
     const styles=await card.evaluate(el=>{
@@ -445,6 +446,7 @@ test('real browser: one CFTR cystic fibrosis variant is possible carrier informa
   try{
     const raw='# genome build 37\nrsid\tchromosome\tposition\tgenotype\n'+rs+'\t7\t117199644\tCT\n';
     await page.locator('#file').setInputFiles({name:'synthetic-cftr.txt',mimeType:'text/plain',buffer:Buffer.from(raw)});
+    await page.waitForFunction(()=>document.querySelector('#tab-carrier')?.getAttribute('aria-selected')==='true');
     assert.equal(await page.locator('#tab-carrier').getAttribute('aria-selected'),'true');
     assert.match(await page.locator('#tab-panel-carrier .tab-panel-intro').innerText(),/both are confirmed carriers/);
     const card=page.locator('#tab-panel-carrier .clinvar-secondary .clinvar-card');
