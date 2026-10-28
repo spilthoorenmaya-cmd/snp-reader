@@ -266,14 +266,14 @@ export function carrierPlanningNote(e,alternateCopies) {
   return cysticFibrosis
     ? {
       title:'Possible cystic fibrosis carrier-related finding · not confirmed',
-      message:'One alternate copy of a CFTR variant classified as pathogenic for cystic fibrosis was detected. This does not mean you have cystic fibrosis or confirm that you are a carrier. Some CFTR variants have condition-specific effects, so clinical confirmation matters.',
+      message:'One alternate copy of a CFTR variant reported by ClinVar as pathogenic or likely pathogenic for cystic fibrosis was detected. This does not mean you have cystic fibrosis or confirm that you are a carrier. Some CFTR variants have condition-specific effects, so clinical confirmation matters.',
       partner:'If you and a reproductive partner are both confirmed carriers of CFTR variants that can cause cystic fibrosis together, each pregnancy typically has a 1 in 4 (25%) chance of an affected child. The two variants do not need to be identical.',
       action:'If planning children, discuss clinical CFTR carrier screening for you and your partner with a qualified professional. Raw DNA files do not test every variant.',
       source:'https://www.cff.org/intro-cf/cf-genetics-basics'
     }
     : {
       title:'Possible recessive carrier-related finding · not confirmed',
-      message:'One alternate copy was detected for a variant classified as pathogenic for a condition with a recessive inheritance label. This is not a diagnosis or a confirmed carrier-screening result.',
+      message:'One alternate copy was detected for a variant classified as pathogenic or likely pathogenic for a condition with a recessive inheritance label. This is not a diagnosis or a confirmed carrier-screening result.',
       partner:'If you and a reproductive partner are both confirmed carriers of variants that cause the same autosomal recessive condition, each pregnancy typically has a 1 in 4 (25%) chance of an affected child. Your variants do not necessarily have to be identical.',
       action:'Consider clinical carrier screening and genetic counseling when planning a pregnancy. Another gene variant may be missing from consumer raw DNA data.',
       source:'https://medlineplus.gov/genetics/understanding/inheritance/riskassessment/'
