@@ -88,3 +88,6 @@
 .clinvar-personal-status p{font-size:12px;line-height:1.65;color:#52715b;margin:6px 0 0}
 .clinvar-personal-status--carrier{background:#f4f7f0;border-color:#dce8d7}
 .clinvar-personal-status--carrier strong{color:#376044}
+
+.clinvar-copy-brief{background:#eff6f0;border-radius:9px;padding:11px 12px;margin:8px 0!important;line-height:1.65!important}
+.clinvar-copy-brief strong{display:block;font-size:13px;margin-bottom:4px;color:#20553e}
