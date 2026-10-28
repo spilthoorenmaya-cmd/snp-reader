@@ -2,7 +2,7 @@ import {extractDnaFromZip} from './zip-reader.js';
 import {parseDNA, isCalledDiploidSnp, isNoCall} from './dna-parser.js';
 import {curatedMatches, matchClinvar} from './snp-matching.js';
 import {extraCatalog} from './extra-catalog.js';
-import {conditionLabels, classificationTone, classificationHeadline, genotypeAlleleContext, inheritanceContext, reviewLabel} from './clinvar-display.js';
+import {conditionLabels, classificationTone, classificationHeadline, genotypeAlleleContext, inheritanceContext, clinicalDisplayGroup, reviewLabel} from './clinvar-display.js';
 // SNP Reader MVP: deliberately static. Uploaded raw DNA never leaves this browser.
 const catalog = [
   {id:'rs4988235',gene:'MCM6 / LCT',title:'Adult lactose digestion',category:'Nutrition',alleles:['A','G'],evidence:'Established population association',source:'https://medlineplus.gov/genetics/condition/lactose-intolerance/',detail:'This regulatory variant near LCT helps control whether lactase production continues after childhood. The A allele on the GRCh37 forward strand is associated with lactase persistence in many European populations.',interpret(g){return g.includes('A')?'At least one A allele is associated with continued lactase production into adulthood in populations where this marker has been validated.':'GG is associated with lactase non-persistence in many European populations, but other genetic variants and non-genetic causes also affect lactose digestion.'},caution:'This single marker is less informative across some ancestries. Symptoms and clinical evaluation matter more than this genotype alone.'},
@@ -81,7 +81,9 @@ function draw(){
   let clinicalHtml='';
   if(category==='all'||category==='Health'){
     const limit=200;
-    const html=hits.slice(0,limit).map(({e,call})=>{
+    const primaryHits=hits.filter(({e,call})=>clinicalDisplayGroup(e,[...call.genotype].filter(a=>a===e.alt).length)==='main');
+    const recessiveHits=hits.filter(({e,call})=>clinicalDisplayGroup(e,[...call.genotype].filter(a=>a===e.alt).length)==='one-copy-recessive');
+    const renderCard=({e,call})=>{
       const conditions=conditionLabels(e.condition);
 
       const alleles=genotypeAlleleContext(call,e);
@@ -139,16 +141,24 @@ function draw(){
           <a href="https://www.ncbi.nlm.nih.gov/clinvar/variation/${Number(e.variation)}/" target="_blank" rel="noopener noreferrer" aria-label="Open ClinVar source for ${safe(e.id)}">View ClinVar record ↗</a>
         </div>
       </article>`;
-    }).join('');
+    };
     const note=window.__snpBuild==='37'||window.__snpBuild==='38'?
       `${hits.length.toLocaleString()} matching variant–condition records`:
       'Exact matching requires a stated genome build (GRCh37 or GRCh38).';
-    const limitNote=hits.length>limit?`Showing the first ${limit} records. Search by gene, rsID or condition to narrow results.`:'';
+    const limitNote=primaryHits.length>limit||recessiveHits.length>limit?
+      `Showing up to ${limit} records per section. Search by gene, rsID or condition to narrow results.`:'';
+    const primaryHtml=primaryHits.slice(0,limit).map(renderCard).join('');
+    const recessiveHtml=recessiveHits.slice(0,limit).map(renderCard).join('');
     clinicalHtml=`<section class="clinvar-section" aria-label="ClinVar allele-specific evidence">
       <div class="clinvar-heading"><div><h3>ClinVar evidence</h3><p>${safe(note)} · ${safe(clinvarMessage)}</p></div></div>
-      <p class="clinvar-disclaimer">Each record describes the reference and alternate alleles for a condition, not a diagnosis or personal risk estimate. The original ClinVar classification is available under each card’s evidence details. Consumer DNA findings require clinical confirmation.</p>
+      <p class="clinvar-disclaimer">These are evidence records, not diagnoses. A single allele does not establish a condition. The original ClinVar classification remains available in each card’s source details. Consumer DNA calls need clinical confirmation.</p>
       ${limitNote?`<p class="clinvar-limit">${safe(limitNote)}</p>`:''}
-      ${html?`<div class="clinvar-grid">${html}</div>`:''}
+      ${primaryHtml?`<div class="clinvar-grid">${primaryHtml}</div>`:''}
+      ${recessiveHtml?`<details class="clinvar-secondary" aria-label="One-copy findings with recessive condition names">
+        <summary><strong>${recessiveHits.length.toLocaleString()} one-copy findings with recessive condition names</strong><span>Review separately · usually not sufficient alone for a recessive disorder</span></summary>
+        <p class="clinvar-secondary-note">These records contain one alternate allele and mention recessive inheritance, without an explicit dominant or X-linked label in the condition names. This is a provisional grouping based on names, not confirmed carrier status. A second variant may be untested, and some conditions have more complex inheritance. All findings remain available for review.</p>
+        <div class="clinvar-grid">${recessiveHtml}</div>
+      </details>`:''}
     </section>`;
   }
   $('cards').innerHTML=curatedTable+clinicalHtml+otherTable;
