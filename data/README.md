@@ -1,9 +1,9 @@
-# SNP inventory
+# Public rsID reference inventory
 
-Place the shared MyHeritage GSA rsID inventory at `data/rsid_list.txt`.
+`rsid_list.txt` is a UTF-8 list containing **609,424 unique rsIDs**, one identifier per line, from a MyHeritage MHv1.0 / GSA (GRCh37) chip inventory.
 
-Expected format: one `rs12345` identifier per line, UTF-8 text, no genotypes.
+**This file is not a genome, a person's genotype data, or a set of clinical interpretations.** It contains no genotypes or individual-level results. Inventory membership only tells you that a given marker appears in the reference list.
 
-Inventory snapshot: 609,424 unique rsIDs from a MyHeritage MHv1.0 / GSA (GRCh37) export. This is a marker list, **not** clinical interpretations or genotype calls. Never commit raw DNA files or genotype columns.
+The inventory can be used to select relevant public ClinVar records for the separate evidence catalog. Uploaded DNA genotypes are matched against those records entirely in the user's browser.
 
-The catalog can be used to filter public ClinVar reference data. Actual genotypes must be matched in the user's browser, locally.
+If you update the list, use shareable chip-manifest provenance rather than a private individual's raw DNA export. See [the inventory workflow](../docs/inventory-workflow.md).
