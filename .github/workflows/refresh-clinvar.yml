@@ -1,5 +1,10 @@
 name: Refresh ClinVar evidence catalog
 on:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/build_clinvar_catalog.py"
+      - ".github/workflows/refresh-clinvar.yml"
   workflow_dispatch:
   schedule:
     - cron: '25 7 * * 1'
