@@ -557,3 +557,38 @@ test('real browser: repository link stays accessible in top menu on desktop and 
     }
   }finally{await page.close()}
 });
+
+test('real browser: fictional demo does not expose an unrelated SERPINA1 medical panel',async()=>{
+  const page=await pageReady();
+  try {
+    await page.locator('#demo').click();
+    await page.waitForFunction(()=>document.querySelector('#total')?.textContent==='4');
+    assert.match(await page.locator('#result-summary').innerText(),/Demo only — fictional DNA data/);
+    assert.match(await page.locator('#result-summary').innerText(),/not your personal results/);
+    await page.locator('#tab-carrier').click();
+    assert.equal(await page.locator('.serpina1-panel').count(),0,
+      'No SERPINA1 banner should appear when neither S nor Z was found in the sample');
+    assert.match(await page.locator('#tab-panel-carrier').innerText(),/not a negative carrier-screening result/i);
+    await page.locator('#search').fill('SERPINA1');
+    assert.equal(await page.locator('.serpina1-panel').count(),1,
+      'Someone specifically searching for SERPINA1 may still inspect missing-marker coverage');
+  }finally{await page.close()}
+});
+
+test('real browser: GitHub Pages favicon resolves and privacy uses a lock, not a clover',async()=>{
+  const page=await pageReady();
+  try {
+    const icon=page.locator('head link[rel="icon"]');
+    assert.equal(await icon.count(),1);
+    assert.equal(await icon.getAttribute('type'),'image/svg+xml');
+    const href=await icon.getAttribute('href');
+    assert.match(href,/^favicon\.svg(?:\?[^ ]*)?$/);
+    const res=await page.request.get(new URL(href,origin).toString());
+    assert.equal(res.status(),200);
+    assert.match(res.headers()['content-type'],/image\/svg\+xml/);
+    assert.match(await res.text(),/<svg[^>]+viewBox="0 0 64 64"/);
+    assert.equal(await page.locator('.privacy-bottom-symbol svg').count(),1);
+    assert.doesNotMatch(await page.locator('.privacy-bottom').innerText(),/♧/);
+    assert.match(await page.locator('.drop .local-note').innerText(),/Your file is never sent/);
+  }finally{await page.close()}
+});
