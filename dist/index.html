@@ -4,9 +4,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="theme-color" content="#102a28">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg?v=1">
     <title>SNP Reader — Understand your DNA, privately</title>
     <meta name="description" content="Explore your 23andMe or MyHeritage raw DNA with a private, evidence-linked SNP catalog.">
-    <link rel="stylesheet" href="styles.css?v=repo-menu-1">
+    <link rel="stylesheet" href="styles.css?v=privacy-lock-1">
     <link rel="stylesheet" href="inventory.css?v=repo-cleanup-1">
     <link rel="stylesheet" href="table.css?v=research-neutral-1">
   </head>
@@ -42,7 +43,7 @@
         </div>
         <div class="upload-grid">
           <div class="drop" id="drop"><input id="file" type="file" accept=".txt,.csv,.tsv,.zip,text/plain,text/csv,application/zip" aria-label="Choose your raw DNA file" class="dna-file-input">
-            <label for="file" class="upload-target"><span class="upload-icon" aria-hidden="true">↑</span><span class="upload-title">Drop your DNA file here</span><span class="upload-subtitle">or <span class="text-button upload-link" id="browse">browse your files</span></span><span id="upload-status" class="upload-status" role="status" aria-live="polite">No file selected yet</span><span class="upload-accept">23andMe TXT · MyHeritage CSV / TSV · ZIP exports</span><span class="local-note">♧ Your file is never sent to our servers</span></label>
+            <label for="file" class="upload-target"><span class="upload-icon" aria-hidden="true">↑</span><span class="upload-title">Drop your DNA file here</span><span class="upload-subtitle">or <span class="text-button upload-link" id="browse">browse your files</span></span><span id="upload-status" class="upload-status" role="status" aria-live="polite">No file selected yet</span><span class="upload-accept">23andMe TXT · MyHeritage CSV / TSV · ZIP exports</span><span class="local-note">🔒 Your file is never sent to our servers</span></label>
           </div>
           <div class="sample-panel"><span class="tiny-label">JUST LOOKING AROUND?</span>
             <h3>Try the sample genome</h3>
@@ -178,7 +179,7 @@
     </main>
     <section class="privacy-bottom" aria-label="How your DNA stays private">
       <div class="privacy-bottom-inner">
-        <div class="privacy-bottom-symbol" aria-hidden="true">♧</div>
+        <div class="privacy-bottom-symbol" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><rect x="4" y="10" width="16" height="11" rx="2.5"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path><circle cx="12" cy="15.5" r="1"></circle></svg></div>
         <div class="privacy-bottom-copy">
           <h2>Your DNA stays on your device.</h2>
           <p>Your raw DNA file is read and interpreted inside this browser. It is <strong>not uploaded to our servers</strong> or sent to reference websites. SNP Reader downloads public reference information separately.</p>
