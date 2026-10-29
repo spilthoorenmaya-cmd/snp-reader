@@ -349,9 +349,14 @@ function draw(){
     </section>`;
   }
   let serpinaHtml='';
-  const serpinaQuery='serpina1 alpha-1 alpha 1 antitrypsin aat deficiency rs28929474 rs17580 z s';
-  if(!term||serpinaQuery.includes(term)){
-    const report=interpretSerpina1(records,window.__snpBuild);
+  const serpinaQuery='serpina1 alpha-1 alpha 1 antitrypsin aat deficiency rs28929474 rs17580';
+  const serpinaReport=interpretSerpina1(records,window.__snpBuild);
+  const serpinaDetected=serpinaReport.markers.some(m=>m.alternateCopies>0);
+  const serpinaSearched=Boolean(term)&&serpinaQuery.includes(term);
+  // Do not surface condition-specific warnings in a demo (or real upload)
+  // merely because these two markers are absent. Missing data is not a finding.
+  if((serpinaDetected||serpinaSearched)&&(!term||serpinaSearched)){
+    const report=serpinaReport;
     const detected=report.markers.filter(m=>m.alternateCopies>0).length;
     const details=report.markers.map(marker=>{
       const detail=marker.status==='checked'?marker.description:marker.description;
@@ -417,7 +422,7 @@ function draw(){
   if(openRecessive){const el=$('cards').querySelector('.clinvar-secondary');if(el)el.open=true;}
   if(serpinaWasOpen!==null){const el=$('cards').querySelector('.serpina1-panel');if(el)el.open=serpinaWasOpen;}
 }
-function show(result,label){window.__snpBuild=result.build;records=result.records;$('results').hidden=false;$('error').hidden=true;$('total').textContent=records.size.toLocaleString();refreshAnnotatedCount();$('nocalls').textContent=[...records.values()].filter(x=>isNoCall(x.genotype)).length.toLocaleString();updateInventoryCount();$('result-summary').textContent=`${label} · ${result.format}${result.build?' · Genome build '+result.build:''}. Showing curated interpretations; the marker inventory is separate.`;$('search').value='';$('filter').value='all';resultTabTouched=false;activeResultTab=preferredResultTab();draw();$('results').scrollIntoView({behavior:'smooth',block:'start'})}
+function show(result,label){window.__snpBuild=result.build;records=result.records;$('results').hidden=false;$('error').hidden=true;$('total').textContent=records.size.toLocaleString();refreshAnnotatedCount();$('nocalls').textContent=[...records.values()].filter(x=>isNoCall(x.genotype)).length.toLocaleString();updateInventoryCount();$('result-summary').textContent=label==='Fictional sample genome'?'Demo only — fictional DNA data for exploring SNP Reader. These are not your personal results.':`${label} · ${result.format}${result.build?' · Genome build '+result.build:''}. Showing curated interpretations; the marker inventory is separate.`;$('search').value='';$('filter').value='all';resultTabTouched=false;activeResultTab=preferredResultTab();draw();$('results').scrollIntoView({behavior:'smooth',block:'start'})}
 async function handle(file){
   if(!file)return;
   const status=$('upload-status');
