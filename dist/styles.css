@@ -867,3 +867,52 @@ footer {
     gap:14px
   }
 }
+
+/* Make the source repository easy to discover and fork without crowding
+   the mobile navigation. The privacy explanation remains on the page. */
+.topbar nav .repo-link {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  padding:9px 12px;
+  border:1px solid #d5e3dc;
+  border-radius:10px;
+  background:#f7faf8;
+  color:#285944;
+  white-space:nowrap;
+  font-size:12px;
+  line-height:1.3
+}
+.topbar nav .repo-link:hover {
+  background:#eaf3ed;
+  color:#19563c;
+  border-color:#a9c5b4
+}
+.topbar nav .repo-link:focus-visible {
+  outline:3px solid #75ad8f;
+  outline-offset:2px
+}
+.repo-link-mobile {
+  display:none
+}
+@media(max-width:800px) {
+  .topbar nav {
+    gap:10px
+  }
+  .topbar nav .repo-link {
+    display:inline-flex;
+    padding:9px 10px
+  }
+  .repo-link-desktop {
+    display:none
+  }
+  .repo-link-mobile {
+    display:inline
+  }
+}
+@media(max-width:500px) {
+  .topbar nav .privacy-pill {
+    display:none
+  }
+}
