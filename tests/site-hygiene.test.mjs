@@ -89,3 +89,13 @@ test('reviewed results keep distinct clinical, carrier and research entry points
  assert.match(js,/carrierPlanningNote/);
  assert.match(js,/matchClinvar/);
 });
+
+test('privacy messaging uses a lock icon and GitHub Pages links to a local favicon',()=>{
+  const html=read('index.html');
+  const svg=read('favicon.svg');
+  assert.match(html,/<link rel="icon" type="image\/svg\+xml" href="favicon\.svg\?v=1">/);
+  assert.match(svg,/<svg[^>]*viewBox="0 0 64 64"/);
+  assert.match(html,/class="privacy-bottom-symbol"[^>]*aria-hidden="true"><svg/);
+  assert.doesNotMatch(html,/♧/,'Clover placeholder should not return to privacy messaging');
+  assert.match(html,/Demo|Fictional sample genome|View sample results/);
+});
