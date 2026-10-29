@@ -541,3 +541,19 @@ test('real browser: hero trust assurances sit clearly beneath primary buttons on
     }
   }finally{await page.close()}
 });
+
+test('real browser: repository link stays accessible in top menu on desktop and mobile',async()=>{
+  const page=await pageReady();
+  try{
+    const link=page.locator('.topbar nav .repo-link');
+    assert.equal(await link.getAttribute('href'),'https://github.com/spilthoorenmaya-cmd/snp-reader');
+    assert.equal(await link.getAttribute('target'),'_blank');
+    assert.match(await link.getAttribute('rel'),/noopener/);
+    for(const width of [1280,768,390,320]){
+      await page.setViewportSize({width,height:850});
+      assert.equal(await link.isVisible(),true,'GitHub link should be visible at '+width+'px');
+      const rect=await link.boundingBox();
+      assert.ok(rect&&rect.x>=0&&rect.x+rect.width<=width+1,'GitHub link should fit '+width+'px viewport');
+    }
+  }finally{await page.close()}
+});
