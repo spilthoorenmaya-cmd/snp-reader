@@ -990,3 +990,27 @@ h1,h2,h3,p,.stat strong,.upload-status { overflow-wrap:break-word; }
   .btn { transition:none; }
   .btn:hover { transform:none; }
 }
+
+/* Hero mobile overflow fix: override intrinsic max-content sizing. */
+@media (max-width:800px) {
+  .hero { display:flex; flex-direction:column; width:100%; min-width:0; overflow:hidden; }
+  .hero-copy { flex:none; min-width:0; max-width:100%; padding:42px 22px 32px; }
+  .hero h1 { max-width:100%; font-size:clamp(30px,7.8vw,48px); line-height:1.16; letter-spacing:-1.3px; overflow-wrap:anywhere; }
+  .hero h1 em { overflow-wrap:anywhere; }
+  .hero .lead { max-width:100%; overflow-wrap:normal; }
+  .hero-cta-stack { display:flex; width:100%; max-width:100%; min-width:0; }
+  .hero-actions { display:flex; flex-direction:column; width:100%; min-width:0; }
+  .hero-actions .btn { display:flex; width:100%; min-width:0; flex:0 0 auto; justify-content:space-between; gap:12px; white-space:normal; }
+  .hero .trust { display:flex; width:100%; justify-content:flex-start; gap:8px; }
+  .hero .trust span { max-width:100%; white-space:normal; }
+  .hero-art { width:100%; min-width:0; height:clamp(210px,62vw,320px); }
+  .hero-art::before { background-size:cover; background-position:center 46%; }
+  .hero .floating-card { left:auto; right:14px; bottom:14px; width:auto; max-width:calc(100% - 28px); box-sizing:border-box; }
+  .hero .floating-card > div { min-width:0; }
+  .hero .floating-card b,.hero .floating-card small { overflow-wrap:anywhere; }
+}
+@media (max-width:380px) {
+  .hero-copy { padding-inline:16px; }
+  .hero h1 { font-size:clamp(29px,8.1vw,34px); }
+  .hero .floating-card { padding:10px; gap:9px; }
+}
