@@ -926,3 +926,67 @@ footer {
     display:none
   }
 }
+
+/* Mobile layout refinements: preserve readable content and usable controls. */
+html,body { max-width:100%; }
+.hero > *, .upload-grid > *, .evidence-section > *, .stat-grid > *,
+.toolbar > *, .personal-context-fields > * { min-width:0; }
+h1,h2,h3,p,.stat strong,.upload-status { overflow-wrap:break-word; }
+@media (max-width:800px) {
+  .hero { min-height:0; }
+  .hero-copy { width:100%; }
+  .hero-cta-stack { width:100%; }
+  .hero-actions .btn { justify-content:center; min-height:48px; }
+  .evidence-section { gap:24px; }
+  .toolbar .search-wrap { min-width:100%; }
+  .toolbar select { min-height:44px; }
+  .sample-panel { padding:26px; }
+}
+@media (max-width:600px) {
+  .topbar { min-height:66px; height:auto; gap:10px; padding:12px 16px; }
+  .brand { font-size:clamp(17px,5vw,22px); letter-spacing:-.8px; white-space:nowrap; }
+  .mark { width:31px; height:31px; font-size:22px; margin-right:6px; }
+  .topbar nav { flex-shrink:0; gap:6px; }
+  .topbar nav .repo-link { padding:9px; font-size:11px; min-height:42px; }
+  .hero-copy { padding:38px 20px 32px; }
+  h1 { font-size:clamp(33px,9vw,46px); line-height:1.12; letter-spacing:-1.5px; margin:20px 0; }
+  .lead { font-size:15px; line-height:1.65; }
+  .hero-actions { flex-direction:column; gap:10px; }
+  .hero-actions .btn { width:100%; flex:auto; }
+  .trust { justify-content:flex-start; margin-top:18px; }
+  .trust span { font-size:11px; }
+  .hero-art { height:220px; }
+  .floating-card { bottom:14px; right:12px; left:12px; width:max-content; max-width:calc(100% - 24px); padding:12px; font-size:12px; }
+  .workspace-section,.results-section,.how-section,.evidence-section { padding:46px 18px; }
+  .section-heading { margin-bottom:25px; }
+  .section-heading h2,.result-head h2,.evidence-section h2 { font-size:clamp(25px,7vw,32px); letter-spacing:-.8px; }
+  .upload-grid,.steps { gap:16px; }
+  .upload-target { min-height:260px; padding:26px 15px 38px; }
+  .drop { min-height:0; }
+  .sample-panel { padding:22px; }
+  .stat-grid { gap:9px; }
+  .stat { padding:14px 12px; }
+  .stat strong { font-size:clamp(18px,6vw,26px); letter-spacing:-.6px; }
+  .stat span { font-size:11px; }
+  .toolbar { gap:9px; }
+  .toolbar .search-wrap { flex-basis:100%; }
+  .toolbar select,.toolbar .btn { min-height:46px; flex:1 1 100%; width:100%; }
+  .search-wrap input { min-width:0; font-size:16px; }
+  .source-links { gap:12px 16px; }
+  .evidence-section aside { padding:20px; }
+  .privacy-bottom-inner { padding:38px 18px 48px; }
+  footer { padding:30px 18px 44px; }
+}
+@media (max-width:360px) {
+  .topbar { padding-inline:12px; }
+  .brand { font-size:16px; }
+  .topbar nav .repo-link { padding:8px 7px; }
+  .workspace-section,.results-section,.how-section,.evidence-section { padding-inline:14px; }
+  .hero-copy { padding-inline:16px; }
+  .stat { padding:12px 9px; }
+}
+@media (prefers-reduced-motion:reduce) {
+  html { scroll-behavior:auto; }
+  .btn { transition:none; }
+  .btn:hover { transform:none; }
+}
