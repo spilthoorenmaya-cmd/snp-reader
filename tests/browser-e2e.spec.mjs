@@ -8,7 +8,7 @@ import {chromium} from 'playwright';
 
 const root = fileURLToPath(new URL('../dist/',import.meta.url));
 let server, browser, origin;
-const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.png':'image/png'};
+const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.png':'image/png','.svg':'image/svg+xml'};
 before(async()=>{
   server=createServer(async(req,res)=>{
     try {
