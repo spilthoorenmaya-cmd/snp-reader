@@ -805,6 +805,16 @@ footer p,footer a {
   color:#426590;
   font-size:26px
 }
+.privacy-bottom-symbol svg {
+  display:block;
+  width:26px;
+  height:26px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.9;
+  stroke-linecap:round;
+  stroke-linejoin:round
+}
 .privacy-bottom-copy {
   max-width:740px
 }
