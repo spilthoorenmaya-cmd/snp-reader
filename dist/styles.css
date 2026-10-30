@@ -1151,3 +1151,8 @@ h1,h2,h3,p,.stat strong,.upload-status { overflow-wrap:break-word; }
 .research-explorer-guide p{font-size:12px;line-height:1.6;margin:7px 0;color:#4d6256;}
 .research-explorer-guide a{font-size:12px;}
 @media(max-width:600px){.research-explorer-guide{grid-template-columns:1fr;}}
+
+.context-compact{margin:8px 0 12px;border:1px solid #dce8df;border-radius:10px;background:#f4f8f5;font-size:12px;color:#36594a;}
+.context-compact summary{cursor:pointer;padding:10px 14px;font-weight:650;list-style-position:inside;}
+.context-compact summary:focus-visible{outline:2px solid #326c55;outline-offset:2px;}
+.context-compact p{padding:0 14px 12px;margin:0;line-height:1.6;}
