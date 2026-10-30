@@ -67,9 +67,10 @@ function refreshContribution(){
   if(!inventory||!records.size||window.__snpDemo)return;
   contributionIds=[...records.keys()].filter(id=>/^rs[1-9][0-9]*$/.test(id)&&!inventory.has(id)).sort((a,b)=>Number(a.slice(2))-Number(b.slice(2)));
   if(!contributionIds.length)return;
-  $('contribute-count').textContent=contributionIds.length.toLocaleString()+' rsIDs in your file are not in the current reference inventory.';
+  $('contribute-count').textContent=contributionIds.length.toLocaleString()+' genomic marker positions (identified by rsID) in your file are not covered by our current reference catalog.';
   $('contribute').hidden=false;
 }
+function dismissContribution(){resetContribution();}
 function updateContributionConsent(){
   const allowed=$('contribute-consent').checked&&contributionIds.length>0;
   $('contribute-download').disabled=!allowed;
@@ -83,7 +84,8 @@ function downloadContribution(){
   a.href=url;a.download='snp-reader-rsids-only.txt';a.click();
   setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
-\nlet inventory=null;
+
+let inventory=null;
 let clinvarEntries=[], clinvarMessage='ClinVar reference catalog has not been generated yet.';
 async function loadClinvar(){
   try{
@@ -504,3 +506,5 @@ $('contribute-download').addEventListener('click',downloadContribution);
 $('contribute-issue').addEventListener('click',event=>{
   if(!$('contribute-consent').checked||!contributionIds.length)event.preventDefault();
 });
+
+$('contribute-dismiss').addEventListener('click',dismissContribution);
