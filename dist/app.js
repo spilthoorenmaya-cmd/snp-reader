@@ -153,23 +153,30 @@ function draw(){
     return `<tr><td><strong>${safe(c.id)}</strong><span class="td-sub">${safe(c.gene)}</span></td><td><span class="topic-title">${safe(c.title)}</span><span class="tag">${safe(c.category)}</span></td><td><span class="genotype-chip">${safe(g||'—')}</span><span class="td-sub">${valid?'Called':c.call?'Unresolved':'Not found'}</span></td><td class="interpretation-cell"><div class="interpretation-main">${safe(meaning)}</div><details><summary>Evidence and limitations</summary><p>${safe(c.detail)}</p><p class="evidence-caution">ⓘ ${safe(c.caution)}</p><small>Evidence: ${safe(c.evidence)}</small><div class="table-links"><a href="${c.source}" target="_blank" rel="noopener">NIH evidence ↗</a><a href="https://www.ncbi.nlm.nih.gov/snp/${c.id}" target="_blank" rel="noopener">dbSNP ↗</a><a href="https://www.ncbi.nlm.nih.gov/clinvar/?term=${c.id}" target="_blank" rel="noopener">ClinVar ↗</a></div></details></td></tr>`;
   }).join('');
   const curatedTable=filtered.length?`<div class="result-table-scroll"><table class="result-table"><thead><tr><th>SNP / Gene</th><th>Research topic</th><th>Genotype</th><th>Meaning & evidence</th></tr></thead><tbody>${rows}</tbody></table></div>`:'<div class="empty">No curated interpretation matches this search.</div>';
-  let otherRows='',shown=0,totalOther=0;
+  let otherRows='',shown=0,totalOther=0,knownOther=0,unknownOther=0,noCallOther=0;
   const curatedIds=new Set(catalog.map(c=>c.id));
-  // Show additional markers without inventing genotype-to-trait interpretations.
-  // Render at most 100 rows to keep large consumer raw files responsive.
-  {
-    for(const [id,call] of records){
-      if(curatedIds.has(id))continue;
-      if(term&&!id.includes(term))continue;
-      totalOther++;
-      if(shown>=100)continue;
-      shown++;
-      const status=call.genotype==='--'||call.genotype==='00'?'No-call':'Raw genotype';
-      const known=inventory?inventory.has(id):false;
-      otherRows+=`<tr><td><strong>${safe(id)}</strong><span class="td-sub">${known?'In marker inventory':'Not in reference / not checked'}</span></td><td>Unreviewed marker</td><td><span class="genotype-chip">${safe(call.genotype)}</span></td><td class="interpretation-cell">No validated interpretation in SNP Reader yet. <span class="td-sub">${status} · Consumer raw data</span><div class="table-links"><a href="https://www.ncbi.nlm.nih.gov/snp/${id}" target="_blank" rel="noopener">dbSNP ↗</a><a href="https://www.ncbi.nlm.nih.gov/clinvar/?term=${id}" target="_blank" rel="noopener">Search ClinVar ↗</a></div></td></tr>`;
-    }
+  const otherLimit=100;
+  const otherFilter=window.__snpOtherFilter||'all';
+  const otherPage=window.__snpOtherPage||0;
+  const otherMatches=[];
+  for(const [id,call] of records){
+    if(curatedIds.has(id)||term&&!id.includes(term))continue;
+    totalOther++;
+    const known=inventory?.has(id)===true;
+    if(known)knownOther++;else unknownOther++;
+    if(isNoCall(call.genotype))noCallOther++;
+    if(otherFilter==='known'&&!known||otherFilter==='missing'&&(known||!inventory)||otherFilter==='called'&&isNoCall(call.genotype))continue;
+    otherMatches.push([id,call,known]);
   }
-  const otherTable=totalOther?`<h3 class="uncurated-heading">Other markers in your file</h3><p class="uncurated-note">Showing ${shown.toLocaleString()} of ${totalOther.toLocaleString()} unreviewed matches${term?' for this search':''}. Search by rsID to find a specific marker. An rsID or a ClinVar search result is not, by itself, a medical finding.</p><div class="result-table-scroll"><table class="result-table"><thead><tr><th>rsID</th><th>Catalog status</th><th>Genotype</th><th>Research links</th></tr></thead><tbody>${otherRows}</tbody></table></div>`:'';
+  const startRow=otherPage*otherLimit;
+  const pageRows=otherMatches.slice(startRow,startRow+otherLimit);
+  shown=pageRows.length;
+  for(const [id,call,known] of pageRows){
+    const status=isNoCall(call.genotype)?'No-call':'Raw genotype';
+    const coverage=inventory?(known?'In reference inventory':'Not in reference inventory'):'Reference inventory unavailable';
+    otherRows+=`<tr><td><strong>${safe(id)}</strong><span class="td-sub">${coverage}</span></td><td>Not clinically reviewed by SNP Reader</td><td><span class="genotype-chip">${safe(call.genotype)}</span></td><td class="interpretation-cell">No validated interpretation here. <span class="td-sub">${status} · Raw DNA result</span><div class="table-links"><a href="https://www.ncbi.nlm.nih.gov/snp/${encodeURIComponent(id)}" target="_blank" rel="noopener noreferrer">dbSNP ↗</a><a href="https://www.ncbi.nlm.nih.gov/clinvar/?term=${encodeURIComponent(id)}" target="_blank" rel="noopener noreferrer">Search ClinVar ↗</a></div></td></tr>`;
+  }
+  const otherTable=totalOther?`<h3 class="uncurated-heading">Markers awaiting interpretation</h3><p class="uncurated-note">These markers are in your DNA file but have no reviewed interpretation in SNP Reader. This does not mean they are harmful, harmless, or absent from scientific research.</p><div class="raw-marker-summary"><span>${totalOther.toLocaleString()} without interpretation</span><span>${knownOther.toLocaleString()} in reference inventory</span><span>${inventory?unknownOther.toLocaleString()+' not in reference inventory':'Inventory unavailable'}</span><span>${noCallOther.toLocaleString()} no-calls</span></div><label for="other-filter">Show markers</label> <select id="other-filter"><option value="all" ${otherFilter==='all'?'selected':''}>All unreviewed</option><option value="known" ${otherFilter==='known'?'selected':''}>In reference inventory</option><option value="missing" ${otherFilter==='missing'?'selected':''} ${!inventory?'disabled':''}>Missing from reference inventory</option><option value="called" ${otherFilter==='called'?'selected':''}>With a genotype call</option></select><p class="uncurated-note">Showing ${shown?startRow+1:0}–${startRow+shown} of ${otherMatches.length.toLocaleString()} filtered markers${term?' matching your search':''}. Reference inventory coverage is not a clinical classification.</p>${shown?`<div class="result-table-scroll"><table class="result-table"><thead><tr><th>rsID</th><th>Catalog coverage</th><th>Your genotype (local only)</th><th>Reference links</th></tr></thead><tbody>${otherRows}</tbody></table></div>`:'<p>No markers match this filter.</p>'}<div class="raw-marker-pagination"><button type="button" id="other-prev" ${otherPage===0?'disabled':''}>← Previous</button><button type="button" id="other-next" ${startRow+shown>=otherMatches.length?'disabled':''}>Next 100 →</button></div>`:'';
   const hits=clinvarMatches().filter(({e})=>!term||[e.id,e.gene,e.condition,e.sig].join(' ').toLowerCase().includes(term));
   let clinicalHtml='', clinicalPrimaryCount=0, clinicalCarrierCount=0, clinicalBenignCount=0;
   {
@@ -418,7 +425,7 @@ function draw(){
   const carrierPanelHtml=`<div id="tab-panel-carrier" class="result-tab-panel" role="tabpanel" aria-labelledby="tab-carrier"><div class="tab-panel-intro"><h3>Carrier information &amp; family planning</h3><p>A single disease-associated variant in a recessive gene may matter if a reproductive partner carries a disease-causing variant for the same condition. <strong>When both are confirmed carriers, each pregnancy typically has a 25% chance of an affected child.</strong> The variants need not be identical. These uploaded calls are <strong>not</strong> confirmed carrier-screening results or diagnoses. <a href="https://medlineplus.gov/genetics/understanding/inheritance/riskassessment/" target="_blank" rel="noopener noreferrer">How recessive inheritance works ↗</a></p></div></div>`;
   const researchPanelHtml=`<div id="tab-panel-research" class="result-tab-panel" role="tabpanel" aria-labelledby="tab-research"><div class="tab-panel-intro"><h3>Traits, nutrition &amp; research associations</h3><p>Genotype-specific educational findings from carefully selected sources, with their evidence and limitations. Some describe potentially useful traits, but a research association does not prove a personal benefit or health outcome. <a href="https://www.ebi.ac.uk/gwas/" target="_blank" rel="noopener noreferrer">Explore the NHGRI–EBI GWAS Catalog ↗</a></p></div>${curatedTable}</div>`;
   const benignPanelHtml=`<div id="tab-panel-benign" class="result-tab-panel" role="tabpanel" aria-labelledby="tab-benign"><div class="tab-panel-intro"><h3>Benign &amp; unreviewed variants</h3><p>A benign variant is not evidence of a disease, and does not automatically confer protection. Raw SNPs without an interpretation are shown for browsing, not as findings.</p></div>${otherTable?`<details class="raw-marker-section"><summary>Browse ${totalOther.toLocaleString()} unreviewed raw SNPs</summary>${otherTable}</details>`:''}</div>`;
-  $('cards').innerHTML=clinicalPanelHtml+carrierPanelHtml+researchPanelHtml+benignPanelHtml;
+  $('cards').innerHTML=clinicalPanelHtml+carrierPanelHtml+researchPanelHtml+benignPanelHtml;\n  $('other-filter')?.addEventListener('change',e=>{window.__snpOtherFilter=e.target.value;window.__snpOtherPage=0;draw()});\n  $('other-prev')?.addEventListener('click',()=>{window.__snpOtherPage=Math.max(0,(window.__snpOtherPage||0)-1);draw()});\n  $('other-next')?.addEventListener('click',()=>{window.__snpOtherPage=(window.__snpOtherPage||0)+1;draw()});
   const clinicalSection=$('tab-panel-clinical').querySelector('.clinvar-section');
   const carrierSection=clinicalSection?.querySelector('.clinvar-secondary');
   const benignSection=clinicalSection?.querySelector('.clinvar-benign');
@@ -455,7 +462,7 @@ function draw(){
   if(openRecessive){const el=$('cards').querySelector('.clinvar-secondary');if(el)el.open=true;}
   if(serpinaWasOpen!==null){const el=$('cards').querySelector('.serpina1-panel');if(el)el.open=serpinaWasOpen;}
 }
-function show(result,label){window.__snpDemo=label==='Fictional sample genome';window.__snpBuild=result.build;records=result.records;refreshContribution();$('results').hidden=false;$('error').hidden=true;$('total').textContent=records.size.toLocaleString();refreshAnnotatedCount();$('nocalls').textContent=[...records.values()].filter(x=>isNoCall(x.genotype)).length.toLocaleString();updateInventoryCount();$('result-summary').textContent=label==='Fictional sample genome'?'Demo only — fictional DNA data for exploring SNP Reader. These are not your personal results.':`${label} · ${result.format}${result.build?' · Genome build '+result.build:''}. Showing curated interpretations; the marker inventory is separate.`;$('search').value='';$('filter').value='all';resultTabTouched=false;activeResultTab=preferredResultTab();draw();$('results').scrollIntoView({behavior:'smooth',block:'start'})}
+function show(result,label){window.__snpOtherFilter='all';window.__snpOtherPage=0;window.__snpDemo=label==='Fictional sample genome';window.__snpBuild=result.build;records=result.records;refreshContribution();$('results').hidden=false;$('error').hidden=true;$('total').textContent=records.size.toLocaleString();refreshAnnotatedCount();$('nocalls').textContent=[...records.values()].filter(x=>isNoCall(x.genotype)).length.toLocaleString();updateInventoryCount();$('result-summary').textContent=label==='Fictional sample genome'?'Demo only — fictional DNA data for exploring SNP Reader. These are not your personal results.':`${label} · ${result.format}${result.build?' · Genome build '+result.build:''}. Showing curated interpretations; the marker inventory is separate.`;$('search').value='';$('filter').value='all';resultTabTouched=false;activeResultTab=preferredResultTab();draw();$('results').scrollIntoView({behavior:'smooth',block:'start'})}
 async function handle(file){
   if(!file)return;
   const status=$('upload-status');
