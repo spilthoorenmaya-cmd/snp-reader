@@ -44,6 +44,8 @@
 .gwas-results h3 { margin:0 0 10px; line-height:1.3; }
 .gwas-results > p { margin:0 0 12px; line-height:1.65; }
 .gwas-results > .result-table-scroll { margin-top:18px; }
+.research-topic-section { padding:20px 0 22px; border-bottom:1px solid #dce6db; }
+.research-topic-section > p a { color:#216f59; font-weight:700; text-decoration:underline; text-underline-offset:2px; }
 .gwas-results .result-table th:nth-child(1) { width:18%; }
 .gwas-results .result-table th:nth-child(2) { width:58%; }
 .gwas-results .result-table th:nth-child(3) { width:24%; }
