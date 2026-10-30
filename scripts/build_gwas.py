@@ -38,6 +38,10 @@ def build(source, inventory, max_per_marker=3):
                 candidate = risk[len(marker) + 1:].upper()
                 if re.fullmatch("[ACGT]", candidate):
                     effect = candidate
+            # Only publish allele-specific associations. Ambiguous or missing
+            # reported alleles cannot be verified against a DNA call locally.
+            if not effect:
+                continue
             record = {
                 "rsid": marker, "trait": trait[:240],
                 "author": (row.get("FIRST AUTHOR") or "").strip()[:100],
@@ -53,7 +57,7 @@ def build(source, inventory, max_per_marker=3):
         "source": "NHGRI-EBI GWAS Catalog associations",
         "generated": datetime.date.today().isoformat(),
         "markerCount": len(by_id), "count": len(entries),
-        "note": "Research associations only. rsID overlap does not establish allele-specific effects.",
+        "note": "Only single-base reported study alleles are included. Matching letters are not strand/build-validated or personal effect predictions.",
         "entries": entries,
     }
 
