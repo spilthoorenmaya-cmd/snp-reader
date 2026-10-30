@@ -1,0 +1,31 @@
+name: Build GWAS reference
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '19 4 * * 1'
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Download public GWAS associations
+        run: |
+          curl --fail --location --retry 3 --output /tmp/gwas.zip https://ftp.ebi.ac.uk/pub/databases/gwas/releases/latest/gwas-catalog-associations_ontology-annotated-full.zip
+          unzip -p /tmp/gwas.zip '*.tsv' > /tmp/gwas.tsv
+          test -s /tmp/gwas.tsv
+      - name: Generate browser dataset
+        run: |
+          python scripts/build_gwas.py --input /tmp/gwas.tsv
+          python -c "import json; d=json.load(open('dist/gwas-evidence.json')); assert d['markerCount'] > 100"
+      - name: Commit dataset
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@users.noreply.github.com
+          git add dist/gwas-evidence.json
+          git diff --cached --quiet || (git commit -m 'Update public GWAS evidence' && git push)
