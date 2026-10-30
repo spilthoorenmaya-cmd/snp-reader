@@ -52,7 +52,38 @@ function preferredResultTab(){
   return 'research';
 }
 
-let inventory=null;
+
+let contributionIds=[];
+function resetContribution(){
+  contributionIds=[];
+  $('contribute').hidden=true;
+  $('contribute-consent').checked=false;
+  $('contribute-download').disabled=true;
+  $('contribute-issue').setAttribute('aria-disabled','true');
+  $('contribute-issue').tabIndex=-1;
+}
+function refreshContribution(){
+  resetContribution();
+  if(!inventory||!records.size||window.__snpDemo)return;
+  contributionIds=[...records.keys()].filter(id=>/^rs[1-9][0-9]*$/.test(id)&&!inventory.has(id)).sort((a,b)=>Number(a.slice(2))-Number(b.slice(2)));
+  if(!contributionIds.length)return;
+  $('contribute-count').textContent=contributionIds.length.toLocaleString()+' rsIDs in your file are not in the current reference inventory.';
+  $('contribute').hidden=false;
+}
+function updateContributionConsent(){
+  const allowed=$('contribute-consent').checked&&contributionIds.length>0;
+  $('contribute-download').disabled=!allowed;
+  $('contribute-issue').setAttribute('aria-disabled',String(!allowed));
+  $('contribute-issue').tabIndex=allowed?0:-1;
+}
+function downloadContribution(){
+  if(!$('contribute-consent').checked||!contributionIds.length)return;
+  const blob=new Blob([contributionIds.join('\\n')+'\\n'],{type:'text/plain'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download='snp-reader-rsids-only.txt';a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+\nlet inventory=null;
 let clinvarEntries=[], clinvarMessage='ClinVar reference catalog has not been generated yet.';
 async function loadClinvar(){
   try{
@@ -422,7 +453,7 @@ function draw(){
   if(openRecessive){const el=$('cards').querySelector('.clinvar-secondary');if(el)el.open=true;}
   if(serpinaWasOpen!==null){const el=$('cards').querySelector('.serpina1-panel');if(el)el.open=serpinaWasOpen;}
 }
-function show(result,label){window.__snpBuild=result.build;records=result.records;$('results').hidden=false;$('error').hidden=true;$('total').textContent=records.size.toLocaleString();refreshAnnotatedCount();$('nocalls').textContent=[...records.values()].filter(x=>isNoCall(x.genotype)).length.toLocaleString();updateInventoryCount();$('result-summary').textContent=label==='Fictional sample genome'?'Demo only — fictional DNA data for exploring SNP Reader. These are not your personal results.':`${label} · ${result.format}${result.build?' · Genome build '+result.build:''}. Showing curated interpretations; the marker inventory is separate.`;$('search').value='';$('filter').value='all';resultTabTouched=false;activeResultTab=preferredResultTab();draw();$('results').scrollIntoView({behavior:'smooth',block:'start'})}
+function show(result,label){window.__snpDemo=label==='Fictional sample genome';window.__snpBuild=result.build;records=result.records;refreshContribution();$('results').hidden=false;$('error').hidden=true;$('total').textContent=records.size.toLocaleString();refreshAnnotatedCount();$('nocalls').textContent=[...records.values()].filter(x=>isNoCall(x.genotype)).length.toLocaleString();updateInventoryCount();$('result-summary').textContent=label==='Fictional sample genome'?'Demo only — fictional DNA data for exploring SNP Reader. These are not your personal results.':`${label} · ${result.format}${result.build?' · Genome build '+result.build:''}. Showing curated interpretations; the marker inventory is separate.`;$('search').value='';$('filter').value='all';resultTabTouched=false;activeResultTab=preferredResultTab();draw();$('results').scrollIntoView({behavior:'smooth',block:'start'})}
 async function handle(file){
   if(!file)return;
   const status=$('upload-status');
@@ -466,4 +497,10 @@ $('context-ancestry').addEventListener('change',updatePersonalContext);
 updatePersonalContext();
 const picker=$('file');
 picker.addEventListener('change',()=>{const selected=picker.files?.[0];if(selected){$('upload-status').textContent=`Selected: ${selected.name}`;handle(selected)}});
-['dragenter','dragover'].forEach(t=>$('drop').addEventListener(t,e=>{e.preventDefault();$('drop').classList.add('drag')}));['dragleave','drop'].forEach(t=>$('drop').addEventListener(t,e=>{e.preventDefault();$('drop').classList.remove('drag')}));$('drop').addEventListener('drop',e=>handle(e.dataTransfer.files[0]));$('demo').addEventListener('click',()=>show(parseDNA(demo),'Fictional sample genome'));$('search').addEventListener('input',draw);$('filter').addEventListener('change',draw);$('clear').addEventListener('click',()=>{records.clear();window.__snpBuild='';$('file').value='';$('context-age').value='';$('context-sex').value='';$('context-ancestry').value='';updatePersonalContext();$('results').hidden=true;$('upload').scrollIntoView({behavior:'smooth'})});$('export').addEventListener('click',()=>{const rows=[['rsID','gene','topic','genotype','interpretation','evidence_source']];for(const c of matches()){const g=c.call?.genotype||'';rows.push([c.id,c.gene,c.title,g,c.meaning,c.source])}const csv=rows.map(r=>r.map(s=>'"'+String(s).replace(/"/g,'""')+'"').join(',')).join('\r\n');const a=document.createElement('a');const url=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.href=url;a.download='snp-reader-curated-results.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)});
+['dragenter','dragover'].forEach(t=>$('drop').addEventListener(t,e=>{e.preventDefault();$('drop').classList.add('drag')}));['dragleave','drop'].forEach(t=>$('drop').addEventListener(t,e=>{e.preventDefault();$('drop').classList.remove('drag')}));$('drop').addEventListener('drop',e=>handle(e.dataTransfer.files[0]));$('demo').addEventListener('click',()=>show(parseDNA(demo),'Fictional sample genome'));$('search').addEventListener('input',draw);$('filter').addEventListener('change',draw);$('clear').addEventListener('click',()=>{resetContribution();records.clear();window.__snpBuild='';$('file').value='';$('context-age').value='';$('context-sex').value='';$('context-ancestry').value='';updatePersonalContext();$('results').hidden=true;$('upload').scrollIntoView({behavior:'smooth'})});$('export').addEventListener('click',()=>{const rows=[['rsID','gene','topic','genotype','interpretation','evidence_source']];for(const c of matches()){const g=c.call?.genotype||'';rows.push([c.id,c.gene,c.title,g,c.meaning,c.source])}const csv=rows.map(r=>r.map(s=>'"'+String(s).replace(/"/g,'""')+'"').join(',')).join('\r\n');const a=document.createElement('a');const url=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.href=url;a.download='snp-reader-curated-results.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)});
+
+$('contribute-consent').addEventListener('change',updateContributionConsent);
+$('contribute-download').addEventListener('click',downloadContribution);
+$('contribute-issue').addEventListener('click',event=>{
+  if(!$('contribute-consent').checked||!contributionIds.length)event.preventDefault();
+});
