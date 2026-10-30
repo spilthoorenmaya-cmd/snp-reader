@@ -11,5 +11,16 @@ test('GWAS overlaps stay research-only even with matching effect allele',()=>{
 });
 test('no-call marker does not imply an effect',()=>{
  const rows=matchGwas(new Map([['rs12',{genotype:'--'}]]),[{rsid:'rs12',effectAllele:'A'}]);
- assert.equal(rows[0].status,'identifier-only');
+ assert.equal(rows.length,0);
+});
+test('only explicitly reported matching alleles are displayed',()=>{
+ const records=new Map([['rs12',{genotype:'AG'}],['rs13',{genotype:'CC'}]]);
+ const rows=matchGwas(records,[
+  {rsid:'rs12',effectAllele:'A'}, {rsid:'rs12',effectAllele:'G'},
+  {rsid:'rs12',effectAllele:'C'}, {rsid:'rs12',effectAllele:''},
+  {rsid:'rs12',effectAllele:'?'}, {rsid:'rs12',effectAllele:'AT'},
+  {rsid:'rs13',effectAllele:'A'}
+ ]);
+ assert.deepEqual(rows.map(row=>row.effectAllele),['A','G']);
+ assert.ok(rows.every(row=>row.alleleCopies===null));
 });
