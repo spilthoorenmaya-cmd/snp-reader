@@ -1137,3 +1137,10 @@ h1,h2,h3,p,.stat strong,.upload-status { overflow-wrap:break-word; }
 .contribute-example>div:last-child strong{color:#6d7573;}
 .contribute-example small{font-size:11px;line-height:1.5;color:#657770;}
 @media(max-width:420px){.contribute-example{grid-template-columns:1fr;}.contribute-example>div{padding:14px;}}
+
+.raw-marker-summary{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0;}
+.raw-marker-summary span{background:#eef5f0;border:1px solid #d8e6db;border-radius:8px;padding:9px 12px;font-size:12px;font-weight:600;color:#285447;}
+#other-filter{max-width:100%;min-height:40px;padding:8px;border:1px solid #b8ccc1;border-radius:8px;background:white;margin:8px 0 12px;}
+.raw-marker-pagination{display:flex;justify-content:flex-end;gap:10px;margin-top:14px;}
+.raw-marker-pagination button{border:1px solid #b8ccc1;border-radius:8px;padding:10px 14px;background:#fff;cursor:pointer;}
+.raw-marker-pagination button:disabled{opacity:.4;cursor:default;}
