@@ -8,6 +8,10 @@ on:
       - "package.json"
       - "scripts/build_clinvar_catalog.py"
       - ".github/workflows/deploy-pages.yml"
+  workflow_run:
+    workflows: ["Build GWAS reference"]
+    types: [completed]
+    branches: [main]
   workflow_dispatch:
 permissions:
   contents: read
@@ -18,6 +22,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   verify:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     name: Gate deployment on DNA parser, allele and live-browser tests
     runs-on: ubuntu-latest
     timeout-minutes: 25
