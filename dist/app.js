@@ -4,6 +4,7 @@ import {interpretSerpina1} from './serpina1.js';
 import {parseDNA, isCalledDiploidSnp, isNoCall} from './dna-parser.js';
 import {curatedMatches, matchClinvar} from './snp-matching.js';
 import {extraCatalog} from './extra-catalog.js';
+import {matchGwas} from './gwas-matching.js';
 import {normalizePersonalContext,personalContextSummary,conditionContextNote} from './personal-context.js';
 import {conditionLabels, conditionBrief, classificationTone, classificationHeadline, genotypeAlleleContext, inheritanceContext, inheritancePattern, inheritanceDisplay, alleleDoseSummary, clinicalDisplayGroup, carrierPlanningNote, isCysticFibrosisCondition, reviewLabel} from './clinvar-display.js';
 // SNP Reader MVP: deliberately static. Uploaded raw DNA never leaves this browser.
@@ -86,6 +87,18 @@ function downloadContribution(){
 }
 
 let inventory=null;
+let gwasEntries=[],gwasMessage='GWAS snapshot not published yet.';
+async function loadGwas(){
+ try{
+  const response=await fetch('gwas-evidence.json',{cache:'no-cache'});
+  if(!response.ok)throw Error('Unavailable');
+  const payload=await response.json();
+  if(!Array.isArray(payload.entries))throw Error('Invalid snapshot');
+  gwasEntries=payload.entries;
+  gwasMessage='GWAS Catalog snapshot '+(payload.generated||'')+' · '+gwasEntries.length.toLocaleString()+' associations';
+ }catch{gwasMessage='Automatic GWAS data is not published yet; external GWAS search links remain available.';}
+ if(records.size)draw();
+}
 let clinvarEntries=[], clinvarMessage='ClinVar reference catalog has not been generated yet.';
 async function loadClinvar(){
   try{
@@ -420,7 +433,10 @@ function draw(){
   }
   const clinicalPanelHtml=`<div id="tab-panel-clinical" class="result-tab-panel" role="tabpanel" aria-labelledby="tab-clinical">${clinicalHtml}</div>`;
   const carrierPanelHtml=`<div id="tab-panel-carrier" class="result-tab-panel" role="tabpanel" aria-labelledby="tab-carrier"><div class="tab-panel-intro"><h3>Carrier information &amp; family planning</h3><p>A single disease-associated variant in a recessive gene may matter if a reproductive partner carries a disease-causing variant for the same condition. <strong>When both are confirmed carriers, each pregnancy typically has a 25% chance of an affected child.</strong> The variants need not be identical. These uploaded calls are <strong>not</strong> confirmed carrier-screening results or diagnoses. <a href="https://medlineplus.gov/genetics/understanding/inheritance/riskassessment/" target="_blank" rel="noopener noreferrer">How recessive inheritance works ↗</a></p></div></div>`;
-  const researchPanelHtml=`<div id="tab-panel-research" class="result-tab-panel" role="tabpanel" aria-labelledby="tab-research"><div class="tab-panel-intro"><h3>Traits, nutrition &amp; research associations</h3><p>Genotype-specific educational findings from carefully selected sources, with their evidence and limitations. Some describe potentially useful traits, but a research association does not prove a personal benefit or health outcome. <a href="https://www.ebi.ac.uk/gwas/" target="_blank" rel="noopener noreferrer">Explore the NHGRI–EBI GWAS Catalog ↗</a></p></div>${curatedTable}</div>`;
+  const gwasHits=matchGwas(records,gwasEntries,100);
+  const gwasRows=gwasHits.map(h=>'<tr><td>'+safe(h.rsid)+'</td><td>'+safe(h.trait)+'</td><td><a target="_blank" rel="noopener noreferrer" href="https://pubmed.ncbi.nlm.nih.gov/'+encodeURIComponent(h.pubmed)+'/">Study ↗</a><span class="td-sub">Research overlap only</span></td></tr>').join('');
+  const gwasHtml='<section class="gwas-results"><h3>GWAS Catalog overlap (local)</h3><p>'+safe(gwasMessage)+'. rsID overlap is not a personal risk prediction.</p>'+(gwasRows?'<p>'+gwasHits.length+' research associations shown (maximum 100).</p><div class="result-table-scroll"><table class="result-table"><thead><tr><th>rsID</th><th>Trait</th><th>Publication</th></tr></thead><tbody>'+gwasRows+'</tbody></table></div>':'<p>No GWAS overlaps available in the current snapshot.</p>')+'</section>';
+  const researchPanelHtml=`<div id="tab-panel-research" class="result-tab-panel" role="tabpanel" aria-labelledby="tab-research"><div class="tab-panel-intro"><h3>Traits, nutrition &amp; research associations</h3><p>Genotype-specific educational findings from carefully selected sources, with their evidence and limitations. Some describe potentially useful traits, but a research association does not prove a personal benefit or health outcome. <a href="https://www.ebi.ac.uk/gwas/" target="_blank" rel="noopener noreferrer">Explore the NHGRI–EBI GWAS Catalog ↗</a></p></div>${curatedTable}${gwasHtml}</div>`;
   const benignPanelHtml=`<div id="tab-panel-benign" class="result-tab-panel" role="tabpanel" aria-labelledby="tab-benign"><div class="tab-panel-intro"><h3>Benign &amp; unreviewed variants</h3><p>A benign variant is not evidence of a disease, and does not automatically confer protection. Raw SNPs without an interpretation are shown for browsing, not as findings.</p></div>${otherTable?`<details class="raw-marker-section"><summary>Browse ${totalOther.toLocaleString()} unreviewed raw SNPs</summary>${otherTable}</details>`:''}</div>`;
   $('cards').innerHTML=clinicalPanelHtml+carrierPanelHtml+researchPanelHtml+benignPanelHtml;
   $('other-filter')?.addEventListener('change',e=>{window.__snpOtherFilter=e.target.value;window.__snpOtherPage=0;draw()});
@@ -500,6 +516,7 @@ $('inventory-button').addEventListener('click',lookupInventory);
 $('inventory-search').addEventListener('keydown',e=>{if(e.key==='Enter')lookupInventory()});
 loadInventory();
 loadClinvar();
+loadGwas();
 $('context-age').addEventListener('input',updatePersonalContext);
 $('context-sex').addEventListener('change',updatePersonalContext);
 $('context-ancestry').addEventListener('change',updatePersonalContext);
