@@ -295,7 +295,7 @@ test('real browser: age, sex and ancestry are optional, private and never change
     assert.equal(await page.locator('#context-age').inputValue(),'');
     assert.equal(await page.locator('#context-sex').inputValue(),'');
     assert.equal(await page.locator('#context-ancestry').inputValue(),'');
-    assert.equal(await page.locator('.clinvar-gene-context').count(),0);
+    assert.equal(await page.locator('.context-compact').count(),0);
 
     await page.locator('#context-age').fill('35');
     await page.locator('#context-sex').selectOption('female');
@@ -601,7 +601,7 @@ test('rsID contribution is opt-in, excludes known IDs, and never includes genoty
     )});
     await page.locator('#contribute').waitFor({state:'visible'});
     assert.equal(await page.locator('#contribute-download').isDisabled(),true);
-    assert.match(await page.locator('#contribute-count').innerText(),/1 rsID/);
+    assert.match(await page.locator('#contribute-count').innerText(),/1 genomic marker positions \(identified by rsID\)/);
     await page.locator('#contribute-consent').check();
     const downloadPromise=page.waitForEvent('download');
     await page.locator('#contribute-download').click();
