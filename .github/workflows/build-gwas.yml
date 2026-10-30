@@ -1,5 +1,8 @@
 name: Build GWAS reference
 on:
+  push:
+    paths:
+      - '.github/workflows/build-gwas.yml'
   workflow_dispatch:
   schedule:
     - cron: '19 4 * * 1'
