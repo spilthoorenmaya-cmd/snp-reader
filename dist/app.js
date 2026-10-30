@@ -329,7 +329,7 @@ function draw(){
           : 'Each result concerns an individual variant—not the entire gene. A benign finding does not rule out other variants.';
         const contextNote=conditionContextNote(geneHits.map(h=>h.e.condition),personalContext);
         const contextHtml=contextNote
-          ? `<p class="clinvar-gene-context"><strong>Personal context (self-reported):</strong> ${safe(contextNote)}</p>`
+          ? `<details class="context-compact"><summary>Personal context may affect interpretation <span aria-hidden="true">ⓘ</span></summary><p>${safe(contextNote)}</p></details>`
           : '';
         // A gene with one record needs one full-width card, not a nested group.
         if(geneHits.length===1){
@@ -370,9 +370,6 @@ function draw(){
         <p class="clinvar-secondary-note">Benign and likely benign variants are generally not disease-causing for their listed conditions. One example is shown below, chosen for its source review status—not because it is more important or protective. These findings cannot rule out other variants in the gene.</p>
         <div class="clinvar-benign-example">
           <div class="clinvar-benign-example-caption"><strong>One example</strong><span>${safe(benignSelection.example?.e?.gene||'')} · ${safe(benignSelection.example?.e?.id||'')}</span></div>
-          ${benignSelection.example&&conditionContextNote([benignSelection.example.e.condition],personalContext)
-            ?`<p class="clinvar-gene-context"><strong>Personal context (self-reported):</strong> ${safe(conditionContextNote([benignSelection.example.e.condition],personalContext))}</p>`
-            :''}
           ${benignHtml}
         </div>
         ${otherBenignHtml?`<details class="clinvar-benign-rest">
