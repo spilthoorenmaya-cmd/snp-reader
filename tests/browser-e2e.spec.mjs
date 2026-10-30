@@ -592,3 +592,31 @@ test('real browser: GitHub Pages favicon resolves and privacy uses a lock, not a
     assert.match(await page.locator('.drop .local-note').innerText(),/Your file is never sent/);
   }finally{await page.close()}
 });
+
+test('rsID contribution is opt-in, excludes known IDs, and never includes genotypes',async()=>{
+  const page=await pageReady();
+  try{
+    await page.locator('#file').setInputFiles({name:'synthetic.txt',mimeType:'text/plain',buffer:Buffer.from(
+      '# genome build 37\\nrsid\\tchromosome\\tposition\\tgenotype\\nrs762551\\t15\\t74749576\\tAA\\nrs987654321\\t1\\t123456\\tAG\\n'
+    )});
+    await page.locator('#contribute').waitFor({state:'visible'});
+    assert.equal(await page.locator('#contribute-download').isDisabled(),true);
+    assert.match(await page.locator('#contribute-count').innerText(),/1 rsID/);
+    await page.locator('#contribute-consent').check();
+    const downloadPromise=page.waitForEvent('download');
+    await page.locator('#contribute-download').click();
+    const download=await downloadPromise;
+    const stream=await download.createReadStream();
+    const chunks=[];for await(const chunk of stream)chunks.push(chunk);
+    assert.equal(Buffer.concat(chunks).toString(),'rs987654321\\n');
+    await page.locator('#clear').click();
+    assert.equal(await page.locator('#contribute').isVisible(),false);
+  }finally{await page.close()}
+});
+test('fictional sample never offers contribution',async()=>{
+  const page=await pageReady();
+  try{
+    await page.locator('#demo').click();
+    assert.equal(await page.locator('#contribute').isVisible(),false);
+  }finally{await page.close()}
+});
