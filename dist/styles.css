@@ -1144,3 +1144,10 @@ h1,h2,h3,p,.stat strong,.upload-status { overflow-wrap:break-word; }
 .raw-marker-pagination{display:flex;justify-content:flex-end;gap:10px;margin-top:14px;}
 .raw-marker-pagination button{border:1px solid #b8ccc1;border-radius:8px;padding:10px 14px;background:#fff;cursor:pointer;}
 .raw-marker-pagination button:disabled{opacity:.4;cursor:default;}
+
+.research-explorer-guide{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:16px 0;}
+.research-explorer-guide>div{background:#f3f8f5;border:1px solid #d9e7dd;border-radius:12px;padding:16px;}
+.research-explorer-guide strong{font-size:14px;color:#204e3c;}
+.research-explorer-guide p{font-size:12px;line-height:1.6;margin:7px 0;color:#4d6256;}
+.research-explorer-guide a{font-size:12px;}
+@media(max-width:600px){.research-explorer-guide{grid-template-columns:1fr;}}
