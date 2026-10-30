@@ -597,7 +597,7 @@ test('rsID contribution is opt-in, excludes known IDs, and never includes genoty
   const page=await pageReady();
   try{
     await page.locator('#file').setInputFiles({name:'synthetic.txt',mimeType:'text/plain',buffer:Buffer.from(
-      '# genome build 37\\nrsid\\tchromosome\\tposition\\tgenotype\\nrs762551\\t15\\t74749576\\tAA\\nrs987654321\\t1\\t123456\\tAG\\n'
+      '# genome build 37\nrsid\tchromosome\tposition\tgenotype\nrs762551\t15\t74749576\tAA\nrs987654321\t1\t123456\tAG\n'
     )});
     await page.locator('#contribute').waitFor({state:'visible'});
     assert.equal(await page.locator('#contribute-download').isDisabled(),true);
@@ -608,7 +608,7 @@ test('rsID contribution is opt-in, excludes known IDs, and never includes genoty
     const download=await downloadPromise;
     const stream=await download.createReadStream();
     const chunks=[];for await(const chunk of stream)chunks.push(chunk);
-    assert.equal(Buffer.concat(chunks).toString(),'rs987654321\\n');
+    assert.equal(Buffer.concat(chunks).toString(),'rs987654321\n');
     await page.locator('#clear').click();
     assert.equal(await page.locator('#contribute').isVisible(),false);
   }finally{await page.close()}
