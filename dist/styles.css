@@ -1014,3 +1014,105 @@ h1,h2,h3,p,.stat strong,.upload-status { overflow-wrap:break-word; }
   .hero h1 { font-size:clamp(29px,8.1vw,34px); }
   .hero .floating-card { padding:10px; gap:9px; }
 }
+
+/* Mobile hero redesign: layered DNA artwork, centered evidence card.
+   Desktop hero is intentionally unchanged. */
+@media (max-width:800px) {
+  .hero {
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    isolation:isolate;
+    background:#102f29;
+    overflow:hidden;
+  }
+  .hero::before {
+    content:"";
+    position:absolute;
+    inset:0;
+    z-index:-2;
+    pointer-events:none;
+    background:url("dna-hero.png") center center / cover no-repeat;
+    opacity:.22;
+  }
+  .hero::after {
+    content:"";
+    position:absolute;
+    inset:0;
+    z-index:-1;
+    pointer-events:none;
+    background:linear-gradient(180deg,rgba(12,43,37,.6),rgba(12,43,37,.36) 52%,rgba(12,43,37,.65));
+  }
+  .hero-copy {
+    width:100%;
+    max-width:100%;
+    padding:58px 24px 18px;
+    text-align:center;
+    position:relative;
+    z-index:1;
+  }
+  .hero h1 {
+    font-size:clamp(32px,7.2vw,48px);
+    line-height:1.15;
+    letter-spacing:-1.5px;
+    max-width:100%;
+    margin:22px auto 20px;
+    overflow-wrap:normal;
+  }
+  .hero h1 em { display:inline; overflow-wrap:normal; }
+  .hero .lead {
+    max-width:520px;
+    margin:0 auto;
+    font-size:clamp(14px,3.7vw,17px);
+    line-height:1.7;
+    color:#d8e4de;
+  }
+  .hero-cta-stack { display:flex; width:min(100%,420px); margin:0 auto; }
+  .hero-actions { flex-direction:column; gap:12px; margin-top:30px; }
+  .hero-actions .btn {
+    width:100%;
+    min-height:52px;
+    justify-content:center;
+    text-align:center;
+    gap:16px;
+  }
+  .hero .trust { justify-content:center; gap:8px; margin-top:22px; }
+  .hero .trust span { font-size:11px; }
+  .hero-art {
+    position:static;
+    height:auto;
+    min-height:0;
+    width:100%;
+    overflow:visible;
+    background:none;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px 20px 55px;
+  }
+  .hero-art::before { display:none; }
+  .hero .floating-card {
+    position:relative;
+    inset:auto;
+    width:min(100%,340px);
+    max-width:100%;
+    margin:0 auto;
+    padding:18px 20px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    text-align:center;
+    gap:10px;
+    border-radius:18px;
+    box-shadow:0 15px 40px rgba(0,0,0,.15);
+  }
+  .hero .floating-card .check { flex:none; }
+  .hero .floating-card b { display:block; font-size:17px; line-height:1.35; }
+  .hero .floating-card small { font-size:12px; line-height:1.5; }
+}
+@media (max-width:380px) {
+  .hero-copy { padding:45px 16px 14px; }
+  .hero h1 { font-size:clamp(29px,8.2vw,34px); letter-spacing:-1.2px; }
+  .hero-art { padding:18px 16px 42px; }
+  .hero .floating-card { padding:16px; }
+}
