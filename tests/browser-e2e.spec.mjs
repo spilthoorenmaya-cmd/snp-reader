@@ -305,12 +305,12 @@ test('real browser: age, sex and ancestry are optional, private and never change
     assert.match(await page.locator('#context-summary').innerText(),/Multiple \/ mixed backgrounds/);
     assert.equal(await benign.evaluate(el=>el.open),true);
     assert.equal(await page.locator('.clinvar-card--benign').count(),1);
-    assert.match(await page.locator('.clinvar-gene-context').innerText(),/Age matters for population cancer rates/);
-    assert.match(await page.locator('.clinvar-gene-context').innerText(),/Sex-related anatomy/);
-    assert.match(await page.locator('.clinvar-gene-context').innerText(),/Genetic studies may have unequal representation/);
+    assert.match(await page.locator('.context-compact').innerText(),/Age matters for population cancer rates/);
+    assert.match(await page.locator('.context-compact').innerText(),/Sex-related anatomy/);
+    assert.match(await page.locator('.context-compact').innerText(),/Genetic studies may have unequal representation/);
     assert.equal(await page.locator('.clinvar-classification--benign').count(),1);
     assert.equal(await page.locator('.clinvar-dose-status--benign').count(),0);
-    assert.doesNotMatch(await page.locator('.clinvar-gene-context').innerText(),/\d+%|increased risk|average risk/i);
+    assert.doesNotMatch(await page.locator('.context-compact').innerText(),/\d+%|increased risk|average risk/i);
     assert.deepEqual(outgoing,[]);
 
     await page.locator('#clear').click();
