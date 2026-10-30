@@ -24,6 +24,24 @@ body {
 button,input,select {
   font:inherit
 }
+/* Use the same inset chevron on every native dropdown, including those
+   created dynamically for the unreviewed-marker explorer. */
+select {
+  appearance:none;
+  -webkit-appearance:none;
+  min-height:44px;
+  padding:10px 42px 10px 14px;
+  background-color:#fff;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2339574b' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:right 14px center;
+  background-size:16px 16px;
+  cursor:pointer;
+}
+select:focus-visible {
+  outline:2px solid #3d9271;
+  outline-offset:2px;
+}
 button {
   cursor:pointer
 }
@@ -403,8 +421,8 @@ h1 em {
 .toolbar select {
   border:1px solid #d9e3d9;
   border-radius:9px;
-  padding:0 15px;
-  background:white;
+  padding:10px 42px 10px 15px;
+  background-color:white;
   color:#39564c;
   font-size:13px
 }
@@ -750,6 +768,7 @@ footer p,footer a {
   font:500 13px 'DM Sans',sans-serif;
   min-height:44px
 }
+.personal-context-fields select { padding-right:42px; }
 .personal-context-fields input:focus-visible,.personal-context-fields select:focus-visible {
   border-color:#3d9271;
   outline:2px solid #83c2a1;
@@ -1140,7 +1159,7 @@ h1,h2,h3,p,.stat strong,.upload-status { overflow-wrap:break-word; }
 
 .raw-marker-summary{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0;}
 .raw-marker-summary span{background:#eef5f0;border:1px solid #d8e6db;border-radius:8px;padding:9px 12px;font-size:12px;font-weight:600;color:#285447;}
-#other-filter{max-width:100%;min-height:40px;padding:8px;border:1px solid #b8ccc1;border-radius:8px;background:white;margin:8px 0 12px;}
+#other-filter{max-width:100%;min-height:44px;padding:10px 42px 10px 14px;border:1px solid #b8ccc1;border-radius:8px;background-color:white;margin:8px 0 12px;}
 .raw-marker-pagination{display:flex;justify-content:flex-end;gap:10px;margin-top:14px;}
 .raw-marker-pagination button{border:1px solid #b8ccc1;border-radius:8px;padding:10px 14px;background:#fff;cursor:pointer;}
 .raw-marker-pagination button:disabled{opacity:.4;cursor:default;}
