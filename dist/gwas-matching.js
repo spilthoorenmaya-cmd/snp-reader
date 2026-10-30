@@ -8,15 +8,17 @@ export function matchGwas(records, entries, limit=150) {
     if (!call) continue;
     const genotype=String(call.genotype||'').toUpperCase();
     const effect=String(entry.effectAllele||'').toUpperCase();
-    const alleleValid=/^[ACGT]$/.test(effect);
-    const genotypeValid=/^[ACGT]{2}$/.test(genotype);
-    // GWAS Catalog's risk allele often has no unambiguous strand/build.
-    // Never infer a personal effect when allele orientation is not validated.
+    // Only show associations with an explicitly reported, single-base allele
+    // present in a called diploid genotype. Unknown alleles and no-calls fail
+    // closed; rsID overlap by itself is not an allele match.
+    if (!/^[ACGT]$/.test(effect) || !/^[ACGT]{2}$/.test(genotype) || !genotype.includes(effect)) continue;
+    // Strand/build have not been independently validated. This is only a
+    // letter-level overlap, not an inferred effect or personal risk.
     matches.push({
       ...entry, genotype,
       alleleCopies: null,
-      status: alleleValid&&genotypeValid?'research-only':'identifier-only',
-      explanation: 'This rsID occurs in a published association. Allele orientation and genome-build compatibility have not been independently validated; no personal effect or risk is inferred.'
+      status: 'research-only',
+      explanation: 'The reported study allele is present in your local call. Allele orientation and genome-build compatibility have not been independently validated; no personal effect or risk is inferred.'
     });
   }
   return matches;
