@@ -78,7 +78,7 @@ function updateContributionConsent(){
 }
 function downloadContribution(){
   if(!$('contribute-consent').checked||!contributionIds.length)return;
-  const blob=new Blob([contributionIds.join('\\n')+'\\n'],{type:'text/plain'});
+  const blob=new Blob([contributionIds.join(String.fromCharCode(10))+String.fromCharCode(10)],{type:'text/plain'});
   const url=URL.createObjectURL(blob),a=document.createElement('a');
   a.href=url;a.download='snp-reader-rsids-only.txt';a.click();
   setTimeout(()=>URL.revokeObjectURL(url),1000);
